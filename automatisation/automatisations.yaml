@@ -1,0 +1,1892 @@
+
+- id: "1742813069633"
+  alias: test repeat.item
+  description: ""
+  triggers: []
+  conditions: []
+  actions:
+    - repeat:
+        for_each:
+          - light.awtrix_ulanzi_matrix
+          - light.awtrix_salon_matrix
+          - light.ambi
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ is_state(repeat.item, 'on') }}"
+                sequence:
+                  - action: light.turn_off
+                    data: {}
+                    target:
+                      entity_id: "{{ repeat.item }}"
+  mode: single
+- id: "1742815162698"
+  alias: Sunrise sunset volets (repeat.item)
+  description: gestion volets au levé et couché du soleil
+  triggers:
+    - event: sunset
+      offset: 00:30:00
+      id: sunset
+      trigger: sun
+    - event: sunrise
+      offset: 0
+      id: sunrise
+      trigger: sun
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                '{{ trigger.id == "sunset" and states("person.canabang") ==
+                "home" and states("input_text.jour_nuit") == "jour" }}'
+          sequence:
+            - variables:
+                volets:
+                  - cover.volsal
+                  - cover.volsam
+                  - cover.volcui
+                  - cover.volsdb
+            - condition: template
+              value_template:
+                "{{ volets | selectattr('states(_)', 'eq', 'open') |
+                list | count > 0 }}"
+              alias: si au moins 1 volet ouvert
+            - action: script.activate_alexa_actionable_notification
+              data:
+                text: Monsieur, dois-je fermer les volets ?
+                event_id: actionable_notification_fermeture_volets
+                alexa_device: "{{ state_attr('sensor.presence_piece', 'echo') }}
+
+                  "
+          alias: sunset, présent, jour
+        - conditions:
+            - alias: sunset, absent, jour
+              condition: template
+              value_template:
+                '{{ trigger.id == "sunset" and states("person.canabang") !=
+                "home" }}'
+          sequence:
+            - variables:
+                volets:
+                  - cover.volsal
+                  - cover.volsam
+                  - cover.volcui
+                  - cover.volsdb
+            - choose:
+                - conditions:
+                    - condition: time
+                      before: "18:00:00"
+                  sequence:
+                    - wait_for_trigger:
+                        - at: "18:00:00"
+                          trigger: time
+                      alias: attendre 18:00
+                    - repeat:
+                        for_each: "{{ volets }}"
+                        sequence:
+                          - condition: template
+                            value_template: "{{ states(repeat.item) == 'open' }}"
+                            alias: si le volet est ouvert
+                          - target:
+                              entity_id: "{{ repeat.item }}"
+                            action: cover.close_cover
+                - conditions:
+                    - condition: time
+                      after: "18:00:00"
+                  sequence:
+                    - repeat:
+                        for_each: "{{ volets }}"
+                        sequence:
+                          - condition: template
+                            value_template: "{{ states(repeat.item) == 'open' }}"
+                            alias: si le volet est ouvert
+                          - target:
+                              entity_id: "{{ repeat.item }}"
+                            action: cover.close_cover
+        - conditions:
+            - condition: template
+              value_template:
+                '{{ trigger.id == "sunrise" and states("person.canabang")
+                == "home" and states("input_text.jour_nuit") == "jour" }}'
+              alias: sunrise, présent, jour
+          sequence:
+            - variables:
+                volets:
+                  - cover.volsal
+                  - cover.volsam
+                  - cover.volcui
+                  - cover.volsdb
+            - condition: template
+              value_template:
+                "{{ volets | selectattr('states(_)', 'eq', 'closed')
+                | list | count > 0 }}"
+              alias: si au moins 1 volet fermé
+            - action: script.activate_alexa_actionable_notification
+              data:
+                text: Monsieur, puis-je ouvrir les volets ?
+                event_id: actionable_notification_ouverture_volets
+                alexa_device: "{{ state_attr('sensor.presence_piece', 'echo') }}
+
+                  "
+          alias: sunrise, présent, jour
+        - conditions:
+            - alias: sunrise, présent, nuit
+              condition: template
+              value_template:
+                '{{ trigger.id == "sunrise" and states("person.canabang")
+                == "home" and states("input_text.jour_nuit") == "nuit" }}'
+          sequence:
+            - wait_for_trigger:
+                - entity_id:
+                    - input_text.jour_nuit
+                  to: jour
+                  trigger: state
+            - delay:
+                hours: 0
+                minutes: 15
+                seconds: 0
+                milliseconds: 0
+            - variables:
+                volets:
+                  - cover.volsal
+                  - cover.volsam
+                  - cover.volcui
+                  - cover.volsdb
+            - condition: template
+              value_template:
+                "{{ volets | selectattr('states(_)', 'eq', 'closed')
+                | list | count > 0 }}"
+              alias: si au moins 1 volet fermé
+            - action: script.activate_alexa_actionable_notification
+              data:
+                text: Monsieur, puis-je ouvrir les volets ?
+                event_id: actionable_notification_ouverture_volets
+                alexa_device: "{{ state_attr('sensor.presence_piece', 'echo') }}
+
+                  "
+          alias: sunrise, présent, nuit
+        - conditions:
+            - alias: sunrise, absent, jour
+              condition: template
+              value_template:
+                '{{ trigger.id == "sunrise" and states("person.canabang")
+                != "home" }}'
+          sequence:
+            - variables:
+                volets:
+                  - cover.volsal
+                  - cover.volsam
+                  - cover.volcui
+                  - cover.volsdb
+            - choose:
+                - conditions:
+                    - condition: time
+                      before: 07:00:00
+                  sequence:
+                    - alias: attendre 07:00
+                      wait_for_trigger:
+                        - at: 07:00:00
+                          trigger: time
+                    - repeat:
+                        for_each: "{{ volets }}"
+                        sequence:
+                          - condition: template
+                            value_template: "{{ states(repeat.item) == 'closed' }}"
+                            alias: si le volet est fermé
+                          - target:
+                              entity_id: "{{ repeat.item }}"
+                            action: cover.open_cover
+                - conditions:
+                    - condition: time
+                      after: 07:00:00
+                  sequence:
+                    - repeat:
+                        for_each: "{{ volets }}"
+                        sequence:
+                          - condition: template
+                            value_template: "{{ states(repeat.item) == 'closed' }}"
+                            alias: si le volet est fermé
+                          - target:
+                              entity_id: "{{ repeat.item }}"
+                            action: cover.open_cover
+  mode: single
+- id: "1742816539757"
+  alias: present absent (repeat.item)
+  description: ""
+  triggers:
+    - entity_id:
+        - sensor.etat_canabang_et_device_tracker
+      to: home
+      id: home
+      for:
+        hours: 0
+        minutes: 1
+        seconds: 0
+      trigger: state
+    - entity_id:
+        - sensor.etat_canabang_et_device_tracker
+      to: not_home
+      id: not_home
+      trigger: state
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - home
+          sequence:
+            - action: input_text.set_value
+              metadata: {}
+              data:
+                value: present
+              target:
+                entity_id: input_text.present_absent
+              alias: present
+            - sequence:
+                - action: media_player.volume_set
+                  metadata: {}
+                  data:
+                    volume_level: 0.2
+                  target:
+                    entity_id:
+                      "{{ state_attr('sensor.presence_piece', 'echo') }}
+
+                      "
+                  enabled: false
+                - action: media_player.play_media
+                  target:
+                    entity_id:
+                      "{{ state_attr('sensor.presence_piece', 'echo') }}
+
+                      "
+                  data:
+                    media_content_type: routine
+                    media_content_id: Bienvenue
+                  alias: routine bienvenue
+                  enabled: false
+                - action: google_generative_ai_conversation.generate_content
+                  data:
+                    prompt:
+                      'Génère un message de bienvenue pour moi, Gaël, qui vient de rentrer
+                      a la maison.
+
+                      Le ton doit être léger, un peu sarcastique mais jamais méchant ni agressif.
+
+                      Inspire-toi du style d’un droïde reprogrammé, type K-2SO dans Star Wars
+                      : direct, pince-sans-rire, mais au fond serviable.
+
+                      Tu peux glisser des références subtiles à Star Wars ou à la pop culture
+                      si c’est pertinent.
+
+                      Le message doit être court, adapté au TTS, sans smileys ni émoticônes.
+
+                      Évite toute formulation insultante ou violente.
+
+                      Sois factuel mais avec une touche d’humour discret.
+
+
+                      Exemples de ton attendu :
+
+
+                      "Bienvenue chez vous... encore une fois."
+
+
+                      "Détection de présence confirmée. Espérons que tout fonctionne cette
+                      fois."
+
+
+                      "Vous êtes de retour. Les capteurs l’avaient prédit."
+
+
+                      "Accueil activé. Essayons de ne pas tout faire planter."
+
+
+                      Génère seulement le message, sans balise ni explication.'
+                  response_variable: generated_message
+                - action: script.1717220445110
+                  data:
+                    message: "{{ generated_message.text }}"
+            - alias: therm confort
+              parallel:
+                - repeat:
+                    for_each:
+                      - climate.therm_sejour
+                      - climate.therm_sdb
+                    sequence:
+                      - choose:
+                          - conditions:
+                              - condition: template
+                                value_template: "{{ is_state(repeat.item, 'heat') }}"
+                            sequence:
+                              - choose:
+                                  - conditions:
+                                      - condition: template
+                                        value_template:
+                                          "{{ not is_state_attr(repeat.item, 'preset_mode',
+                                          'comfort') }}"
+                                    sequence:
+                                      - action: climate.set_preset_mode
+                                        metadata: {}
+                                        data:
+                                          preset_mode: comfort
+                                        target:
+                                          entity_id: "{{ repeat.item }}"
+            - repeat:
+                for_each:
+                  - light.awtrix_salon_matrix
+                  - light.awtrix_ulanzi_matrix
+                sequence:
+                  - action: light.turn_on
+                    metadata: {}
+                    data: {}
+                    target:
+                      entity_id: "{{ repeat.item }}"
+            - data:
+                broadcast_port: 9
+                mac: 60:a4:4c:3e:12:6f
+                broadcast_address: 192.168.1.78
+              action: wake_on_lan.send_magic_packet
+              alias: reveil pc
+            - delay:
+                hours: 0
+                minutes: 0
+                seconds: 15
+                milliseconds: 0
+            - action: script.activate_alexa_actionable_notification
+              data:
+                text: Monsieur, voulez vous votre musique ?
+                event_id: musique
+                alexa_device: "{{ state_attr('sensor.presence_piece', 'echo') }}
+
+                  "
+              alias: demande pour la musique
+          alias: home
+        - conditions:
+            - condition: trigger
+              id:
+                - not_home
+          sequence:
+            - alias: absent
+              action: input_text.set_value
+              metadata: {}
+              data:
+                value: absent
+              target:
+                entity_id: input_text.present_absent
+            - alias: therm eco
+              parallel:
+                - repeat:
+                    for_each:
+                      - climate.therm_sejour
+                      - climate.therm_sdb
+                    sequence:
+                      - choose:
+                          - conditions:
+                              - condition: template
+                                value_template: "{{ is_state(repeat.item, 'heat') }}"
+                            sequence:
+                              - choose:
+                                  - conditions:
+                                      - condition: template
+                                        value_template:
+                                          "{{ not is_state_attr(repeat.item, 'preset_mode',
+                                          'eco') }}"
+                                    sequence:
+                                      - action: climate.set_preset_mode
+                                        metadata: {}
+                                        data:
+                                          preset_mode: eco
+                                        target:
+                                          entity_id: "{{ repeat.item }}"
+                                    alias: eco
+            - action: button.press
+              metadata: {}
+              data: {}
+              target:
+                entity_id: button.pc_debian_shutdown
+              enabled: true
+            - repeat:
+                for_each:
+                  - light.awtrix_salon_matrix
+                  - light.awtrix_ulanzi_matrix
+                sequence:
+                  - action: light.turn_off
+                    metadata: {}
+                    data: {}
+                    target:
+                      entity_id: "{{ repeat.item }}"
+            - alias: verif lumieres
+              parallel:
+                - repeat:
+                    for_each:
+                      - light.hue_salon
+                      - light.hue_sam
+                      - light.hue_cuisine
+                      - light.hue_chambre
+                      - light.hue_sdb
+                      - light.ambi
+                    sequence:
+                      - choose:
+                          - conditions:
+                              - condition: template
+                                value_template: "{{ is_state(repeat.item, 'on') }}"
+                            sequence:
+                              - action: light.turn_off
+                                metadata: {}
+                                data: {}
+                                target:
+                                  entity_id: "{{ repeat.item }}"
+            - alias: si musique en cours
+              choose:
+                - conditions:
+                    - condition: state
+                      entity_id: media_player.spotifyplus_gael
+                      state: playing
+                  sequence:
+                    - action: media_player.media_pause
+                      metadata: {}
+                      data: {}
+                      target:
+                        entity_id: media_player.spotifyplus_gael
+            - action: media_player.volume_set
+              metadata: {}
+              data:
+                volume_level: 0.13
+              target:
+                entity_id: media_player.partout_2
+              alias: vol 13% partout
+          alias: not_home
+  mode: single
+- id: "1742818811754"
+  alias: surveillance frigos 02
+  description: Alerte vocale pour les portes de réfrigérateurs ouvertes
+  triggers:
+    - entity_id:
+        - sensor.portes_frigos_02
+      for:
+        hours: 0
+        minutes: 1
+        seconds: 0
+      trigger: state
+  conditions:
+    - condition: template
+      value_template: "{{ states('sensor.portes_frigos_02').split(' ')[0] | int
+        > 0 }}"
+  actions:
+    - repeat:
+        sequence:
+          - variables:
+              nombre_de_porte:
+                "{{ state_attr('sensor.portes_frigos_02', 'Nombre_de_porte')
+                | int }}"
+              liste_portes:
+                "{{ state_attr('sensor.portes_frigos_02', 'Nom_de_porte').split(',
+                ') }}"
+              message:
+                "{% if nombre_de_porte == 1 %}\n  La porte du {{ liste_portes[0]
+                }} est ouverte.\n{% elif nombre_de_porte == 2 %}\n  Les portes du {{ liste_portes[0]
+                }} et du {{ liste_portes[1] }} sont ouvertes.\n{% elif nombre_de_porte
+                == 3 %}\n  Les portes du {{ liste_portes[0] }}, du {{ liste_portes[1]
+                }} et du {{ liste_portes[2] }} sont ouvertes.\n{% else %}\n  {{ nombre_de_porte
+                }} portes de réfrigérateurs sont ouvertes.\n{% endif %}"
+          - action: script.1717220445110
+            data:
+              message: "{{ message }}"
+          - action: script.awtrix_dynamique_customapp_dupliquer
+            data:
+              icone: fridge_open
+              rainbow: "false"
+              scrollspeed: "50"
+              color: "#2e8b57"
+              duree: "25"
+              message: "{{ message }}"
+          - delay:
+              hours: 0
+              minutes: 1
+              seconds: 10
+              milliseconds: 0
+        while:
+          - condition: template
+            value_template:
+              "{{ state_attr('sensor.portes_frigos_02', 'Nombre_de_porte')
+              | int > 0 }}"
+  mode: single
+- id: "1744356801864"
+  alias: customapp lumieres 02
+  description: ""
+  triggers:
+    - entity_id:
+        - sensor.lumieres_allumees
+      id: lumieres
+      trigger: state
+  conditions: []
+  actions:
+    - variables:
+        message: "{{ 'Lumieres' + ' : ' + states('sensor.lumieres_allumees') }}
+
+          "
+        color:
+          "{% set state = states('sensor.lumieres_allumees') %} \n{% if state ==
+          '0' %}\n  #D3D3D3\n{% else %}\n  #FFD700\n{% endif %}\n"
+        icon:
+          "{% set state = states('sensor.lumieres_allumees')  %}\n{% if state ==
+          '0' %}\n  lumoff\n{% else %}\n  lumon\n{% endif %}\n"
+    - action: script.awtrix_dynamique_customapp_dupliquer
+      data:
+        icone: "{{ icon }}"
+        rainbow: "false"
+        scrollspeed: "50"
+        color: "{{ color }}"
+        duree: "25"
+        customapp: lumieres
+        message: "{{ message }}"
+  mode: single
+- id: "1744357302342"
+  alias: Customapp musique 02
+  description: ""
+  triggers:
+    - alias: Lorsque titre de partout change
+      entity_id:
+        - media_player.spotifyplus_gael
+      id: titre_change
+      trigger: state
+      attribute: media_title
+    - entity_id:
+        - media_player.spotifyplus_gael
+      id: lecture_pause
+      enabled: true
+      trigger: state
+      from: playing
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - titre_change
+          sequence:
+            - variables:
+                artist_titre:
+                  '{{ state_attr(''media_player.spotifyplus_gael'', ''media_artist'')
+                  + " - " + state_attr(''media_player.spotifyplus_gael'', ''media_title'')
+                  }}
+
+                  '
+            - action: script.awtrix_dynamique_customapp_dupliquer
+              data:
+                icone: music
+                rainbow: "true"
+                scrollspeed: "50"
+                customapp: music
+                message: "{{ artist_titre }}"
+        - conditions:
+            - condition: trigger
+              id:
+                - lecture_pause
+          sequence:
+            - action: script.awtrix_dynamique_customapp_dupliquer
+              data:
+                rainbow: "false"
+                scrollspeed: "50"
+                customapp: music
+                message: ""
+  mode: single
+- id: "1744357707972"
+  alias: customapp kodi salon 02
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - media_player.kodi_salon
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: media_player.kodi_salon
+              state: playing
+          sequence:
+            - variables:
+                kodisalon:
+                  "{% set media_type = state_attr('media_player.kodi_salon', 'media_content_type')
+                  %}\n{% if media_type == 'movie' %}\n  {% set title = state_attr('media_player.kodi_salon',
+                  'media_title') %}\n{% elif media_type == 'tvshow' %}\n  {% set title_serie
+                  = state_attr('media_player.kodi_salon', 'media_series_title') %}\n  {%
+                  set title_episode = state_attr('media_player.kodi_salon', 'media_title')
+                  %}\n  {% set title = title_serie + \" - \" + title_episode %}\n{% endif
+                  %}\n{{ title }}\n"
+            - action: script.awtrix_dynamique_customapp_dupliquer
+              data:
+                rainbow: "false"
+                scrollspeed: "50"
+                customapp: kodi_salon
+                message: "{{ kodisalon }}"
+                icone: kodi
+                color: "#0000ff"
+                duree: "25"
+        - conditions:
+            - condition: not
+              conditions:
+                - condition: state
+                  entity_id: media_player.kodi_salon
+                  state: playing
+          sequence:
+            - action: script.awtrix_dynamique_customapp_dupliquer
+              data:
+                rainbow: "false"
+                scrollspeed: "50"
+                customapp: kodi_salon
+                message: ""
+  mode: single
+- id: "1744442691408"
+  alias: Alerte services Uptime Kuma hors ligne
+  description: Envoie une notification quand un service Uptime Kuma tombe en panne
+  triggers:
+    - trigger: state
+      entity_id:
+        - sensor.uptime_kuma
+      attribute: sensors_offline
+  conditions:
+    - condition: template
+      value_template: "{{ state_attr('sensor.uptime_kuma', 'sensors_offline') |
+        int > 0 }}"
+  actions:
+    - repeat:
+        sequence:
+          - variables:
+              offline_services:
+                "{{ states.binary_sensor | selectattr('entity_id', 'search',
+                'uptimekuma_') | selectattr('state', 'eq', 'off') | map(attribute='entity_id')
+                | list }}"
+              offline_names: []
+          - repeat:
+              for_each: "{{ offline_services }}"
+              sequence:
+                - variables:
+                    service_name:
+                      "{% set entity = repeat.item %} {% if state_attr(entity,
+                      'friendly_name') %}\n  {{ state_attr(entity, 'friendly_name') }}\n{%
+                      else %}\n  {{ entity.split('binary_sensor.uptimekuma_')[1] | replace('_',
+                      ' ') | title }}\n{% endif %}"
+                    offline_names: "{{ offline_names + [service_name] }}"
+          - action: script.awtrix_dynamique_customapp_dupliquer
+            data:
+              icone: uptimekuma
+              rainbow: "false"
+              scrollspeed: "50"
+              color: "#FF0000"
+              duree: "25"
+              message:
+                "{{ offline_names | length }} offline: {{ offline_names | join(',
+                ') }}"
+          - delay:
+              hours: 2
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+        while:
+          - condition: numeric_state
+            entity_id: sensor.uptime_kuma
+            attribute: sensors_offline
+            above: 0
+  mode: restart
+- id: "1744618791941"
+  alias: custom app uptimekuma
+  description: ""
+  triggers:
+    - trigger: time_pattern
+      hours: /1
+  conditions: []
+  actions:
+    - variables:
+        message: '{{ ''Connecté : '' + states( "sensor.uptime_kuma") }}
+
+          '
+    - action: script.awtrix_dynamique_customapp_dupliquer
+      data:
+        icone: uptimekuma
+        rainbow: "false"
+        scrollspeed: "50"
+        color: "#2e8b57"
+        duree: "25"
+        customapp: lumieres
+        message: "{{ message }}"
+  mode: single
+- id: "1745993601242"
+  alias: meteo
+  description: ""
+  use_blueprint:
+    path: jeeftor/awtrix_weatherflow.yaml
+    input:
+      awtrix:
+        - 850e3174125d6c6ada450db9afeafaba
+        - ab4bf8c2567d926268c75fdf259c26ed
+      forecast_var: weather.openweathermap_forcast
+      temp_digits: 1
+      current_temp_var: sensor.openweathermap_feels_like_temperature
+      color_matrix_json:
+        '{"-12": "#D977DF","-6": "#9545BC","-1": "#4B379C","0": "#FEC4FF","4":
+        "#31B8DB","10": "#31DB8B","15": "#6ED228","21": "#FFFF28","27": "#F87E27","32":
+        "#CF3927","38": "#A12527"}
+
+        '
+      moon: sensor.moon_phase
+      moon_rise_set: sensor.ip_geo_location
+      sun_time_format: "%H:%M"
+      temp_suffix: °C
+      when_show_moon: night
+- id: "1746001237038"
+  alias: Niveau Fontaine
+  description: ""
+  triggers:
+    - trigger: numeric_state
+      entity_id:
+        - sensor.esp_pet_scales_eau
+      below: 30
+      enabled: false
+    - trigger: state
+      entity_id:
+        - sensor.esp_pet_scales_eau
+    - trigger: homeassistant
+      event: start
+  conditions: []
+  actions:
+    - repeat:
+        sequence:
+          - sequence:
+              - action: google_generative_ai_conversation.generate_content
+                data:
+                  prompt:
+                    "Génère un message vocal d’alerte pour prévenir que le niveau
+                    d’eau de la fontaine du chat est trop bas.
+
+
+                    Le ton doit être factuel avec une légère touche d’humour ou de sarcasme
+                    façon droïde reprogrammé type K-2SO (Star Wars).
+
+                    Le message doit inclure le niveau actuel d’eau, sous forme de pourcentage,
+                    fourni dans la variable suivante :
+
+                    {{ states('sensor.esp_pet_scales_eau') }}%
+
+                    Sois bref et direct : la réponse doit être courte et adaptée au TTS.
+
+                    Pas de smileys, pas d’émoticônes, pas de menace ni de formule agressive.
+
+                    Tu peux glisser un clin d'œil geek ou pop culture si pertinent.
+
+
+                    Exemples de ton attendu :
+
+
+                    « Niveau d’eau de la fontaine : {{states('sensor.esp_pet_scales_eau')}}
+                    %. Il serait peut-être temps d’agir. »
+
+
+                    « La fontaine du chat affiche {{states('sensor.esp_pet_scales_eau')}}
+                    %. On frôle la panne hydraulique féline. »
+
+
+                    « Niveau critique détecté : {{states('sensor.esp_pet_scales_eau')}}
+                    %. Je conseille un ravitaillement immédiat. »
+
+
+                    « {{states('sensor.esp_pet_scales_eau')}} % d’eau restante. Même un
+                    Jawa ne s’en contenterait pas. »
+
+
+                    Génère uniquement la phrase finale, sans balises, sans explications,
+                    sans métadonnées."
+                response_variable: generated_message
+              - action: script.1717220445110
+                data:
+                  message: "{{ generated_message.text }}"
+                enabled: true
+              - action: script.awtrix_dynamique_customapp_dupliquer
+                data:
+                  icone: fontaine
+                  rainbow: "false"
+                  scrollspeed: "50"
+                  color: "#8b0000"
+                  duree: "25"
+                  message: "{{ generated_message.text }}"
+              - action: tts.speak
+                target:
+                  entity_id: tts.piper
+                data:
+                  cache: true
+                  media_player_entity_id: media_player.esp_ball
+                  message: "{{ generated_message.text }}"
+                enabled: false
+          - action: script.1717220445110
+            data:
+              message:
+                Monsieur, il ne reste que {{states('sensor.esp_pet_scales_eau')}}
+                % d eau dans la fontaine. Pensez à la remplir
+            enabled: false
+          - delay:
+              hours: 2
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+        while:
+          - condition: numeric_state
+            entity_id: sensor.esp_pet_scales_eau
+            below: 30
+  mode: single
+- id: "1746874137873"
+  alias: niveau croquettes
+  description: ""
+  triggers:
+    - trigger: numeric_state
+      entity_id:
+        - sensor.esp_pet_scales_croquettes
+      below: 30
+      enabled: false
+    - trigger: state
+      entity_id:
+        - sensor.esp_pet_scales_croquettes
+    - trigger: homeassistant
+      event: start
+  conditions: []
+  actions:
+    - repeat:
+        sequence:
+          - action: script.awtrix_dynamique_customapp_dupliquer
+            data:
+              icone: catfood
+              rainbow: "false"
+              scrollspeed: "50"
+              color: "#8b0000"
+              duree: "25"
+              message:
+                "croquettes : {{states('sensor.esp_pet_scales_croquettes')}}
+                % "
+          - action: script.1717220445110
+            data:
+              message:
+                "Monsieur, il ne reste que {{states('sensor.esp_pet_scales_croquettes')}}
+                % de croquette. "
+          - delay:
+              hours: 2
+              minutes: 0
+              seconds: 0
+              milliseconds: 0
+        while:
+          - condition: numeric_state
+            entity_id: sensor.esp_pet_scales_croquettes
+            below: 30
+  mode: single
+- id: "1749913621670"
+  alias: test switch
+  description: ""
+  triggers:
+    - trigger: mqtt
+      topic: zigbee2mqtt02/Switch4Gang/action
+      payload: 1_single
+    - domain: mqtt
+      device_id: a06cc44ae6695bc2c31d3ed2a876f117
+      type: action
+      subtype: 1_single
+      trigger: device
+  conditions: []
+  actions: []
+  mode: single
+- id: "1749983315669"
+  alias: Notif Discord Suckbot
+  description: Notification Discord quand l'aspirateur robot termine son nettoyage
+  triggers:
+    - trigger: state
+      entity_id:
+        - vacuum.rockrobock
+      to: docked
+      id: Suckbot
+  conditions: []
+  actions:
+    - action: script.notification_discord
+      data:
+        nom: "{{ trigger.id }}"
+        description:
+          "⛂ {{ trigger.id }} a terminé son nettoyage\n\U0001F570️ Durée
+          : {{ ((state_attr('vacuum.rockrobock', 'last_run_stats')['duration'] | int)
+          / 60) | round(1) }} minutes\n\U0001F4D0 Surface nettoyée : {{ state_attr('vacuum.rockrobock',
+          'last_run_stats')['area'] }} m²\n\U0001F50B Batterie : {{ state_attr('vacuum.rockrobock',
+          'battery_level') }}%\n\n\U0001F527 **Consommables restants :**\n\U0001F58C️
+          Brosse principale : {{ ((state_attr('vacuum.rockrobock', 'mainBrush') | int
+          / 70) * 100) | round(1) }}%\n\U0001F504 Brosse latérale : {{ ((state_attr('vacuum.rockrobock',
+          'sideBrush') | int / 200) * 100) | round(1) }}%\n\U0001F32A️ Filtre : {{ ((state_attr('vacuum.rockrobock',
+          'filter') | int / 150) * 100) | round(1) }}%\n\U0001F441️ Capteur : {{ ((state_attr('vacuum.rockrobock',
+          'sensor') | int / 30) * 100) | round(1) }}%\n"
+        image_url: https://i.ibb.co/1YH6NtZp/Vacuum-Cleaner-Robot1.png
+  mode: single
+- id: "1750055569555"
+  alias: Notifications Discord portes et fenetres
+  description:
+    Notifications Discord pour les capteurs portes et fenetres avec configuration
+    centralisée
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ouvfenetsal_contact
+      id: fenetre_salon
+    - trigger: state
+      entity_id: binary_sensor.ouvfenetsam_contact
+      id: fenetre_salle_a_manger
+    - trigger: state
+      entity_id: binary_sensor.ouvfenetcuis_contact
+      id: fenetre_cuisine
+    - trigger: state
+      entity_id: binary_sensor.ouvfenetsdb_contact
+      id: fenetre_salle_de_bain
+    - trigger: state
+      entity_id: binary_sensor.ouvportsdb_contact
+      id: porte_salle_de_bain
+    - trigger: state
+      entity_id: binary_sensor.ouvportent_contact
+      id: porte_entree
+    - trigger: state
+      entity_id: binary_sensor.ouvportfrig_contact
+      id: porte_frigo
+    - trigger: state
+      entity_id: binary_sensor.ouvportcong_contact
+      id: porte_congel
+    - trigger: state
+      entity_id: binary_sensor.ouvportcong2_contact
+      id: porte_petit_congel
+  conditions:
+    - condition: template
+      value_template:
+        "{{ states('sensor.etat_canabang_et_device_tracker') == 'home'
+        }}"
+      enabled: false
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                "{{ trigger.from_state.state not in ['unknown', 'unavailable']
+                }}"
+          sequence:
+            - variables:
+                device_type:
+                  "{{ 'fenetre' if 'fenetre' in trigger.id else 'porte'
+                  }}"
+                icon_prefix:
+                  "{% if 'frigo' in trigger.id or 'congel' in trigger.id %}\n
+                  \ {% if 'frigo' in trigger.id %}\n      ❄️\n      {% else %}\n      \U0001F9CA\n
+                  \ {% endif %}\n{% elif device_type == 'fenetre' %}\U0001FA9F {% else %}\U0001F6AA
+                  {% endif %}"
+                device_name: "{{ trigger.id.replace('_', ' ').title() }}"
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template: "{{ trigger.to_state.state == 'on' }}"
+                  sequence:
+                    - action: script.notification_discord
+                      data:
+                        nom: "{{ icon_prefix }} {{ device_name }}"
+                        description:
+                          "{{ icon_prefix }}⚠️ {{ device_name }} **{% if trigger.id
+                          in ['porte_frigo', 'porte_congel', 'porte_petit_congel'] %}OUVERT{%
+                          else %}OUVERTE{% endif %}** à {{ now().strftime('%Hh%M') }}"
+                        image_url:
+                          "{{ states('input_text.icon_' + \n   ('frigo_ouvert' if 'frigo'
+                          in trigger.id or 'congel' in trigger.id \n    else device_type + '_ouverte'))
+                          }}"
+                - conditions:
+                    - condition: template
+                      value_template: "{{ trigger.to_state.state == 'off' }}"
+                  sequence:
+                    - action: script.notification_discord
+                      data:
+                        nom: "{{ icon_prefix }} {{ device_name }}"
+                        description:
+                          "{{ icon_prefix }}✅ {{ device_name }} **{% if trigger.id
+                          in ['porte_frigo', 'porte_congel', 'porte_petit_congel'] %}FERMÉ{%
+                          else %}FERMÉE{% endif %}** à {{ now().strftime('%Hh%M') }}"
+                        image_url:
+                          "{{ states('input_text.icon_' + \n   ('frigo_ferme' if 'frigo'
+                          in trigger.id or 'congel' in trigger.id \n    else device_type + '_fermee'))
+                          }}"
+  mode: single
+- id: "1750057368348"
+  alias: Notifications Discord pour les prises
+  description: Notifications Discord pour les prises avec configuration simplifiée
+  triggers:
+    - trigger: state
+      entity_id: switch.pris_tel_sal
+      id: prise_telephone_salon
+    - trigger: state
+      entity_id: switch.priscafe
+      id: cafetiere
+    - trigger: state
+      entity_id: switch.prismal
+      id: machine_laver
+    - trigger: state
+      entity_id: switch.pristelchamb
+      id: prise_telephone_chambre
+    - trigger: state
+      entity_id: switch.pristvchamb
+      id: tv_chambre
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                "{{ trigger.from_state.state not in ['unknown', 'unavailable']
+                }}"
+          sequence:
+            - variables:
+                icon_prefix:
+                  "{% if 'cafetiere' in trigger.id %}\n  ☕\n{% elif 'machine_laver'
+                  in trigger.id %}\n  \U0001F9FA\n{% elif 'tv' in trigger.id %}\n  \U0001F4FA\n{%
+                  elif 'telephone' in trigger.id %}\n  \U0001F4F1\n{% else %}\n  \U0001F50C\n{%
+                  endif %}"
+                device_name: "{{ trigger.id.replace('_', ' ').title() }}"
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template: "{{ trigger.to_state.state == 'on' }}"
+                  sequence:
+                    - action: script.notification_discord
+                      data:
+                        nom: "{{ icon_prefix }} {{ device_name }}"
+                        description:
+                          "{{ icon_prefix }}✅ {{ device_name }} **ALLUMÉE** à {{
+                          now().strftime('%Hh%M') }}"
+                        image_url:
+                          "{% if 'machine_laver' in trigger.id %}\n  {{ states('input_text.icon_machine_laver_on')
+                          }}\n{% elif 'tv' in trigger.id %}\n  {{ states('input_text.icon_tv_on')
+                          }}\n{% else %}\n  {{ states('input_text.icon_prise_on') }}\n{% endif
+                          %}\n    "
+                - conditions:
+                    - condition: template
+                      value_template: "{{ trigger.to_state.state == 'off' }}"
+                  sequence:
+                    - action: script.notification_discord
+                      data:
+                        nom: "{{ icon_prefix }} {{ device_name }}"
+                        description:
+                          "{{ icon_prefix }}⚫ {{ device_name }} **ÉTEINTE** à {{
+                          now().strftime('%Hh%M') }}"
+                        image_url:
+                          "{% if 'machine_laver' in trigger.id %}\n  {{ states('input_text.icon_machine_laver_off')
+                          }}\n{% elif 'tv' in trigger.id %}\n  {{ states('input_text.icon_tv_off')
+                          }}\n{% else %}\n  {{ states('input_text.icon_prise_off') }}\n{% endif
+                          %}"
+  mode: single
+- id: "1750321675782"
+  alias: Notifications Discord Lumières
+  description: Notifications Discord pour les lumières avec configuration centralisée
+  triggers:
+    - trigger: state
+      entity_id: light.hue_chambre
+      id: lumiere_chambre
+    - trigger: state
+      entity_id: light.hue_cuisine
+      id: lumiere_cuisine
+    - trigger: state
+      entity_id: light.hue_salon
+      id: lumiere_salon
+    - trigger: state
+      entity_id: light.hue_sam
+      id: lumiere_salle_a_manger
+    - trigger: state
+      entity_id: light.hue_sdb
+      id: lumiere_salle_de_bain
+    - trigger: state
+      entity_id: light.ledplancui_cct
+      id: lumiere_plan_de_travail
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                '{{ states("sensor.etat_canabang_et_device_tracker") != "home"
+                }}'
+              enabled: false
+            - condition: template
+              value_template:
+                "{{ trigger.from_state.state not in ['unknown', 'unavailable']
+                }}"
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template: "{{ trigger.to_state.state == 'on' }}"
+                  sequence:
+                    - action: script.notification_discord
+                      data:
+                        nom:
+                          "\U0001F4A1 {{ trigger.id.replace('lumiere_', '').replace('_',
+                          ' ').title() }}"
+                        description:
+                          "\U0001F4A1✅ {{ trigger.id.replace('lumiere_', '').replace('_',
+                          ' ').title() }} **{% if trigger.id in ['lumiere_salon', 'lumiere_plan_de_travail']
+                          %}ALLUMÉ{% else %}ALLUMÉE{% endif %}**{% if trigger.to_state.attributes.brightness
+                          is not none %} à **{{ (trigger.to_state.attributes.brightness / 255
+                          * 100) | round(0) | int }}%**{% endif %} à {{ now().strftime('%Hh%M')
+                          }}"
+                        image_url: "{{ states('input_text.icon_ampoule_on') }}"
+                  alias: "on"
+                - conditions:
+                    - condition: template
+                      value_template: "{{ trigger.to_state.state == 'off' }}"
+                  sequence:
+                    - action: script.notification_discord
+                      data:
+                        nom:
+                          "\U0001F4A1 {{ trigger.id.replace('lumiere_', '').replace('_',
+                          ' ').title() }}"
+                        description:
+                          "\U0001F4A1⚫ {{ trigger.id.replace('lumiere_', '').replace('_',
+                          ' ').title() }} **{% if trigger.id in ['lumiere_salon', 'lumiere_plan_de_travail']
+                          %}ÉTEINT{% else %}ÉTEINTE{% endif %}** à {{ now().strftime('%Hh%M')
+                          }}"
+                        image_url: "{{ states('input_text.icon_ampoule_off') }}"
+                  alias: "off"
+  mode: single
+- id: "1750327474721"
+  alias: Notifications Discord radiateurs
+  description: Notifications Discord pour les radiateurs avec configuration simplifiée
+  triggers:
+    - trigger: state
+      entity_id: switch.radcui_l1
+      id: radiateur_cuisine
+    - trigger: state
+      entity_id: switch.radsal_l1
+      id: radiateur_salon
+    - trigger: state
+      entity_id: switch.radsdb_l1
+      id: radiateur_salle_de_bain
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                "{{ trigger.from_state.state not in ['unknown', 'unavailable']
+                }}"
+          sequence:
+            - variables:
+                icon_prefix: "\U0001F525"
+                device_name: "{{ trigger.id.replace('_', ' ').title() }}"
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template: "{{ trigger.to_state.state == 'on' }}"
+                  sequence:
+                    - action: script.notification_discord
+                      data:
+                        nom: "{{ icon_prefix }} {{ device_name }}"
+                        description:
+                          "{{ icon_prefix }}⚫ {{ device_name.lower() }} **ÉTEINT**
+                          à {{ now().strftime('%Hh%M') }}"
+                        image_url: "{{ states('input_text.icon_radiateur_off') }}"
+                - conditions:
+                    - condition: template
+                      value_template: "{{ trigger.to_state.state == 'off' }}"
+                  sequence:
+                    - action: script.notification_discord
+                      data:
+                        nom: "{{ icon_prefix }} {{ device_name }}"
+                        description:
+                          "{{ icon_prefix }}✅ {{ device_name.lower() }} **ALLUMÉ**
+                          à {{ now().strftime('%Hh%M') }}"
+                        image_url: "{{ states('input_text.icon_radiateur_on') }}"
+  mode: single
+- id: "1750328574733"
+  alias: Notifications Discord volets
+  description: Notifications Discord pour les volets avec configuration simplifiée
+  triggers:
+    - trigger: state
+      entity_id: cover.volcui
+      id: volet_cuisine
+    - trigger: state
+      entity_id: cover.volsal
+      id: volet_salon
+    - trigger: state
+      entity_id: cover.volsam
+      id: volet_salle_a_manger
+    - trigger: state
+      entity_id: cover.volsdb
+      id: volet_salle_de_bain
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.from_state.state in ['opening', 'closing'] and
+        trigger.to_state.state not in ['opening', 'closing'] }}"
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                "{{ trigger.from_state.state not in ['unknown', 'unavailable']
+                }}"
+          sequence:
+            - variables:
+                icon_prefix: "\U0001FA9F"
+                device_name: "{{ trigger.id.replace('_', ' ').title() }}"
+                position: "{{ trigger.to_state.attributes.current_position | int(0) }}"
+                old_position:
+                  "{{ trigger.from_state.attributes.current_position | int(0)
+                  }}"
+                icon_key:
+                  "{% if position == 0 %}\n  input_text.icon_volet_0\n{% elif position
+                  <= 10 %}\n  input_text.icon_volet_10\n{% elif position <= 20 %}\n  input_text.icon_volet_20\n{%
+                  elif position <= 30 %}\n  input_text.icon_volet_30\n{% elif position <=
+                  40 %}\n  input_text.icon_volet_40\n{% elif position <= 50 %}\n  input_text.icon_volet_50\n{%
+                  elif position <= 60 %}\n  input_text.icon_volet_60\n{% elif position <=
+                  70 %}\n  input_text.icon_volet_70\n{% elif position <= 80 %}\n  input_text.icon_volet_80\n{%
+                  elif position <= 90 %}\n  input_text.icon_volet_90\n{% else %}\n  input_text.icon_volet_100\n{%
+                  endif %}"
+                message:
+                  "{% if position == 0 %}\n  \U0001FA9F\U0001F512 {{ device_name
+                  }} **FERMÉ**\n{% elif position == 100 %}\n  \U0001FA9F☀️ {{ device_name
+                  }} **OUVERT**\n{% else %}\n  \U0001FA9F\U0001F4CD {{ device_name }} **{{
+                  position }}%**\n{% endif %}"
+            - action: script.notification_discord
+              data:
+                nom: "{{ icon_prefix }} {{ device_name }}"
+                description: "{{ message }} à {{ now().strftime('%Hh%M') }}"
+                image_url: "{{ states(icon_key) }}"
+  mode: single
+- id: "1750344728979"
+  alias: "notification discord esp "
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_bed_occupation_status
+      id: esp_bed_occupation
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_chambre_status
+      id: esp_chambre
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_cuisine_status
+      id: esp_cuisine
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_multi_capteur_status
+      id: esp_multi_capteur
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_pet_scales_status
+      id: esp_pet_scales
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_salon_status
+      id: esp_salon
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_salon02_status
+      id: esp_salon02
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_sdb_status
+      id: esp_salle_de_bain
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_temp_frigo_status
+      id: esp_temp_frigo
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_va_chambre_status
+      id: esp_va_chambre
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_va_cuisine_status
+      id: esp_va_cuisine
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_va_salon_status
+      id: esp_va_salon
+    - trigger: state
+      entity_id:
+        - binary_sensor.esp_va_sdb_status
+      id: esp_va_salle_de_bain
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.to_state.state == 'on' }}"
+          sequence:
+            - action: script.notification_discord
+              data:
+                nom: "\U0001F310 {{ trigger.id.replace('_', ' ').title() }}"
+                description:
+                  "\U0001F310 {{ trigger.id.replace('_', ' ').title() }} **EN
+                  LIGNE** à {{ now().strftime('%Hh%Mm%Ss') }}"
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.to_state.state == 'off' }}"
+          sequence:
+            - action: script.notification_discord
+              data:
+                nom: ⚠️ {{ trigger.id.replace('_', ' ').title() }}
+                description:
+                  ⚠️ {{ trigger.id.replace('_', ' ').title() }} **HORS LIGNE**
+                  à {{ now().strftime('%Hh%Mm%Ss') }}
+  mode: parallel
+  max: 10
+- id: "1751191059966"
+  alias: test generative ai
+  description: ""
+  triggers: []
+  conditions: []
+  actions:
+    - sequence:
+        - action: google_generative_ai_conversation.generate_content
+          data:
+            prompt:
+              "Génère un message vocal pour prévenir que la machine à laver a terminé
+              son cycle et qu’il est temps d’étendre le linge.
+
+
+              Le ton doit être court, direct, avec une pointe d’humour ou de sarcasme
+              discret, façon droïde reprogrammé type K-2SO (Star Wars).
+
+              Pas de formulation agressive, pas d’insulte, pas de menace.
+
+              La réponse doit être fluide et adaptée au TTS : courte, sans smileys ni
+              émoticônes, sans balises, sans explications.
+
+              Une petite référence geek ou pop culture est bienvenue si elle reste subtile.
+
+
+              Exemples de ton attendu :
+
+
+              « La machine a terminé. Il est temps d’étendre… ou d’ignorer, comme d’habitude.
+              »
+
+
+              « Fin de cycle détectée. Étendre le linge recommandé pour éviter toute catastrophe
+              textile. »
+
+
+              « Le linge est propre… enfin, en théorie. Prochaine étape : l’étendre. »
+
+
+              « Cycle terminé. Nouvelle mission : étendage. Bon courage. »
+
+
+              Génère uniquement la phrase, sans métadonnées, sans balises, sans explication."
+          response_variable: generated_message
+        - action: script.1717220445110
+          data:
+            message: "{{ generated_message.text }}"
+        - action: script.awtrix_dynamique_customapp_notify_dupliquer
+          data:
+            icone: mal
+            rainbow: "false"
+            scrollspeed: "50"
+            color: "#2e8b57"
+            duree: "25"
+            lifetime: 5
+            message: "{{ generated_message.text }}"
+  mode: single
+- id: "1752486734698"
+  alias: Pièce Occupée
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - sensor.presence_piece
+      from:
+      to:
+  conditions: []
+  actions:
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 2
+        milliseconds: 0
+    - action: script.notification_discord
+      data:
+        nom: Présence Pièce
+        description: "piece : {{ states('sensor.presence_piece')}}
+
+          echo: {{ state_attr('sensor.presence_piece', 'echo') }}
+
+          pieces_occupees: {{ state_attr('sensor.presence_piece', 'pieces_occupees')
+          }}
+
+          nombre_pieces_occupees: {{ state_attr('sensor.presence_piece', 'nombre_pieces_occupees')
+          }}
+
+          "
+  mode: single
+- id: "1752918914986"
+  alias: Initialisation des volumes Alexa 0.2
+  description: ""
+  use_blueprint:
+    path: canabang/volume_alexa_0.2.yaml
+    input:
+      media_players:
+        - media_player.echo_studio_d
+        - media_player.fire_tv_cube
+        - media_player.echo_dot_gael
+        - media_player.echo_sdb
+        - media_player.echo_show_chambre
+        - media_player.echo_show_cuisine
+        - media_player.echo_studio_g
+        - media_player.home_cinema
+        - media_player.partout_2
+      trigger_on_reload: false
+- id: "1752998132565"
+  alias: Pet Feeder - Recalcul automatique des portions
+  description: Recalcule et applique les portions quand le poids unitaire change
+  triggers:
+    - entity_id:
+        - number.pet_feeder_portion_weight
+        - input_number.pet_feeder_target_daily_weight
+      trigger: state
+      for:
+        seconds: 3
+      from:
+      to:
+  conditions:
+    - condition: template
+      value_template:
+        "{{ trigger.from_state is not none and \n   trigger.to_state is
+        not none and\n   trigger.to_state.state not in ['unknown', 'unavailable'] and\n
+        \  trigger.to_state.state | float(0) > 0 }}\n"
+  actions:
+    - delay:
+        seconds: 2
+    - variables:
+        portions_matin: "{{ states('sensor.portions_calculees_matin') | int(8) }}"
+        portions_midi: "{{ states('sensor.portions_calculees_midi') | int(9) }}"
+        portions_soir: "{{ states('sensor.portions_calculees_soir') | int(12) }}"
+        poids_portion: "{{ trigger.to_state.state | float(3) }}"
+    - action: mqtt.publish
+      data:
+        topic: zigbee2mqtt02/Pet feeder/set
+        payload:
+          "{\n  \"schedule\": [\n    {\"days\": \"everyday\", \"hour\": 8, \"minute\":
+          0, \"size\": {{ portions_matin }}},\n    {\"days\": \"everyday\", \"hour\":
+          14, \"minute\": 0, \"size\": {{ portions_midi }}},\n    {\"days\": \"everyday\",
+          \"hour\": 20, \"minute\": 0, \"size\": {{ portions_soir }}}\n  ]\n}\n"
+    - action: system_log.write
+      data:
+        message:
+          "Pet Feeder: Portions recalculées pour {{ poids_portion }}g/portion.
+          Nouvelle répartition: Matin={{ portions_matin }}p, Midi={{ portions_midi }}p,
+          Soir={{ portions_soir }}p. Total théorique: {{ (portions_matin + portions_midi
+          + portions_soir) * poids_portion }}g/jour
+
+          "
+        level: info
+  mode: single
+- id: "1753017446306"
+  alias: Pet Feeder - Détection rechargement et reset
+  description:
+    Détecte le rechargement (passage de <300g à >950g) et remet le compteur
+    à zéro
+  triggers:
+    - entity_id:
+        - input_number.pet_feeder_stock_estime
+      trigger: state
+      from:
+      to:
+  conditions:
+    - condition: template
+      value_template:
+        "{{ trigger.from_state.state | float(0) < 300 and \n   trigger.to_state.state
+        | float(0) > 950 }}\n"
+  actions:
+    - target:
+        entity_id: input_number.pet_feeder_daily_consumption_counter
+      data:
+        value: 0
+      action: input_number.set_value
+    - target:
+        entity_id: input_boolean.pet_feeder_stock_was_low
+      action: input_boolean.turn_off
+      data: {}
+    - target:
+        entity_id: input_number.pet_feeder_cumulative_distributed_since_refill
+      data:
+        value: 0
+      action: input_number.set_value
+    - target:
+        entity_id: input_number.pet_feeder_refill_date
+      data:
+        value: "{{ now().timestamp() }}"
+      action: input_number.set_value
+    - action: system_log.write
+      data:
+        message:
+          "Pet Feeder: RECHARGEMENT DÉTECTÉ! Reset compteurs.  Stock: {{ trigger.from_state.state
+          }}g → {{ trigger.to_state.state }}g.  Nouveau cycle de suivi démarré.
+
+          "
+        level: info
+- id: "1753017606957"
+  alias: Pet Feeder - Suivi stock bas
+  description: Marque quand le stock passe en dessous de 300g
+  triggers:
+    - entity_id: input_number.pet_feeder_stock_estime
+      below: 300
+      trigger: numeric_state
+  actions:
+    - target:
+        entity_id: input_boolean.pet_feeder_stock_was_low
+      action: input_boolean.turn_on
+- id: "1753121062383"
+  alias: Pet Feeder - Reset quotidien compteur consommation
+  description:
+    Remet à zéro le compteur de consommation quotidienne chaque jour à
+    minuit
+  triggers:
+    - at: 00:00:00
+      trigger: time
+  conditions: []
+  actions:
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.pet_feeder_daily_consumption_counter
+      data:
+        value: 0
+    - action: system_log.write
+      data:
+        message: "Pet Feeder: Reset automatique du compteur quotidien à minuit"
+        level: info
+  mode: single
+- id: "1753123769320"
+  alias: Pet Feeder - Initialisation manuelle remplissage
+  description: Permet d'initialiser manuellement un nouveau cycle de suivi
+  triggers:
+    - entity_id: input_boolean.pet_feeder_manual_refill_trigger
+      trigger: state
+      to: "on"
+  actions:
+    - target:
+        entity_id: input_number.pet_feeder_cumulative_distributed_since_refill
+      data:
+        value: 0
+      action: input_number.set_value
+    - target:
+        entity_id: input_number.pet_feeder_refill_date
+      data:
+        value: "{{ now().timestamp() }}"
+      action: input_number.set_value
+    - target:
+        entity_id: input_number.pet_feeder_daily_consumption_counter
+      data:
+        value: 0
+      action: input_number.set_value
+    - target:
+        entity_id: input_boolean.pet_feeder_manual_refill_trigger
+      action: input_boolean.turn_off
+      data: {}
+    - action: system_log.write
+      data:
+        message: "Pet Feeder: Initialisation manuelle d'un nouveau cycle de suivi"
+        level: info
+  mode: single
+- id: "1753125751851"
+  alias: Pet Feeder - Mise à jour compteurs unifiée
+  description:
+    Met à jour tous les compteurs (quotidien, cumulatif, stock) lors d'une
+    distribution
+  triggers:
+    - entity_id:
+        - sensor.pet_feeder_weight_per_day
+      trigger: state
+      from:
+      to:
+  conditions:
+    - condition: template
+      value_template:
+        "{{ trigger.from_state is not none and \n   trigger.to_state is
+        not none and\n   trigger.from_state.state not in ['unknown', 'unavailable']
+        and\n   trigger.to_state.state not in ['unknown', 'unavailable'] and\n   trigger.to_state.state
+        | float(0) > 0 and\n   trigger.to_state.state | float(0) > trigger.from_state.state
+        | float(0) and\n   (trigger.to_state.state | float(0) - trigger.from_state.state
+        | float(0)) > 0.5 }}\n"
+  actions:
+    - variables:
+        poids_distribue:
+          "{{ (trigger.to_state.state | float(0) - trigger.from_state.state
+          | float(0)) | round(1) }}"
+        stock_actuel:
+          "{{ states('input_number.pet_feeder_stock_estime') | float(0)
+          }}"
+        nouveau_stock: "{{ [stock_actuel - poids_distribue, 0] | max | round(1) }}"
+        cumul_actuel:
+          "{{ states('input_number.pet_feeder_cumulative_distributed_since_refill')
+          | float(0) }}"
+        nouveau_cumul: "{{ (cumul_actuel + poids_distribue) | round(1) }}"
+        compteur_quotidien_actuel:
+          "{{ states('input_number.pet_feeder_daily_consumption_counter')
+          | float(0) }}"
+        nouveau_compteur_quotidien:
+          "{{ (compteur_quotidien_actuel + poids_distribue)
+          | round(1) }}"
+        total_cumulatif_actuel:
+          "{{ states('input_number.pet_feeder_total_distributed')
+          | float(0) }}"
+        nouveau_total_cumulatif:
+          "{{ (total_cumulatif_actuel + poids_distribue) | round(1)
+          }}"
+    - data:
+        entity_id: input_number.pet_feeder_stock_estime
+        value: "{{ nouveau_stock }}"
+      action: input_number.set_value
+    - data:
+        entity_id: input_number.pet_feeder_cumulative_distributed_since_refill
+        value: "{{ nouveau_cumul }}"
+      action: input_number.set_value
+    - data:
+        entity_id: input_number.pet_feeder_daily_consumption_counter
+        value: "{{ nouveau_compteur_quotidien }}"
+      action: input_number.set_value
+    - data:
+        entity_id: input_number.pet_feeder_total_distributed
+        value: "{{ nouveau_total_cumulatif }}"
+      action: input_number.set_value
+    - action: system_log.write
+      data:
+        message:
+          "Pet Feeder: {{ poids_distribue }}g distribués ({{ trigger.from_state.state
+          }}g → {{ trigger.to_state.state }}g).   Stock: {{ stock_actuel }}g → {{ nouveau_stock
+          }}g |   Cumul depuis refill: {{ cumul_actuel }}g → {{ nouveau_cumul }}g |   Quotidien:
+          {{ compteur_quotidien_actuel }}g → {{ nouveau_compteur_quotidien }}g |   Total:
+          {{ total_cumulatif_actuel }}g → {{ nouveau_total_cumulatif }}g
+
+          "
+        level: info
+  mode: single
+- id: "1753512454011"
+  alias: test temps de message généré
+  description: ""
+  triggers: []
+  conditions: []
+  actions:
+    - sequence:
+        - action: google_generative_ai_conversation.generate_content
+          data:
+            prompt:
+              "Génère un message vocal d’alerte pour prévenir que le niveau d’eau
+              de la fontaine du chat est trop bas.
+
+
+              Le ton doit être factuel avec une légère touche d’humour ou de sarcasme
+              façon droïde reprogrammé type K-2SO (Star Wars).
+
+              Le message doit inclure le niveau actuel d’eau, sous forme de pourcentage,
+              fourni dans la variable suivante :
+
+              {{ states('sensor.esp_pet_scales_eau') }}%
+
+              Sois bref et direct : la réponse doit être courte et adaptée au TTS.
+
+              Pas de smileys, pas d’émoticônes, pas de menace ni de formule agressive.
+
+              Tu peux glisser un clin d'œil geek ou pop culture si pertinent.
+
+
+              Exemples de ton attendu :
+
+
+              « Niveau d’eau de la fontaine : {{states('sensor.esp_pet_scales_eau')}}
+              %. Il serait peut-être temps d’agir. »
+
+
+              « La fontaine du chat affiche {{states('sensor.esp_pet_scales_eau')}}
+              %. On frôle la panne hydraulique féline. »
+
+
+              « Niveau critique détecté : {{states('sensor.esp_pet_scales_eau')}} %.
+              Je conseille un ravitaillement immédiat. »
+
+
+              « {{states('sensor.esp_pet_scales_eau')}} % d’eau restante. Même un Jawa
+              ne s’en contenterait pas. »
+
+
+              Génère uniquement la phrase finale, sans balises, sans explications, sans
+              métadonnées."
+          response_variable: generated_message
+        - action: script.1717220445110
+          data:
+            message: "{{ generated_message.text }}"
+          enabled: true
+  mode: single
+- id: "1753957726040"
+  alias: Gestionnaire éclairage unifié
+  description: "Gestion centralisée de l'éclairage : présence, manuel, contexte"
+  triggers:
+    - entity_id: light.hue_salon
+      to: "on"
+      trigger: state
+      id: manual_salon
+    - entity_id: light.hue_sam
+      to: "on"
+      trigger: state
+      id: manual_sam
+    - entity_id: light.hue_chambre
+      to: "on"
+      trigger: state
+      id: manual_chambre
+    - entity_id: light.hue_sdb
+      to: "on"
+      trigger: state
+      id: manual_sdb
+    - entity_id: light.hue_cuisine
+      to: "on"
+      trigger: state
+      id: manual_cuisine
+    - entity_id: binary_sensor.esp_sdb_presence
+      trigger: state
+      id: presence_sdb
+      for:
+        seconds: 2
+    - entity_id: sensor.presence_piece
+      to: Chambre
+      trigger: state
+      id: presence_chambre_on
+    - entity_id: sensor.presence_piece
+      from: Chambre
+      trigger: state
+      id: presence_chambre_off
+    - entity_id: binary_sensor.ouvportent_contact
+      to: "on"
+      trigger: state
+      id: arrivee_maison
+  conditions:
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: sensor.etat_canabang_et_device_tracker
+          state: home
+        - condition: and
+          conditions:
+            - condition: trigger
+              id: arrivee_maison
+            - condition: or
+              conditions:
+                - condition: state
+                  entity_id: sensor.etat_canabang_et_device_tracker
+                  state: not_home
+                - condition: template
+                  value_template:
+                    "{{ (as_timestamp(now()) - \n   as_timestamp(states.sensor.etat_canabang_et_device_tracker.last_changed))
+                    < 300 }}"
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - manual_salon
+                - manual_sam
+                - manual_chambre
+                - manual_sdb
+                - manual_cuisine
+            - condition: template
+              value_template: "{{ trigger.to_state.context.user_id is not none }}"
+            - condition: state
+              entity_id: sensor.etat_canabang_et_device_tracker
+              state: home
+          sequence:
+            - action: script.appliquer_scene_contextuelle
+              data:
+                piece:
+                  "{% set room_map = {\n  'manual_salon': 'salon',\n  'manual_sam':
+                  'sam', \n  'manual_chambre': 'chambre',\n  'manual_sdb': 'sdb',\n  'manual_cuisine':
+                  'cuisine'\n} %} {{ room_map[trigger.id] }}"
+                source: manual
+        - conditions:
+            - condition: trigger
+              id: arrivee_maison
+            - condition: numeric_state
+              entity_id: sensor.lux_sejour
+              below: 2
+            - condition: or
+              conditions:
+                - condition: state
+                  entity_id: sensor.etat_canabang_et_device_tracker
+                  state: not_home
+                - condition: template
+                  value_template:
+                    "{{ (as_timestamp(now()) - \n   as_timestamp(states.sensor.etat_canabang_et_device_tracker.last_changed))
+                    < 300 }}"
+          sequence:
+            - action: scene.turn_on
+              target:
+                entity_id:
+                  - scene.hue_salon_3_attenue
+                  - scene.hue_sam_3_attenue
+              alias: Éclairage d'accueil - Salon et SAM
+        - conditions:
+            - condition: trigger
+              id: presence_sdb
+            - condition: state
+              entity_id: sensor.volsdb_moving
+              state: STOP
+            - condition: numeric_state
+              entity_id: sensor.prismal_power
+              below: 5
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: binary_sensor.esp_sdb_presence
+                      state: "on"
+                    - condition: numeric_state
+                      entity_id: sensor.lux_sdb
+                      below: 2
+                    - condition: state
+                      entity_id: light.hue_sdb
+                      state: "off"
+                  sequence:
+                    - action: script.allumer_et_appliquer_scene
+                      data:
+                        piece: sdb
+                        source: presence
+                - conditions:
+                    - condition: state
+                      entity_id: binary_sensor.esp_sdb_presence
+                      state: "off"
+                    - condition: state
+                      entity_id: light.hue_sdb
+                      state: "on"
+                  sequence:
+                    - action: light.turn_off
+                      target:
+                        entity_id: light.hue_sdb
+        - conditions:
+            - condition: trigger
+              id: presence_chambre_on
+            - condition: state
+              entity_id: binary_sensor.esp_chambre_presence
+              state: "on"
+            - condition: state
+              entity_id: binary_sensor.esp_bed_occupation_master_bed_occupied
+              state: "off"
+            - condition: template
+              value_template: "{{ states('input_text.jour_nuit') == 'jour' }}"
+            - condition: state
+              entity_id: light.hue_chambre
+              state: "off"
+          sequence:
+            - action: script.allumer_et_appliquer_scene
+              data:
+                piece: chambre
+                source: presence
+        - conditions:
+            - condition: trigger
+              id: presence_chambre_off
+            - condition: state
+              entity_id: light.hue_chambre
+              state: "on"
+          sequence:
+            - action: light.turn_off
+              target:
+                entity_id: light.hue_chambre
+  mode: single

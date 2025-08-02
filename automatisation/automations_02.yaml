@@ -1,0 +1,1639 @@
+- id: "1704612141885"
+  alias: suckbot
+  description: ""
+  triggers:
+    - command:
+        - nettoyage
+        - commence le ménage
+        - démarre suckot
+        - ménage
+      trigger: conversation
+  conditions: []
+  actions:
+    - action: vacuum.start
+      metadata: {}
+      data: {}
+      target:
+        entity_id: vacuum.rockrobock
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.aspi_passe
+      data: {}
+  mode: single
+- id: "1704957761448"
+  alias: mode normal
+  description: remet le volume a 13 partout
+  trigger:
+    - platform: conversation
+      command: "[passe en ] mode normal"
+  condition: []
+  action:
+    - action: media_player.volume_set
+      metadata: {}
+      data:
+        volume_level: 0.13
+      target:
+        device_id: 756247dbb08f49a96a3ba4b36457d16d
+  mode: single
+- id: "1706839019105"
+  alias: je suis reveille
+  description: ""
+  triggers:
+    - command: je suis réveillé
+      trigger: conversation
+      id: reveil
+  conditions: []
+  actions:
+    - metadata: {}
+      data: {}
+      target:
+        entity_id: button.mode_reveil_3
+      action: button.press
+    - metadata: {}
+      data: {}
+      target:
+        entity_id:
+          - light.awtrix_ulanzi_matrix
+          - light.awtrix_salon_matrix
+          - light.esp_va_salon_lcd_backlight
+      action: light.turn_on
+    - data:
+        broadcast_port: 9
+        mac: 60:a4:4c:3e:12:6f
+      action: wake_on_lan.send_magic_packet
+    - target:
+        entity_id: input_text.jour_nuit
+      data:
+        value: jour
+      action: input_text.set_value
+    - metadata: {}
+      data: {}
+      target:
+        entity_id: switch.priscafe
+      action: switch.turn_on
+    - target:
+        entity_id: media_player.partout_2
+      data: {}
+      action: media_player.media_play
+      enabled: false
+    - action: spotifyplus.player_media_resume
+      data:
+        entity_id: media_player.spotifyplus_gael
+        device_id: Partout
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: climate.therm_sdb
+              state: heat
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: climate.therm_sdb
+                      attribute: preset_mode
+                      state: eco
+                  sequence:
+                    - action: climate.set_preset_mode
+                      metadata: {}
+                      data:
+                        preset_mode: comfort
+                      target:
+                        entity_id: climate.therm_sdb
+                      alias: sdb comfort
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: climate.therm_sejour
+              state: heat
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: climate.therm_sejour
+                      attribute: preset_mode
+                      state: eco
+                  sequence:
+                    - alias: sdb comfort
+                      action: climate.set_preset_mode
+                      metadata: {}
+                      data:
+                        preset_mode: comfort
+                      target:
+                        entity_id:
+                          - climate.therm_sejour
+  mode: single
+- id: "1708001354504"
+  alias: Cycle Machine à laver
+  description: ""
+  use_blueprint:
+    path: sbyx/notify-or-do-something-when-an-appliance-like-a-dishwasher-or-washing-machine-finishes.yaml
+    input:
+      power_sensor: sensor.prismal_power
+      actions:
+        - alias: notificationt tant que MaL=On
+          repeat:
+            sequence:
+              - sequence:
+                  - action: google_generative_ai_conversation.generate_content
+                    data:
+                      prompt:
+                        "Génère un message vocal pour prévenir que la machine à laver
+                        a terminé son cycle et qu’il est temps d’étendre le linge.
+
+
+                        Le ton doit être court, direct, avec une pointe d’humour ou de sarcasme
+                        discret, façon droïde reprogrammé type K-2SO (Star Wars).
+
+                        Pas de formulation agressive, pas d’insulte, pas de menace.
+
+                        La réponse doit être fluide et adaptée au TTS : courte, sans smileys
+                        ni émoticônes, sans balises, sans explications.
+
+                        Une petite référence geek ou pop culture est bienvenue si elle reste
+                        subtile.
+
+
+                        Exemples de ton attendu :
+
+
+                        « La machine a terminé. Il est temps d’étendre… ou d’ignorer, comme
+                        d’habitude. »
+
+
+                        « Fin de cycle détectée. Étendre le linge recommandé pour éviter
+                        toute catastrophe textile. »
+
+
+                        « Le linge est propre… enfin, en théorie. Prochaine étape : l’étendre.
+                        »
+
+
+                        « Cycle terminé. Nouvelle mission : étendage. Bon courage. »
+
+
+                        Génère uniquement la phrase, sans métadonnées, sans balises, sans
+                        explication."
+                    response_variable: generated_message
+                  - action: script.1717220445110
+                    data:
+                      message: "{{ generated_message.text }}"
+                    enabled: true
+                  - action: tts.speak
+                    target:
+                      entity_id: tts.piper
+                    data:
+                      cache: true
+                      media_player_entity_id: media_player.esp_ball
+                      message: "{{ generated_message.text }}"
+                    enabled: false
+              - action: script.awtrix_dynamique_customapp_dupliquer
+                data:
+                  icone: mal
+                  rainbow: "true"
+                  scrollspeed: "50"
+                  color: "#2e8b57"
+                  duree: "25"
+                  message: "{{ generated_message.text }}"
+              - delay:
+                  hours: 0
+                  minutes: 5
+                  seconds: 0
+                  milliseconds: 0
+              - action: script.awtrix_dynamique_customapp_dupliquer
+                data:
+                  icone: mal
+                  rainbow: "true"
+                  scrollspeed: "50"
+                  color: "#2e8b57"
+                  duree: "25"
+                  message: "{{ generated_message.text }}"
+            while:
+              - condition: state
+                entity_id: switch.prismal
+                state: "on"
+      pre_actions:
+        - if:
+            - condition: state
+              entity_id: switch.prismal
+              state: "on"
+          then:
+            - action: script.1717220445110
+              data:
+                message: Monsieur, la machine à démarrée
+              enabled: true
+            - action: tts.speak
+              target:
+                entity_id: tts.piper
+              data:
+                cache: true
+                media_player_entity_id: media_player.esp_ball
+                message: Monsieur, la machine à démarrée
+              enabled: false
+      starting_hysteresis: 2
+      finishing_hysteresis: 2
+- id: "1708594457662"
+  alias: Etat des Piles
+  description: ""
+  use_blueprint:
+    path: Blackshome/low-battery-notifications-and-actions.yaml
+    input:
+      include_button: enable_button_trigger
+      button_entity: input_button.etat_batterie
+      include_time: time_enabled
+      time: "19:00:00"
+      weekday_options:
+        - sun
+      include_easy_notify: enable_easy_okay_notify
+      notify_device:
+        - dc25e21f7ca8ca54211fc12c2675c6dd
+- id: "1709309674388"
+  alias: vocal tv on
+  description: ""
+  triggers:
+    - command:
+        - allume (la | le) (tv | télé | cube)
+      id: allume
+      trigger: conversation
+    - command:
+        - éteins (la | le) (tv | télé | cube)
+      id: eteins
+      trigger: conversation
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - allume
+          sequence:
+            - action: input_boolean.turn_on
+              data: {}
+              target:
+                entity_id: input_boolean.switch_tv_2
+          alias: allume
+        - conditions:
+            - condition: trigger
+              id:
+                - eteins
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id:
+                  - input_boolean.switch_tv_2
+              data: {}
+          alias: éteins
+  mode: single
+- id: "1711349179129"
+  alias: awtrix_ulanzi random effect
+  description: ""
+  use_blueprint:
+    path: awtrix/awtrix_random_effect.yaml
+    input:
+      awtrix_light: ab4bf8c2567d926268c75fdf259c26ed
+      effect_list:
+        - BrickBreaker
+        - Fireworks
+        - Radar
+        - Snake
+        - TheaterChase
+        - SwirlOut
+        - LookingEyes
+        - Pacifica
+        - PlasmaCloud
+        - Checkerboard
+        - PingPong
+        - Ripple
+        - TwinklingStars
+        - ColorWaves
+        - SwirlIn
+        - Matrix
+        - Plasma
+        - MovingLine
+      duration: 25
+      change_interval: /1
+- id: "1711367472218"
+  alias: customapps plex
+  description: ""
+  triggers:
+    - entity_id:
+        - media_player.plex_plex_for_android_tv_salon
+      id: plex_salon
+      trigger: state
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - plex_salon
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: media_player.plex_plex_for_android_tv_salon
+                      state: playing
+                  sequence:
+                    - variables:
+                        plexsalon:
+                          "{% set media_type = state_attr('media_player.plex_plex_for_android_tv_salon',
+                          'media_content_type') %}\n{% if media_type == 'movie' %}\n  {% set
+                          title = state_attr('media_player.plex_plex_for_android_tv_salon',
+                          'media_title') %}\n{% elif media_type == 'tvshow' %}\n  {% set title_serie
+                          = state_attr('media_player.plex_plex_for_android_tv_salon', 'media_series_title')
+                          %}\n  {% set title_episode = state_attr('media_player.plex_plex_for_android_tv_salon',
+                          'media_title') %}\n  {% set title = title_serie + \" - \" + title_episode
+                          %}\n{% endif %}\n{{ title }}\n"
+                    - action: script.awtrix_dynamique_customapp_dupliquer
+                      data:
+                        rainbow: "false"
+                        scrollspeed: "50"
+                        customapp: plex_salon
+                        message: "{{ plexsalon }}"
+                        icone: "45669"
+                        color: "#2e8b57"
+                - conditions:
+                    - condition: not
+                      conditions:
+                        - condition: state
+                          entity_id: media_player.plex_plex_for_android_tv_salon
+                          state: playing
+                  sequence:
+                    - action: script.awtrix_dynamique_customapp_dupliquer
+                      data:
+                        rainbow: "false"
+                        scrollspeed: "50"
+                        customapp: plex_salon
+                        message: ""
+  mode: single
+- id: "1711541369019"
+  alias: lumiereres presence piece
+  description: ""
+  triggers:
+    - alias: presence sdb
+      entity_id:
+        - binary_sensor.esp_sdb_presence
+      from:
+      to:
+      id: sdb
+      trigger: state
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 2
+    - trigger: state
+      entity_id:
+        - sensor.presence_piece
+      to: Chambre
+      id: chambre
+    - trigger: state
+      entity_id:
+        - sensor.presence_piece
+      id: chambre
+      from: Chambre
+  conditions:
+    - condition: state
+      entity_id: person.canabang
+      state: home
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - chambre
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: and
+                      conditions:
+                        - condition: template
+                          value_template:
+                            '{{ states(''binary_sensor.esp_chambre_presence'') ==
+                            "on" }}'
+                          alias: presence chambre on
+                        - condition: template
+                          value_template: "{{ states('input_text.jour_nuit') == 'jour' }}"
+                          alias: jour
+                        - condition: state
+                          entity_id: binary_sensor.esp_bed_occupation_master_bed_occupied
+                          state: "off"
+                          enabled: true
+                        - condition: template
+                          value_template:
+                            '{{ trigger.to_state.state == "Chambre" and trigger.from_state.state
+                            != "Chambre" }}'
+                  sequence:
+                    - choose:
+                        - conditions:
+                            - condition: not
+                              conditions:
+                                - condition: state
+                                  entity_id: light.hue_chambre
+                                  state: "on"
+                          sequence:
+                            - action: script.gestion_eclairage
+                              data:
+                                piece: "{{ trigger.id }}"
+                  alias: presence jour present
+                - conditions:
+                    - condition: template
+                      value_template:
+                        '{{ trigger.to_state.state != "Chambre" and trigger.from_state.state
+                        == "Chambre" }}'
+                  sequence:
+                    - choose:
+                        - conditions:
+                            - condition: state
+                              entity_id: light.hue_chambre
+                              state: "on"
+                          sequence:
+                            - metadata: {}
+                              data: {}
+                              target:
+                                entity_id: light.hue_chambre
+                              action: light.turn_off
+        - conditions:
+            - condition: trigger
+              id:
+                - sdb
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: sensor.volsdb_moving
+                      state: STOP
+                    - condition: numeric_state
+                      entity_id: sensor.prismal_power
+                      below: 5
+                  sequence:
+                    - choose:
+                        - conditions:
+                            - alias: detection on, jour, present
+                              condition: and
+                              conditions:
+                                - condition: state
+                                  entity_id: binary_sensor.esp_sdb_presence
+                                  state: "on"
+                                - condition: numeric_state
+                                  entity_id: sensor.lux_sdb
+                                  below: 1.5
+                          sequence:
+                            - choose:
+                                - conditions:
+                                    - condition: and
+                                      conditions:
+                                        - condition: state
+                                          entity_id: light.hue_sdb
+                                          state: "off"
+                                          enabled: true
+                                        - condition: numeric_state
+                                          entity_id: sensor.lux_sdb
+                                          below: 2
+                                        - condition: state
+                                          entity_id: sensor.presence_piece
+                                          state: SdB
+                                          enabled: false
+                                  sequence:
+                                    - action: light.turn_on
+                                      metadata: {}
+                                      data: {}
+                                      target:
+                                        entity_id: light.hue_sdb
+                                      enabled: true
+                                    - action: script.gestion_eclairage
+                                      data:
+                                        piece: "{{ trigger.id }}"
+                        - conditions:
+                            - alias: detection on, nuit, present
+                              condition: and
+                              conditions:
+                                - condition: state
+                                  entity_id: binary_sensor.esp_sdb_presence
+                                  state: "on"
+                          sequence:
+                            - choose:
+                                - conditions:
+                                    - condition: and
+                                      conditions:
+                                        - condition: state
+                                          entity_id: light.hue_sdb
+                                          state: "off"
+                                        - condition: numeric_state
+                                          entity_id: sensor.lumisdb_illuminance
+                                          below: 1
+                                        - condition: state
+                                          entity_id: sensor.presence_piece
+                                          state: SdB
+                                  sequence:
+                                    - action: light.turn_on
+                                      metadata: {}
+                                      data: {}
+                                      target:
+                                        entity_id: light.hue_sdb
+                                      enabled: false
+                                    - action: script.gestion_eclairage
+                                      data:
+                                        piece: "{{ trigger.id }}"
+                        - conditions:
+                            - condition: state
+                              entity_id: binary_sensor.esp_sdb_presence
+                              state: "off"
+                              alias: detection off
+                          sequence:
+                            - choose:
+                                - conditions:
+                                    - condition: state
+                                      entity_id: light.hue_sdb
+                                      state: "on"
+                                  sequence:
+                                    - metadata: {}
+                                      data: {}
+                                      target:
+                                        entity_id: light.hue_sdb
+                                      action: light.turn_off
+  mode: single
+- id: "1714281207576"
+  alias: Sunrise sunset volets
+  description: gestion volets au levé et couché du soleil
+  triggers:
+    - event: sunset
+      offset: 00:30:00
+      id: sunset
+      trigger: sun
+    - event: sunrise
+      offset: 0
+      id: sunrise
+      trigger: sun
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                '{{ trigger.id == "sunset" and states("person.canabang") ==
+                "home" and states("input_text.jour_nuit") == "jour" }}'
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template:
+                        '{{ states("cover.volsal") == "open" or states("cover.volsam")
+                        == "open" or states("cover.volcui") == "open" or states("cover.volsdb")
+                        == "open" }}'
+                      alias: si au moins 1 volet ouvert
+                  sequence:
+                    - sequence:
+                        - action: google_generative_ai_conversation.generate_content
+                          data:
+                            prompt:
+                              "Formule une question à poser à un utilisateur qui vient de
+                              rentrer chez lui ou qui est présent, pour lui demander s’il souhaite
+                              que les volets se ferment maintenant que le soleil se couche.
+
+
+                              Le ton doit être court, un peu sarcastique mais jamais méchant.
+
+                              Inspire-toi du style d’un droïde reprogrammé type K-2SO dans Star
+                              Wars : factuel, ironique mais serviable.
+
+                              La question doit rester polie et adaptée au TTS.
+
+                              Pas de smileys, pas d’émoticônes.
+
+                              Pas de menace, pas d’agressivité.
+
+
+                              Exemples de ton attendu :
+
+
+                              « Le soleil se couche… voulez-vous que je ferme les volets ? »
+
+
+                              « C’est le moment où les volets se ferment normalement… on fait
+                              ça ? »
+
+
+                              « Le soleil a disparu… je ferme les volets ou vous préférez rester
+                              à la vue de tous ? »
+
+
+                              « Fermeture des volets : je procède ou vous souhaitez profiter de
+                              la pénombre ? »
+
+
+                              Génère uniquement la phrase, sans explication, sans balises, sans
+                              métadonnées."
+                          response_variable: generated_message
+                        - action: script.activate_alexa_actionable_notification
+                          data:
+                            text: "{{ generated_message.text }}"
+                            event_id: actionable_notification_fermeture_volets
+                            alexa_device:
+                              "{{ state_attr('sensor.presence_piece', 'echo')
+                              }}
+
+                              "
+          alias: sunset, présent, jour
+        - conditions:
+            - alias: sunset, absent, jour
+              condition: template
+              value_template:
+                '{{ trigger.id == "sunset" and states("person.canabang") !=
+                "home" }}'
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: time
+                      before: "18:00:00"
+                  sequence:
+                    - wait_for_trigger:
+                        - at: "18:00:00"
+                          trigger: time
+                      alias: attendre 18:00
+                    - choose:
+                        - conditions:
+                            - condition: template
+                              value_template:
+                                '{{ states("cover.volsal") == "open" or states("cover.volsam")
+                                == "open" or states("cover.volcui") == "open" or states("cover.volsdb")
+                                == "open" }}'
+                              alias: si au moins 1 volet ouvert
+                          sequence:
+                            - action: button.press
+                              metadata: {}
+                              data: {}
+                              target:
+                                entity_id: button.fermeture_volets_3
+                - conditions:
+                    - condition: time
+                      after: "18:00:00"
+                  sequence:
+                    - choose:
+                        - conditions:
+                            - condition: template
+                              value_template:
+                                '{{ states("cover.volsal") == "open" or states("cover.volsam")
+                                == "open" or states("cover.volcui") == "open" or states("cover.volsdb")
+                                == "open" }}'
+                              alias: si au moins 1 volet ouvert
+                          sequence:
+                            - action: button.press
+                              metadata: {}
+                              data: {}
+                              target:
+                                entity_id: button.fermeture_volets_3
+        - conditions:
+            - condition: template
+              value_template:
+                '{{ trigger.id == "sunrise" and states("person.canabang")
+                == "home" and states("input_text.jour_nuit") == "jour" }}'
+              alias: sunrise, présent, jour
+          sequence:
+            - choose:
+                - conditions:
+                    - alias: si au moins 1 volet fermé
+                      condition: template
+                      value_template:
+                        '{{ states("cover.volsal") == "closed" or states("cover.volsam")
+                        == "closed" or states("cover.volcui") == "closed" or states("cover.volsdb")
+                        == "closed" }}'
+                  sequence: []
+              alias: au moins 1 volet fermé
+            - action: script.activate_alexa_actionable_notification
+              data:
+                text: Monsieur, puis-je ouvrir les volets ?
+                event_id: actionable_notification_ouverture_volets
+                alexa_device: "{{ state_attr('sensor.presence_piece', 'echo') }}
+
+                  "
+          alias: sunrise, présent, jour
+        - conditions:
+            - alias: sunrise, présent, nuit
+              condition: template
+              value_template:
+                '{{ trigger.id == "sunrise" and states("person.canabang")
+                == "home" and states("input_text.jour_nuit") == "nuit" }}'
+          sequence:
+            - wait_for_trigger:
+                - entity_id:
+                    - input_text.jour_nuit
+                  to: jour
+                  trigger: state
+            - delay:
+                hours: 0
+                minutes: 15
+                seconds: 0
+                milliseconds: 0
+            - alias: au moins 1 volet fermé
+              choose:
+                - conditions:
+                    - alias: si au moins 1 volet fermé
+                      condition: template
+                      value_template:
+                        '{{ states("cover.volsal") == "closed" or states("cover.volsam")
+                        == "closed" or states("cover.volcui") == "closed" or states("cover.volsdb")
+                        == "closed" }}'
+                  sequence:
+                    - action: script.activate_alexa_actionable_notification
+                      data:
+                        text: Monsieur, puis-je ouvrir les volets ?
+                        event_id: actionable_notification_ouverture_volets
+                        alexa_device:
+                          "{{ state_attr('sensor.presence_piece', 'echo') }}
+
+                          "
+                      enabled: false
+                    - sequence:
+                        - action: google_generative_ai_conversation.generate_content
+                          data:
+                            prompt:
+                              "Formule une question à poser à un utilisateur pour lui demander
+                              s’il souhaite que les volets s’ouvrent maintenant que le soleil
+                              s’est levé ou que c’est le moment habituel.
+
+
+                              Le ton doit être court, léger, avec une pointe de sarcasme mais
+                              toujours bienveillant.
+
+                              Inspire-toi du style d’un droïde reprogrammé façon K-2SO : direct,
+                              légèrement ironique mais pas agressif.
+
+                              La phrase doit être adaptée au TTS : concise, sans smileys ni émoticônes.
+
+                              Aucune insulte, aucune menace.
+
+
+                              Exemples de ton attendu :
+
+
+                              « Le soleil est levé… voulez-vous que j’ouvre les volets ? »
+
+
+                              « C’est le moment d’ouvrir les volets… j’y vais ? »
+
+
+                              « Lumière naturelle disponible… je fais entrer le soleil ? »
+
+
+                              « Les volets attendent vos ordres… ouverture maintenant ? »
+
+
+                              Génère uniquement la phrase, sans balise, sans explication, sans
+                              métadonnées."
+                          response_variable: generated_message
+                        - action: script.activate_alexa_actionable_notification
+                          data:
+                            text: "{{ generated_message.text }}"
+                            event_id: actionable_notification_ouverture_volets
+                            alexa_device:
+                              "{{ state_attr('sensor.presence_piece', 'echo')
+                              }}
+
+                              "
+          alias: sunrise, présent, nuit
+        - conditions:
+            - alias: sunrise, absent, jour
+              condition: template
+              value_template:
+                '{{ trigger.id == "sunrise" and states("person.canabang")
+                != "home" }}'
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: time
+                      before: 07:00:00
+                  sequence:
+                    - alias: attendre 07:00
+                      wait_for_trigger:
+                        - at: 07:00:00
+                          trigger: time
+                    - choose:
+                        - conditions:
+                            - condition: template
+                              value_template:
+                                '{{ states("cover.volsal") == "closed" or states("cover.volsam")
+                                == "closed" or states("cover.volcui") == "closed" or states("cover.volsdb")
+                                == "closed" }}'
+                              alias: si au moins 1 volet fermé
+                          sequence:
+                            - action: button.press
+                              metadata: {}
+                              data: {}
+                              target:
+                                entity_id:
+                                  - button.ouverture_volets_3
+                - conditions:
+                    - condition: time
+                      after: 07:00:00
+                  sequence:
+                    - choose:
+                        - conditions:
+                            - condition: template
+                              value_template:
+                                '{{ states("cover.volsal") == "closed" or states("cover.volsam")
+                                == "closed" or states("cover.volcui") == "closed" or states("cover.volsdb")
+                                == "closed" }}'
+                              alias: si au moins 1 volet fermé
+                          sequence:
+                            - action: button.press
+                              metadata: {}
+                              data: {}
+                              target:
+                                entity_id:
+                                  - button.ouverture_volets_3
+  mode: single
+- id: "1714283977835"
+  alias: event actionable notification
+  description: ""
+  triggers:
+    - alias: fermeture volet
+      event_type: alexa_actionable_notification
+      event_data:
+        event_id: actionable_notification_fermeture_volets
+      id: fermeture_volet
+      trigger: event
+    - alias: ouverture volet
+      event_type: alexa_actionable_notification
+      event_data:
+        event_id: actionable_notification_ouverture_volets
+      id: ouverture_volet
+      trigger: event
+    - alias: demarrage nettoyage
+      event_type: alexa_actionable_notification
+      event_data:
+        event_id: demarrage_nettoyage
+      id: demarrage_nettoyage
+      trigger: event
+    - alias: tele volsam
+      event_type: alexa_actionable_notification
+      event_data:
+        event_id: tele_volsam
+      id: tele_volsam
+      trigger: event
+    - alias: musique
+      event_type: alexa_actionable_notification
+      event_data:
+        event_id: musique
+      id: musique
+      trigger: event
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                '{{ trigger.event.data.event_response_type == "ResponseYes"
+                and trigger.event.data.event_id == "actionable_notification_fermeture_volets"}}'
+          sequence:
+            - action: cover.close_cover
+              metadata: {}
+              data: {}
+              target:
+                entity_id:
+                  - cover.volcui
+                  - cover.volsal
+                  - cover.volsam
+                  - cover.volsdb
+        - conditions:
+            - condition: template
+              value_template:
+                '{{ trigger.event.data.event_response_type == "ResponseYes"
+                and trigger.event.data.event_id == "actionable_notification_ouverture_volets"}}'
+          sequence:
+            - action: cover.open_cover
+              metadata: {}
+              data: {}
+              target:
+                entity_id:
+                  - cover.volcui
+                  - cover.volsal
+                  - cover.volsam
+                  - cover.volsdb
+        - conditions:
+            - condition: template
+              value_template:
+                '{{ trigger.event.data.event_response_type == "ResponseYes"
+                and trigger.event.data.event_id == "demarrage_nettoyage"}}'
+          sequence:
+            - metadata: {}
+              data: {}
+              target:
+                entity_id: vacuum.rockrobock
+              action: vacuum.start
+            - target:
+                entity_id: input_boolean.aspi_passe
+              data: {}
+              action: input_boolean.turn_on
+        - conditions:
+            - condition: template
+              value_template:
+                '{{ trigger.event.data.event_response_type == "ResponseYes"
+                and trigger.event.data.event_id == "tele_volsam"}}'
+          sequence:
+            - metadata: {}
+              data:
+                position: 50
+              target:
+                entity_id: cover.volsam
+              action: cover.set_cover_position
+        - conditions:
+            - condition: template
+              value_template:
+                '{{ trigger.event.data.event_response_type == "ResponseYes"
+                and trigger.event.data.event_id == "musique"}}'
+          sequence:
+            - action: automation.trigger
+              target:
+                entity_id:
+                  - automation.initialisation_des_volumes_alexa_0_2
+              data:
+                skip_condition: true
+            - action: spotifyplus.player_media_resume
+              data:
+                entity_id: media_player.spotifyplus_gael
+                device_id: Partout
+  mode: single
+- id: "1714590248237"
+  alias: Wake pc
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - input_button.wake_pc
+  condition: []
+  action:
+    - action: wake_on_lan.send_magic_packet
+      data:
+        broadcast_port: 9
+        mac: 60:a4:4c:3e:12:6f
+        broadcast_address: 192.168.1.78
+  mode: single
+- id: "1715500792464"
+  alias: auto suckbot
+  description: ""
+  triggers:
+    - at: "10:30:00"
+      id: start
+      trigger: time
+    - at: 00:00:00
+      id: minuit
+      trigger: time
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - start
+          sequence:
+            - alias: maison, suckbot 0
+              choose:
+                - conditions:
+                    - condition: and
+                      conditions:
+                        - condition: state
+                          entity_id: person.canabang
+                          state: home
+                        - condition: state
+                          entity_id: input_boolean.aspi_passe
+                          state: "off"
+                      alias: maison, suckbot 0
+                  sequence:
+                    - sequence:
+                        - action: google_generative_ai_conversation.generate_content
+                          data:
+                            prompt:
+                              "Génère une question vocale à poser à l’utilisateur pour lui
+                              demander s’il souhaite que le ménage commence, c’est-à-dire démarrer
+                              l’aspirateur robot.
+
+
+                              Le ton doit être court, direct, avec une pointe d’humour ou de sarcasme
+                              léger, inspiré du style d’un droïde reprogrammé type K-2SO (Star
+                              Wars).
+
+                              Pas d’insulte, pas de menace, pas de smileys, pas d’émoticônes.
+
+                              Réponse courte et adaptée au TTS.
+
+
+                              Exemples de ton attendu :
+
+
+                              « Souhaitez-vous que le robot démarre le ménage… ou on laisse les
+                              miettes s’accumuler ? »
+
+
+                              « Lancement du ménage possible. Je commence ou c’est encore trop
+                              tôt ? »
+
+
+                              « C’est l’heure de nettoyer… sauf contre-ordre de votre part. Je
+                              lance ? »
+
+
+                              « Démarrage de l’aspirateur : je procède ou je laisse la poussière
+                              tranquille ? »
+
+
+                              Génère uniquement la phrase, sans balises, sans explications, sans
+                              métadonnées.
+
+
+                              "
+                          response_variable: generated_message
+                        - action: script.1717220445110
+                          data:
+                            message: "{{ generated_message.text }}"
+                          enabled: false
+                        - action: script.activate_alexa_actionable_notification
+                          data:
+                            text: "{{ generated_message.text }}
+
+                              "
+                            event_id: demarrage_nettoyage
+                            alexa_device:
+                              "{{ state_attr('sensor.presence_piece', 'echo')
+                              }}
+
+                              "
+                - conditions:
+                    - condition: and
+                      conditions:
+                        - condition: state
+                          entity_id: input_boolean.aspi_passe
+                          state: "off"
+                    - condition: not
+                      conditions:
+                        - condition: state
+                          entity_id: person.canabang
+                          state: home
+                  sequence:
+                    - action: vacuum.start
+                      metadata: {}
+                      data: {}
+                      target:
+                        entity_id: vacuum.rockrobock
+                    - action: input_boolean.turn_on
+                      target:
+                        entity_id: input_boolean.aspi_passe
+                      data: {}
+        - conditions:
+            - condition: trigger
+              id:
+                - minuit
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.aspi_passe
+              data: {}
+  mode: single
+- id: "1717218834983"
+  alias: charge tel
+  description:
+    "quand la batterie est inférieur à 20% ou supérieur à 98%, si présent
+    et jour, switch la prise tel  dans la pièce ou il se trouve (salon chambre) et
+    envoie une notification dans la pièce ou je me trouve "
+  triggers:
+    - entity_id:
+        - sensor.redmi_note_8_pro_battery_level
+      trigger: state
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ states('sensor.redmi_note_8_pro_battery_level') > '98'}}"
+              alias: ">98%"
+          sequence:
+            - choose:
+                - conditions:
+                    - alias: present, jour, charge on
+                      condition: template
+                      value_template:
+                        '{{ states("person.canabang") == "home" and states("input_text.jour_nuit")
+                        == "jour" and states(''binary_sensor.redmi_note_8_pro_is_charging'')
+                        == ''on'' }}'
+                  sequence:
+                    - action: google_generative_ai_conversation.generate_content
+                      data:
+                        prompt:
+                          "Génère un message vocal pour prévenir que le téléphone atteint
+                          un niveau de charge élevé, entre 98 % et 99 %, et qu’il serait judicieux
+                          de le débrancher.
+
+
+                          Inclue le niveau actuel de batterie, fourni sous forme de variable
+                          :
+
+
+                          {{ states('sensor.redmi_note_8_pro_battery_level') }}%
+
+                          Le ton doit être court, factuel, avec une pointe d’humour ou de sarcasme
+                          léger dans le style d’un droïde reprogrammé façon K-2SO (Star Wars).
+
+                          Pas de smileys, pas d’émoticônes, pas d’insulte ni de menace.
+
+                          Phrase courte et adaptée au TTS.
+
+
+                          Exemples de ton attendu :
+
+
+                          « Batterie à {{states('sensor.redmi_note_8_pro_battery_level')}}
+                          %. Vous pourriez envisager de débrancher… sauf si vous aimez surcharger.
+                          »
+
+
+                          « Niveau de charge : {{states('sensor.redmi_note_8_pro_battery_level')}}
+                          %. Déconnexion conseillée, mais je suppose que vous savez ce que vous
+                          faites. »
+
+
+                          « {{states('sensor.redmi_note_8_pro_battery_level')}} % atteints.
+                          Il est peut-être temps de libérer votre chargeur. »
+
+
+                          « Batterie presque pleine : {{states('sensor.redmi_note_8_pro_battery_level')}}
+                          %. Débrancher maintenant éviterait des regrets plus tard. »
+
+
+                          Génère uniquement la phrase, sans balises, sans métadonnées, sans
+                          explication."
+                      response_variable: generated_message
+                    - data:
+                        message: "{{ generated_message.text }}"
+                      action: script.1717220445110
+                      enabled: true
+                    - action: script.awtrix_dynamique_customapp_dupliquer
+                      data:
+                        icone: battery_98
+                        rainbow: "true"
+                        scrollspeed: "50"
+                        duree: "25"
+                        message: "{{ generated_message.text }}"
+                    - action: tts.speak
+                      target:
+                        entity_id: tts.piper
+                      data:
+                        cache: true
+                        media_player_entity_id: media_player.esp_ball
+                        message: "{{ generated_message.text }}"
+                      enabled: false
+        - conditions:
+            - condition: template
+              value_template: "{{ states('sensor.redmi_note_8_pro_battery_level') == '100'}}"
+              alias: ==100%
+          sequence:
+            - choose:
+                - conditions:
+                    - alias: present, jour, charge on, 100%
+                      condition: template
+                      value_template:
+                        '{{ states("person.canabang") == "home" and states("input_text.jour_nuit")
+                        == "jour" and states(''binary_sensor.redmi_note_8_pro_is_charging'')
+                        == ''on'' and states(''sensor.redmi_note_8_pro_battery_level'') == ''100''}}'
+                  sequence:
+                    - action: google_generative_ai_conversation.generate_content
+                      data:
+                        prompt:
+                          "Génère un message vocal pour prévenir que le téléphone est
+                          maintenant entièrement chargé (100%) et que la prise de courant va
+                          être coupée pour économiser l’énergie.
+
+
+                          Le ton doit être court, factuel, avec une touche d’humour ou de sarcasme
+                          discret façon droïde reprogrammé type K-2SO (Star Wars).
+
+                          Inclure le niveau de batterie, fourni sous forme de variable :
+
+
+                          {{ states('sensor.redmi_note_8_pro_battery_level') }}%
+
+                          Pas de smileys, pas d’émoticônes, pas d’insulte, pas de menace.
+
+                          Message adapté au TTS : court, clair et direct.
+
+
+                          Exemples de ton attendu :
+
+
+                          « Batterie à {{states('sensor.redmi_note_8_pro_battery_level')}}
+                          %. Téléphone rechargé. Je coupe la prise. »
+
+
+                          « 100 %. Mission de recharge accomplie. Coupure de la prise en cours.
+                          »
+
+
+                          « Téléphone à {{states('sensor.redmi_note_8_pro_battery_level')}}
+                          %. Inutile de continuer. Je coupe la prise. »
+
+
+                          « Charge complète détectée : {{states('sensor.redmi_note_8_pro_battery_level')}}
+                          %. Extinction de la prise pour éviter le gaspillage. »
+
+
+                          Génère uniquement la phrase, sans balises, sans explications, sans
+                          métadonnées.
+
+
+                          "
+                      response_variable: generated_message
+                    - data:
+                        message: "{{ generated_message.text }}"
+                      action: script.1717220445110
+                      enabled: true
+                    - action: script.awtrix_dynamique_customapp_dupliquer
+                      data:
+                        icone: battery_full
+                        rainbow: "true"
+                        scrollspeed: "50"
+                        duree: "25"
+                        message: "{{ generated_message.text }}"
+                    - action: tts.speak
+                      target:
+                        entity_id: tts.piper
+                      data:
+                        cache: true
+                        media_player_entity_id: media_player.esp_ball
+                        message: "{{ generated_message.text }}"
+                      enabled: false
+                    - metadata: {}
+                      data: {}
+                      target:
+                        entity_id: switch.pristelchamb
+                      action: switch.turn_off
+                    - metadata: {}
+                      data: {}
+                      target:
+                        entity_id: switch.pris_tel_sal
+                      action: switch.turn_off
+                - conditions:
+                    - alias: present, nuit, charge on, 100%
+                      condition: template
+                      value_template:
+                        '{{ states("person.canabang") == "home" and states("input_text.jour_nuit")
+                        == "nuit" and states(''binary_sensor.redmi_note_8_pro_is_charging'')
+                        == ''on'' and states(''sensor.redmi_note_8_pro_battery_level'') == ''100''}}'
+                  sequence:
+                    - metadata: {}
+                      data: {}
+                      target:
+                        entity_id: switch.pris_tel_sal
+                      action: switch.turn_off
+                    - metadata: {}
+                      data: {}
+                      target:
+                        entity_id: switch.pristelchamb
+                      action: switch.turn_off
+        - conditions:
+            - alias: <20%
+              condition: template
+              value_template:
+                "{{ states('sensor.redmi_note_8_pro_battery_level') < '20'
+                }}"
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template:
+                        '{{ states("person.canabang") == "home" and states("input_text.jour_nuit")
+                        == "jour" and states(''binary_sensor.redmi_note_8_pro_is_charging'')
+                        == ''off'' }}'
+                      alias: present, jour, charge off
+                  sequence:
+                    - action: google_generative_ai_conversation.generate_content
+                      data:
+                        prompt:
+                          "Génère un message vocal pour prévenir que la batterie du téléphone
+                          est très faible (par exemple sous 20 %) et qu’il faudrait envisager
+                          de le brancher.
+
+
+                          Le niveau actuel de batterie est fourni sous forme de variable :
+
+
+                          {{ states('sensor.redmi_note_8_pro_battery_level') }}%
+
+                          Le ton doit être court, factuel, avec une pointe d’humour ou de sarcasme
+                          léger, dans l’esprit d’un droïde reprogrammé façon K-2SO (Star Wars).
+
+                          Pas de smileys, pas d’émoticônes, pas de menaces, pas d’insulte.
+
+                          La phrase doit être brève et adaptée au TTS.
+
+
+                          Exemples de ton attendu :
+
+
+                          « Batterie à {{states('sensor.redmi_note_8_pro_battery_level')}}
+                          %. Une recharge serait… judicieuse. »
+
+
+                          « Niveau critique détecté : {{states('sensor.redmi_note_8_pro_battery_level')}}
+                          %. Brancher le téléphone recommandé. »
+
+
+                          « {{states('sensor.redmi_note_8_pro_battery_level')}} %. Votre téléphone
+                          commence à perdre espoir. »
+
+
+                          « Batterie faible : {{states('sensor.redmi_note_8_pro_battery_level')}}
+                          %. Laisser comme ça ? C’est un choix… discutable. »
+
+
+                          Génère uniquement la phrase, sans balises, sans explications, sans
+                          métadonnées."
+                      response_variable: generated_message
+                    - data:
+                        message: "{{ generated_message.text }}"
+                      action: script.1717220445110
+                      enabled: true
+                    - action: script.awtrix_dynamique_customapp_dupliquer
+                      data:
+                        icone: low_battery
+                        rainbow: "false"
+                        scrollspeed: "50"
+                        color: "#2e8b57"
+                        duree: "25"
+                        message: "{{ generated_message.text }}"
+                    - action: tts.speak
+                      target:
+                        entity_id: tts.piper
+                      data:
+                        cache: true
+                        media_player_entity_id: media_player.esp_ball
+                        message: "{{ generated_message.text }}"
+                      enabled: false
+                    - choose:
+                        - conditions:
+                            - condition: state
+                              entity_id: sensor.tricordeur_bermuda_area
+                              state: Salon
+                          sequence:
+                            - metadata: {}
+                              data: {}
+                              target:
+                                entity_id: switch.pris_tel_sal
+                              action: switch.turn_on
+                        - conditions:
+                            - condition: state
+                              entity_id: sensor.tricordeur_bermuda_area
+                              state: Chambre
+                          sequence:
+                            - metadata: {}
+                              data: {}
+                              target:
+                                entity_id: switch.pristelchamb
+                              action: switch.turn_on
+                - conditions:
+                    - alias: present, nuit, charge off
+                      condition: template
+                      value_template:
+                        '{{ states("person.canabang") == "home" and states("input_text.jour_nuit")
+                        == "nuit" and states(''binary_sensor.redmi_note_8_pro_is_charging'')
+                        == ''off'' }}'
+                  sequence:
+                    - metadata: {}
+                      data: {}
+                      target:
+                        entity_id: switch.pristelchamb
+                      action: switch.turn_on
+  mode: single
+- id: "1718006571779"
+  alias: gestion eclairage
+  description: gestion de l'eclairage en fonction de l'heure, et du mode de la maison
+  triggers:
+    - entity_id:
+        - light.hue_salon
+      to: "on"
+      id: salon
+      trigger: state
+    - entity_id:
+        - light.hue_sam
+      to: "on"
+      id: sam
+      trigger: state
+    - entity_id:
+        - light.hue_chambre
+      to: "on"
+      id: chambre
+      trigger: state
+    - entity_id:
+        - light.hue_sdb
+      id: sdb
+      to: "on"
+      trigger: state
+    - entity_id:
+        - light.hue_cuisine
+      to: "on"
+      id: cuisine
+      trigger: state
+  conditions: []
+  actions:
+    - action: script.gestion_eclairage
+      data:
+        piece: "{{ trigger.id }}"
+  mode: single
+- id: "1719751010549"
+  alias: les uv
+  description: ""
+  trigger:
+    - platform: conversation
+      command:
+        - allume l'étagère
+      id: allume
+    - platform: conversation
+      command:
+        - éteint l'étagère
+        - coupe l'étagère
+      id: eteint
+  condition: []
+  action:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - allume
+          sequence:
+            - action: light.turn_on
+              metadata: {}
+              data: {}
+              target:
+                entity_id:
+                  - light.esp32_s2_mini_uv02
+                  - light.esp32_s2_mini_uv
+                  - light.esp32_s2_mini_uv03
+                  - light.esp32_s2_mini_uv04
+        - conditions:
+            - condition: trigger
+              id:
+                - eteint
+          sequence:
+            - action: light.turn_off
+              metadata: {}
+              data: {}
+              target:
+                entity_id:
+                  - light.esp32_s2_mini_uv
+                  - light.esp32_s2_mini_uv02
+                  - light.esp32_s2_mini_uv03
+                  - light.esp32_s2_mini_uv04
+  mode: single
+- id: "1725793190301"
+  alias: Mise à jour de l'heure du dernier changement d'état
+  description: Met à jour l'heure du dernier changement d'état de input_text.jour_nuit
+  trigger:
+    - platform: state
+      entity_id: input_text.jour_nuit
+  action:
+    - target:
+        entity_id: input_datetime.dernier_changement_jour_nuit
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      action: input_datetime.set_datetime
+  mode: single
+- id: "1725869048615"
+  alias: Mise à jour dernier changement présence
+  description: ""
+  trigger:
+    - platform: state
+      entity_id: person.canabang
+      from: not_home
+      to: home
+    - platform: state
+      entity_id: person.canabang
+      from: home
+      to: not_home
+  action:
+    - target:
+        entity_id: input_datetime.dernier_changement_presence
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      action: input_datetime.set_datetime
+- id: "1725870108762"
+  alias: mise a jour dernier changement presence texte
+  description: ""
+  trigger:
+    - platform: state
+      entity_id:
+        - input_text.present_absent
+      from: absent
+      to: present
+    - platform: state
+      entity_id:
+        - input_text.present_absent
+      from: present
+      to: absent
+  condition: []
+  action:
+    - target:
+        entity_id: input_datetime.dernier_changement_presence_texte
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      action: input_datetime.set_datetime
+  mode: single
+- id: "1726124139305"
+  alias: Mise à jour du capteur Temps depuis dernier changement présence
+  description: ""
+  trigger:
+    - platform: time_pattern
+      minutes: /5
+  action:
+    - target:
+        entity_id: sensor.temps_depuis_dernier_changement_presence
+      action: homeassistant.update_entity
+      data: {}
+    - target:
+        entity_id: sensor.temps_ecoule_changement_presence_texte
+      action: homeassistant.update_entity
+      data: {}
+    - target:
+        entity_id: sensor.temps_ecoule_changement_jour_nuit
+      action: homeassistant.update_entity
+      data: {}
+- id: "1726131197000"
+  alias: Mise à jour du capteur Temps depuis dernier changement présence texte
+  description: ""
+  trigger:
+    - platform: time_pattern
+      minutes: /5
+  condition: []
+  action:
+    - target:
+        entity_id: sensor.temps_ecoule_changement_presence_texte
+      action: homeassistant.update_entity
+      data: {}
+  mode: single
+- id: "1726131364106"
+  alias: Mise à Jour Temps écoulé changement jour/nuit
+  description: Mise à Jour Temps écoulé changement jour/nuit
+  trigger:
+    - platform: time_pattern
+      minutes: /5
+  condition: []
+  action:
+    - target:
+        entity_id: sensor.temps_ecoule_changement_jour_nuit
+      action: homeassistant.update_entity
+      data: {}
+  mode: single
+- id: "1726203690701"
+  alias: awtrix_salon random effect
+  description: ""
+  use_blueprint:
+    path: awtrix/awtrix_random_effect.yaml
+    input:
+      awtrix_light: 850e3174125d6c6ada450db9afeafaba
+      effect_list:
+        - BrickBreaker
+        - Fireworks
+        - Radar
+        - Snake
+        - TheaterChase
+        - SwirlOut
+        - LookingEyes
+        - Pacifica
+        - PlasmaCloud
+        - Checkerboard
+        - PingPong
+        - Ripple
+        - TwinklingStars
+        - ColorWaves
+        - SwirlIn
+        - Matrix
+        - Plasma
+        - MovingLine
+      duration: 25
+      change_interval: /1
+- id: "1726981861015"
+  alias: Allumer lumières salon et salle à manger à l'ouverture de la porte
+  description:
+    Allume les lumières du salon et de la salle à manger si la porte s'ouvre
+    dans certaines conditions
+  triggers:
+    - entity_id: binary_sensor.ouvportent_contact
+      to: "on"
+      trigger: state
+  conditions:
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: person.canabang
+          state: not_home
+        - condition: template
+          value_template:
+            "{{ (as_timestamp(now()) - as_timestamp(states.person.canabang.last_changed))
+            < 300 }}"
+    - condition: numeric_state
+      entity_id: sensor.lux_sejour
+      below: 2
+  actions:
+    - action: scene.turn_on
+      target:
+        entity_id:
+          - scene.hue_salon_3_attenue
+          - scene.hue_sam_3_attenue
+      data: {}
+      alias: attenue salon sam
+  mode: single

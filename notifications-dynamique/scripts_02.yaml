@@ -1,0 +1,96 @@
+alias: notification alexa
+sequence:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: person.canabang
+            state: home
+          - condition: state
+            state: jour
+            entity_id: input_text.jour_nuit
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: state
+                    state: playing
+                    entity_id: media_player.spotifyplus_gael
+                sequence:
+                  - action: media_player.media_play_pause
+                    metadata: {}
+                    data: {}
+                    target:
+                      entity_id:
+                        - media_player.spotifyplus_gael
+                  - action: input_boolean.turn_on
+                    target:
+                      entity_id: input_boolean.pause_musique
+                    data: {}
+            enabled: true
+          - variables:
+              # Récupérer directement la liste des Echos depuis le template
+              echos: "{{ state_attr('sensor.presence_piece', 'echos_occupes') }}"
+              duree_message: "{{ ((message | length / 12) + 3) | round(0) }}"
+              # Stocker les volumes actuels avant modification
+              volumes_precedents: >
+                {% set echos_list = state_attr('sensor.presence_piece', 'echos_occupes') %}
+                {% set ns = namespace(volumes={}) %}
+                {% for echo in echos_list %}
+                  {% set ns.volumes = dict(ns.volumes, **{echo: state_attr(echo, 'volume_level') | default(0.5)}) %}
+                {% endfor %}
+                {{ ns.volumes }}
+          
+          # Baisser le volume de tous les Echos
+          - repeat:
+              for_each: "{{ echos }}"
+              sequence:
+                - action: media_player.volume_set
+                  target:
+                    entity_id: "{{ repeat.item }}"
+                  data:
+                    volume_level: 0.3
+          
+          # Envoyer sur tous les Echos
+          - action: notify.alexa_media
+            data:
+              message: "{{ message }}"
+              data:
+                type: tts
+              target: "{{ echos }}"
+          
+          - delay:
+              seconds: "{{ duree_message | int }}"
+          
+          # Remettre les volumes précédents
+          - repeat:
+              for_each: "{{ echos }}"
+              sequence:
+                - action: media_player.volume_set
+                  target:
+                    entity_id: "{{ repeat.item }}"
+                  data:
+                    volume_level: "{{ volumes_precedents[repeat.item] }}"
+          
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: input_boolean.pause_musique
+                    state: "on"
+                sequence:
+                  - action: input_boolean.turn_off
+                    target:
+                      entity_id: input_boolean.pause_musique
+                    data: {}
+                  - action: media_player.media_play_pause
+                    metadata: {}
+                    data: {}
+                    target:
+                      entity_id:
+                        - media_player.spotifyplus_gael
+mode: single
+fields:
+  message:
+    selector:
+      text: {}
+    name: message
+    description: donner un message
+    required: true

@@ -1,0 +1,1614 @@
+- id: "1726982912715"
+  alias: present absent
+  description: ""
+  triggers:
+    - entity_id:
+        - sensor.etat_canabang_et_device_tracker
+      to: home
+      id: home
+      for:
+        hours: 0
+        minutes: 1
+        seconds: 0
+      trigger: state
+    - entity_id:
+        - sensor.etat_canabang_et_device_tracker
+      to: not_home
+      id: not_home
+      trigger: state
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - home
+          sequence:
+            - action: input_text.set_value
+              metadata: {}
+              data:
+                value: present
+              target:
+                entity_id: input_text.present_absent
+              alias: present
+            - sequence:
+                - action: media_player.volume_set
+                  metadata: {}
+                  data:
+                    volume_level: 0.2
+                  target:
+                    entity_id:
+                      "{{ state_attr('sensor.presence_piece', 'echo') }}
+
+                      "
+                - action: media_player.play_media
+                  target:
+                    entity_id:
+                      "{{ state_attr('sensor.presence_piece', 'echo') }}
+
+                      "
+                  data:
+                    media_content_type: routine
+                    media_content_id: Bienvenue
+                  alias: routine bienvenue
+            - alias: therm confort
+              parallel:
+                - alias: sejour confort
+                  choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: climate.therm_sejour
+                          state: heat
+                      sequence:
+                        - choose:
+                            - conditions:
+                                - condition: state
+                                  entity_id: climate.therm_sejour
+                                  attribute: preset_mode
+                                  state: eco
+                                  enabled: false
+                                - condition: not
+                                  conditions:
+                                    - condition: state
+                                      entity_id: climate.therm_sejour
+                                      attribute: preset_mode
+                                      state: comfort
+                              sequence:
+                                - action: climate.set_preset_mode
+                                  metadata: {}
+                                  data:
+                                    preset_mode: comfort
+                                  target:
+                                    entity_id: climate.therm_sejour
+                - alias: sdb confort
+                  choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: climate.therm_sdb
+                          state: heat
+                      sequence:
+                        - choose:
+                            - conditions:
+                                - condition: state
+                                  entity_id: climate.therm_sdb
+                                  attribute: preset_mode
+                                  state: eco
+                                  enabled: false
+                                - condition: not
+                                  conditions:
+                                    - condition: state
+                                      entity_id: climate.therm_sdb
+                                      attribute: preset_mode
+                                      state: comfort
+                              sequence:
+                                - action: climate.set_preset_mode
+                                  metadata: {}
+                                  data:
+                                    preset_mode: comfort
+                                  target:
+                                    entity_id:
+                                      - climate.therm_sdb
+            - action: light.turn_on
+              metadata: {}
+              data: {}
+              target:
+                entity_id:
+                  - light.awtrix_salon_matrix
+                  - light.awtrix_ulanzi_matrix
+            - data:
+                broadcast_port: 9
+                mac: 60:a4:4c:3e:12:6f
+                broadcast_address: 192.168.1.78
+              action: wake_on_lan.send_magic_packet
+              alias: reveil pc
+            - delay:
+                hours: 0
+                minutes: 0
+                seconds: 15
+                milliseconds: 0
+            - action: script.activate_alexa_actionable_notification
+              data:
+                text: Monsieur, voulez vous votre musique ?
+                event_id: musique
+                alexa_device: "{{ state_attr('sensor.presence_piece', 'echo') }}
+
+                  "
+              alias: demande pour la musique
+          alias: home
+        - conditions:
+            - condition: trigger
+              id:
+                - not_home
+          sequence:
+            - alias: absent
+              action: input_text.set_value
+              metadata: {}
+              data:
+                value: absent
+              target:
+                entity_id: input_text.present_absent
+            - alias: therm eco
+              parallel:
+                - alias: sejour eco
+                  choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: climate.therm_sejour
+                          state: heat
+                      sequence:
+                        - choose:
+                            - conditions:
+                                - condition: state
+                                  entity_id: climate.therm_sejour
+                                  attribute: preset_mode
+                                  state: comfort
+                              sequence:
+                                - action: climate.set_preset_mode
+                                  metadata: {}
+                                  data:
+                                    preset_mode: eco
+                                  target:
+                                    entity_id: climate.therm_sejour
+                                  alias: eco
+                - alias: sdb eco
+                  choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: climate.therm_sdb
+                          state: heat
+                      sequence:
+                        - choose:
+                            - conditions:
+                                - condition: state
+                                  entity_id: climate.therm_sdb
+                                  attribute: preset_mode
+                                  state: comfort
+                              sequence:
+                                - action: climate.set_preset_mode
+                                  metadata: {}
+                                  data:
+                                    preset_mode: eco
+                                  target:
+                                    entity_id:
+                                      - climate.therm_sdb
+                                  alias: eco
+            - action: button.press
+              metadata: {}
+              data: {}
+              target:
+                entity_id: button.pc_debian_shutdown
+              enabled: true
+            - action: light.turn_off
+              metadata: {}
+              data: {}
+              target:
+                entity_id:
+                  - light.awtrix_salon_matrix
+                  - light.awtrix_ulanzi_matrix
+            - alias: verif lumieres
+              parallel:
+                - choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: light.hue_salon
+                          state: "on"
+                      sequence:
+                        - action: light.turn_off
+                          metadata: {}
+                          data: {}
+                          target:
+                            entity_id: light.hue_salon
+                  alias: salon
+                - choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: light.hue_sam
+                          state: "on"
+                      sequence:
+                        - action: light.turn_off
+                          metadata: {}
+                          data: {}
+                          target:
+                            entity_id: light.hue_sam
+                  alias: sam
+                - choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: light.cuisine
+                          state: "on"
+                      sequence:
+                        - action: light.turn_off
+                          metadata: {}
+                          data: {}
+                          target:
+                            entity_id: light.cuisine
+                  alias: cuisine
+                - choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: light.hue_chambre
+                          state: "on"
+                      sequence:
+                        - action: light.turn_off
+                          metadata: {}
+                          data: {}
+                          target:
+                            entity_id: light.hue_chambre
+                  alias: chambre
+                - choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: light.hue_sdb
+                          state: "on"
+                      sequence:
+                        - action: light.turn_off
+                          metadata: {}
+                          data: {}
+                          target:
+                            entity_id: light.hue_sdb
+                  alias: sdb
+                - choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: light.ambi
+                          state: "on"
+                      sequence:
+                        - action: light.turn_off
+                          metadata: {}
+                          data: {}
+                          target:
+                            entity_id: light.ambi
+                  alias: ambi
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: media_player.partout_2
+                      state: playing
+                  sequence:
+                    - action: media_player.media_stop
+                      metadata: {}
+                      data: {}
+                      target:
+                        entity_id: media_player.partout_2
+              alias: si musique en cours
+            - action: media_player.volume_set
+              metadata: {}
+              data:
+                volume_level: 0.13
+              target:
+                entity_id: media_player.partout_2
+              alias: vol 13% partout
+          alias: not_home
+  mode: single
+- id: "1728284233536"
+  alias: douche
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id: input_button.douche
+      id: bouton
+    - trigger: conversation
+      command:
+        - prépare la douche
+        - prépare la salle de bain
+      id: VA
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: climate.therm_sdb
+              state: heat
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: not
+                      conditions:
+                        - condition: state
+                          entity_id: climate.therm_sdb
+                          attribute: preset_mode
+                          state: boost
+                  sequence:
+                    - action: climate.set_preset_mode
+                      metadata: {}
+                      data:
+                        preset_mode: boost
+                      target:
+                        entity_id: climate.therm_sdb
+                      alias: boost
+                    - alias: attendre sdb > 24
+                      wait_for_trigger:
+                        - trigger: numeric_state
+                          entity_id:
+                            - sensor.temperature_sdb
+                          above: 23
+                      timeout:
+                        hours: 0
+                        minutes: 30
+                        seconds: 0
+                        milliseconds: 0
+                    - action: script.1717220445110
+                      data:
+                        message:
+                          Monsieur, la salle de bain est à {{ states('sensor.temperature_sdb')
+                          }} Degrés
+                    - alias: volume sdb 25%
+                      action: media_player.volume_set
+                      metadata: {}
+                      data:
+                        volume_level: 0.35
+                      target:
+                        entity_id: media_player.echo_sdb
+                    - choose:
+                        - conditions:
+                            - condition: or
+                              conditions:
+                                - condition: numeric_state
+                                  entity_id: sensor.lux_sdb
+                                  below: 1
+                                - condition: state
+                                  entity_id: cover.volsdb
+                                  state: closed
+                              alias: lux < 1 ou volet fermé
+                          sequence:
+                            - action: scene.turn_on
+                              metadata: {}
+                              target:
+                                entity_id: scene.hue_sdb_2_stimulation
+                          alias: lumière ?
+                      alias: lumière ?
+                    - delay:
+                        hours: 0
+                        minutes: 15
+                        seconds: 0
+                        milliseconds: 0
+                    - action: climate.set_preset_mode
+                      metadata: {}
+                      data:
+                        preset_mode: comfort
+                      target:
+                        entity_id: climate.therm_sdb
+                      alias: sdb confort
+                    - action: media_player.volume_set
+                      metadata: {}
+                      data:
+                        volume_level: 0.13
+                      target:
+                        entity_id: media_player.echo_sdb
+                      alias: volume sdb 13%
+                  alias: "!= boost"
+      enabled: true
+  mode: single
+- id: "1730630654199"
+  alias: test 02 zones
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - person.canabang
+      id: canabang
+    - trigger: zone
+      entity_id: person.canabang
+      zone: zone.boulot
+      event: leave
+      id: canabang
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.from_state.state != trigger.to_state.state }}"
+      alias: '"from" zone que l''on quitte, "to" zone ou l''on rentre'
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - canabang
+          sequence:
+            - variables:
+                person: "{{ trigger.from_state.attributes.friendly_name }}"
+                to_zone: "{{ trigger.to_state.state }}"
+                from_zone: "{{ trigger.from_state.state }}"
+            - choose:
+                - conditions:
+                    - alias: not_home -> home
+                      condition: template
+                      value_template:
+                        "{{ to_zone  == 'home' and from_zone == 'not_home'
+                        }}"
+                  sequence:
+                    - action: notify.mobile_app_redmi_note_8_pro
+                      data:
+                        message: "{{person}} arrive dans la zone {{to_zone}}
+
+                          "
+                - conditions:
+                    - alias: home -> not_home
+                      condition: template
+                      value_template:
+                        "{{ to_zone  == 'not_home' and from_zone == 'home'
+                        }}"
+                  sequence:
+                    - action: notify.mobile_app_redmi_note_8_pro
+                      data:
+                        message: "{{person}} sort de la zone {{from_zone}}
+
+                          "
+                - conditions:
+                    - alias: not_home -> boulot
+                      condition: template
+                      value_template:
+                        "{{ to_zone  == 'boulot' and from_zone == 'not_home'
+                        }}"
+                  sequence:
+                    - action: notify.mobile_app_redmi_note_8_pro
+                      data:
+                        message: "{{person}} arrive dans la zone {{to_zone}}
+
+                          "
+                - conditions:
+                    - alias: boulot -> not_home
+                      condition: template
+                      value_template:
+                        "{{ to_zone  == 'not_home' and from_zone == 'boulot'
+                        }}"
+                  sequence:
+                    - action: notify.mobile_app_redmi_note_8_pro
+                      data:
+                        message: "{{person}} sort de la zone {{from_zone}}
+
+                          "
+                    - choose:
+                        - conditions:
+                            - condition: state
+                              entity_id: climate.therm_sdb
+                              state: heat
+                          sequence:
+                            - action: climate.set_preset_mode
+                              metadata: {}
+                              data:
+                                preset_mode: boost
+                              target:
+                                entity_id: climate.therm_sdb
+                        - conditions:
+                            - condition: state
+                              entity_id: climate.therm_sejour
+                              state: heat
+                          sequence:
+                            - action: climate.set_preset_mode
+                              metadata: {}
+                              data:
+                                preset_mode: boost
+                              target:
+                                entity_id: climate.therm_sejour
+  mode: single
+- id: "1734848128871"
+  alias: volet salon
+  description: si Maison, ouvre le volet du salon a 50%
+  triggers:
+    - trigger: state
+      entity_id:
+        - cover.volsal
+      from: closed
+      to: opening
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: person.canabang
+              state: home
+          sequence:
+            - action: cover.set_cover_position
+              metadata: {}
+              data:
+                position: 50
+              target:
+                device_id: aae34e5bd6a082cc2d36301dd5a15689
+        - conditions:
+            - condition: state
+              entity_id: person.canabang
+              state: not_home
+          sequence:
+            - action: cover.set_cover_position
+              metadata: {}
+              data:
+                position: 100
+              target:
+                device_id: aae34e5bd6a082cc2d36301dd5a15689
+  mode: single
+- id: "1735741040395"
+  alias: media importation fini
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - sensor.sonarr_queue
+      to: "0"
+      id: sonarr
+    - trigger: state
+      entity_id:
+        - sensor.radarr_file_d_attente
+      to: "0"
+      id: radarr
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: and
+              conditions:
+                - condition: state
+                  entity_id: person.canabang
+                  state: home
+                - condition: state
+                  entity_id: input_text.jour_nuit
+                  state: jour
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: trigger
+                      id:
+                        - sonarr
+                  sequence:
+                    - action: tts.speak
+                      target:
+                        entity_id: tts.piper
+                      data:
+                        cache: true
+                        media_player_entity_id: media_player.respeakerv3_media_player
+                        message: Monsieur, tout les épisodes sont importés
+                - conditions:
+                    - condition: trigger
+                      id:
+                        - radarr
+                  sequence:
+                    - action: tts.speak
+                      target:
+                        entity_id: tts.piper
+                      data:
+                        cache: true
+                        media_player_entity_id: media_player.respeakerv3_media_player
+                        message: Monsieur, tout les films sont importés
+  mode: single
+- id: "1735826207076"
+  alias: Switch tv
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - input_boolean.switch_tv_2
+      to: "on"
+      id: tv on
+    - trigger: state
+      entity_id:
+        - input_boolean.switch_tv_2
+      to: "off"
+      id: tv off
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - tv on
+          sequence:
+            - action: media_player.play_media
+              data:
+                media_content_id: allume le cube
+                media_content_type: routine
+              target:
+                entity_id: media_player.echo_studio_d
+              alias: routine allume
+            - choose:
+                - conditions:
+                    - condition: numeric_state
+                      entity_id: cover.volsam
+                      attribute: current_position
+                      above: 50
+                  sequence:
+                    - data:
+                        text: Monsieur, dois-je aussi fermer le volet de la salle à manger ?
+                        event_id: tele_volsam
+                        alexa_device: media_player.echo_studio_d
+                      action: script.activate_alexa_actionable_notification
+              alias: volsam >50
+            - delay:
+                hours: 0
+                minutes: 0
+                seconds: 10
+                milliseconds: 0
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: media_player.partout_2
+                      state: idle
+                  sequence:
+                    - action: media_player.select_source
+                      metadata: {}
+                      data:
+                        source: Kodi
+                      target:
+                        entity_id: media_player.cube
+        - conditions:
+            - condition: trigger
+              id:
+                - tv off
+          sequence:
+            - alias: routine éteins
+              action: media_player.play_media
+              data:
+                media_content_id: éteins le cube
+                media_content_type: routine
+              target:
+                entity_id: media_player.echo_studio_d
+  mode: single
+- id: "1738006223571"
+  alias: planning
+  description: ""
+  triggers:
+    - at: "20:01:00"
+      trigger: time
+    - trigger: homeassistant
+      event: start
+  conditions: []
+  actions:
+    - target:
+        entity_id: calendar.frouard_distribution_gael_copie
+      data:
+        start_date_time:
+          "{{ (now().date() + timedelta(days=1)).strftime('%Y-%m-%dT00:00:00')
+          }}"
+        duration:
+          hours: 24
+          minutes: 0
+          seconds: 0
+      response_variable: calendar_events
+      action: calendar.get_events
+    - variables:
+        events:
+          "{{ calendar_events['calendar.frouard_distribution_gael_copie'].events
+          }}"
+        valid_events:
+          "{{ events | selectattr('start', 'defined') | selectattr('end',
+          'defined') | list }}"
+        full_day_event:
+          "{{ valid_events | selectattr('start', 'lt', (now().date()
+          + timedelta(days=1)).strftime('%Y-%m-%dT00:00:00')) | selectattr('end',
+          'gt', (now().date() + timedelta(days=1)).strftime('%Y-%m-%dT23:59:59'))
+          | list }}"
+        first_event:
+          "{{ valid_events | sort(attribute='start') | first if not full_day_event
+          else none }}"
+        last_event:
+          "{{ valid_events | sort(attribute='end') | last if not full_day_event
+          else none }}"
+        first_start_time:
+          "{{ first_event.start if first_event else '1970-01-01T00:00:00'
+          }}"
+        last_end_time:
+          "{{ last_event.end if last_event else '1970-01-01T00:00:00'
+          }}"
+        status:
+          "{{ 'travail' if valid_events | count > 0 and not full_day_event else
+          'repos' }}"
+        sensor_attributes: "{{ {'start': first_start_time, 'end': last_end_time}
+          if valid_events | count > 0 and not full_day_event else {} }}"
+    - action: input_text.set_value
+      data:
+        value: "{{ status }}"
+      target:
+        entity_id: input_text.travail_status
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.start_travail
+      data:
+        datetime: "{{ first_start_time }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.end_travail
+      data:
+        datetime: "{{ last_end_time }}"
+  mode: single
+- id: "1738217016236"
+  alias: Domotique chat
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.litiere_bac_a_dechets_plein
+      to: "on"
+      id: dechet plein
+      alias: Bac à déchets plein
+    - trigger: state
+      entity_id:
+        - binary_sensor.litiere_manque_de_litiere
+      to: "on"
+      id: manque litiere
+      alias: Manque de litière
+    - trigger: homeassistant
+      event: start
+      id: démarrage ha
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - démarrage ha
+          sequence:
+            - delay:
+                hours: 0
+                minutes: 5
+                seconds: 0
+            - choose:
+                - conditions:
+                    - condition: trigger
+                      id:
+                        - dechet plein
+                        - démarrage ha
+                  sequence:
+                    - choose:
+                        - conditions:
+                            - condition: state
+                              entity_id: binary_sensor.litiere_bac_a_dechets_plein
+                              state: "on"
+                          sequence:
+                            - repeat:
+                                sequence:
+                                  - action: script.1717220445110
+                                    data:
+                                      message:
+                                        Monsieur, le bac à déchets de la litière est plein,
+                                        pensez à le vider
+                                  - action: script.awtrix_dynamique_customapp_dupliquer
+                                    data:
+                                      icone: trash
+                                      rainbow: "true"
+                                      scrollspeed: "50"
+                                      duree: "25"
+                                      message: bac à dechets plein
+                                  - delay:
+                                      hours: 2
+                                      minutes: 0
+                                      seconds: 0
+                                while:
+                                  - condition: state
+                                    entity_id: binary_sensor.litiere_bac_a_dechets_plein
+                                    state: "on"
+                - conditions:
+                    - condition: trigger
+                      id:
+                        - manque litiere
+                        - démarrage ha
+                  sequence:
+                    - choose:
+                        - conditions:
+                            - condition: state
+                              entity_id: binary_sensor.litiere_manque_de_litiere
+                              state: "on"
+                          sequence:
+                            - repeat:
+                                sequence:
+                                  - action: script.1717220445110
+                                    data:
+                                      message: Monsieur, pensez à rajouter de la litière
+                                  - action: script.awtrix_dynamique_customapp_dupliquer
+                                    data:
+                                      icone: warning
+                                      rainbow: "true"
+                                      scrollspeed: "50"
+                                      duree: "25"
+                                      message: rajouter de la litière
+                                  - delay:
+                                      hours: 2
+                                      minutes: 0
+                                      seconds: 0
+                                while:
+                                  - condition: state
+                                    entity_id: binary_sensor.litiere_manque_de_litiere
+                                    state: "on"
+                - conditions:
+                    - condition: trigger
+                      id:
+                        - niveau eau
+                        - démarrage ha
+                  sequence:
+                    - choose:
+                        - conditions:
+                            - condition: numeric_state
+                              entity_id: sensor.esp_pet_scales_niveau_d_eau
+                              below: 29.9
+                          sequence:
+                            - repeat:
+                                sequence:
+                                  - action: script.1717220445110
+                                    data:
+                                      message:
+                                        Monsieur, il ne reste que {{states('sensor.esp_pet_scales_niveau_d_eau')}}
+                                        % d eau dans la fontaine. Pensez à la remplir
+                                  - action: script.awtrix_dynamique_customapp_dupliquer
+                                    data:
+                                      icone: warning
+                                      rainbow: "true"
+                                      scrollspeed: "50"
+                                      duree: "25"
+                                      message:
+                                        il ne reste que {{states('sensor.esp_pet_scales_niveau_d_eau')}}
+                                        % d eau dans la fontaine
+                                  - delay:
+                                      hours: 2
+                                      minutes: 0
+                                      seconds: 0
+                                while:
+                                  - condition: numeric_state
+                                    entity_id: sensor.esp_pet_scales_niveau_d_eau
+                                    below: 30
+                      enabled: false
+  mode: parallel
+  max: 10
+- id: "1738255112050"
+  alias: reveil auto
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - input_text.jour_nuit
+      from: jour
+      to: nuit
+      for:
+        hours: 0
+        minutes: 1
+        seconds: 0
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                "{{ state_attr('input_datetime.start_travail', 'hour')
+                <= 9 }}"
+              alias: Travail <= 9
+            - condition: template
+              value_template:
+                "{{ states('input_datetime.start_travail') != '1970-01-01
+                00:00:00' }}"
+              alias: Travail != 1970-01-01 00:00:00
+            - alias: Travail != 0
+              condition: template
+              value_template:
+                "{{ state_attr('input_datetime.start_travail', 'hour')
+                != 0 }}"
+          sequence:
+            - variables:
+                heure_reveil:
+                  "{% set heures = (as_timestamp(states('input_datetime.start_travail'))
+                  - (2 * 3600 + 30 * 60)) | timestamp_custom('%H') | int %}\n  {% set minutes
+                  = (as_timestamp(states('input_datetime.start_travail')) - (2 * 3600 +
+                  30 * 60)) | timestamp_custom('%M') | int %}\n  {% set heures_texte = ['minuit',
+                  'une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf',
+                  'dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept',
+                  'dix-huit', 'dix-neuf', 'vingt', 'vingt et une', 'vingt-deux', 'vingt-trois'][heures]
+                  %}\n  {% set minutes_texte = ['zéro', 'cinq', 'dix', 'quinze', 'vingt',
+                  'vingt-cinq', 'trente', 'trente-cinq', 'quarante', 'quarante-cinq', 'cinquante',
+                  'cinquante-cinq'][minutes // 5] %}\n  {% if minutes == 0 %}\n  {{ heures_texte
+                  }} heure\n{% else %}\n  {{ heures_texte }} heure {{ minutes_texte }}\n{%
+                  endif %}"
+                heure_reveil_chiffre:
+                  "{% set heure_reveil_timestamp = (as_timestamp(states('input_datetime.start_travail'))
+                  - (2 * 3600 + 30 * 60)) %}  {{ heure_reveil_timestamp | timestamp_custom('%H:%M')
+                  }}"
+                heure_reveil_03mn_avant:
+                  "{% set heure_reveil_timestamp = (as_timestamp(states('input_datetime.start_travail'))
+                  - (2 * 3600 + 30 * 60) - 3 * 60) %}  {{ heure_reveil_timestamp | timestamp_custom('%H:%M')
+                  }}"
+                heure_reveil_30mn_avant:
+                  "{% set heure_reveil_timestamp = (as_timestamp(states('input_datetime.start_travail'))
+                  - (2 * 3600 + 30 * 60) - 30 * 60) %}  {{ heure_reveil_timestamp | timestamp_custom('%H:%M')
+                  }}"
+                heure_reveil_15mn_apres:
+                  "{% set heure_reveil_timestamp = (as_timestamp(states('input_datetime.start_travail'))
+                  - (2 * 3600 + 30 * 60) + 15 * 60) %}  {{ heure_reveil_timestamp | timestamp_custom('%H:%M')
+                  }}"
+            - action: media_player.play_media
+              data:
+                media_content_type: custom
+                media_content_id: réveil à {{ heure_reveil }} matin
+              target:
+                entity_id: media_player.echo_show_chambre
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.heure_reveil
+              data:
+                time: "{{ heure_reveil_chiffre }}
+
+                  "
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.heure_reveil_03mn_avant
+              data:
+                time: "{{ heure_reveil_03mn_avant }}"
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.heure_reveil_30mn_avant
+              data:
+                time: "{{ heure_reveil_30mn_avant }}"
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.heure_reveil_15mn_apres
+              data:
+                time: "{{ heure_reveil_15mn_apres }}"
+          alias: Travail <= 9 et != 1970-01-01 00:00:00
+        - conditions:
+            - alias: Travail == 1970-01-01 00:00:00
+              condition: template
+              value_template:
+                "{{ states('input_datetime.start_travail') == '1970-01-01
+                00:00:00' }}"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id:
+                  - input_datetime.heure_reveil
+                  - input_datetime.heure_reveil_03mn_avant
+                  - input_datetime.heure_reveil_15mn_apres
+                  - input_datetime.heure_reveil_30mn_avant
+              data:
+                time: 00:00:00
+  mode: single
+- id: "1739006089594"
+  alias: Voice plex
+  description: ""
+  triggers:
+    - trigger: conversation
+      command:
+        - démarre plex
+  conditions: []
+  actions:
+    - action: media_player.select_source
+      metadata: {}
+      data:
+        source: Plex
+      target:
+        entity_id: media_player.cube
+  mode: single
+- id: "1739042824479"
+  alias: voice kodi
+  description: ""
+  triggers:
+    - trigger: conversation
+      command:
+        - démarre cody
+        - lance cody
+  conditions: []
+  actions:
+    - action: media_player.select_source
+      metadata: {}
+      data:
+        source: Kodi
+      target:
+        entity_id: media_player.cube
+    - action: media_player.play_media
+      data:
+        media_content_type: custom
+        media_content_id: arrête la musique partout
+      target:
+        entity_id: media_player.echo_studio_d
+  mode: single
+- id: "1739088375279"
+  alias: kodi sur firetv chambre
+  description: ""
+  triggers:
+    - trigger: state
+      entity_id:
+        - media_player.firetv_chambre
+      from: standby
+      to: idle
+      enabled: false
+    - trigger: state
+      entity_id:
+        - media_player.firetv_chambre
+      from: "off"
+      to: idle
+  conditions: []
+  actions:
+    - action: media_player.select_source
+      metadata: {}
+      data:
+        source: Kodi
+      target:
+        entity_id: media_player.firetv_chambre
+  mode: single
+- id: "1739724420845"
+  alias: Automatisation à la fin du travail
+  description: ""
+  triggers:
+    - value_template:
+        "{{ states('input_datetime.end_travail')[11:16] == states('sensor.time')[0:5]
+        }}"
+      trigger: template
+  conditions:
+    - condition: template
+      value_template:
+        "{{ states('input_datetime.end_travail')[11:19] != '00:00:00'
+        }}"
+  actions:
+    - choose:
+        - conditions:
+            - condition: and
+              conditions:
+                - condition: state
+                  entity_id: climate.therm_sdb
+                  state: heat
+                - condition: state
+                  entity_id: climate.therm_sejour
+                  state: heat
+          sequence:
+            - action: climate.set_preset_mode
+              metadata: {}
+              data:
+                preset_mode: comfort
+              target:
+                entity_id:
+                  - climate.therm_sdb
+                  - climate.therm_sejour
+    - choose: []
+- id: "1740041094792"
+  alias: reveil 30mn avant
+  description: ""
+  triggers:
+    - trigger: template
+      value_template:
+        "{{ states('input_datetime.heure_reveil_30mn_avant')[0:5] ==
+        states('sensor.time')[0:5] }}"
+      id: reveil
+      alias: heure_reveil_30mn_avant == sensor.time
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                "{{ states('input_datetime.heure_reveil_30mn_avant') !=
+                '00:00:00' }}"
+              alias: heure_reveil_30mn_avant != 00:00:00
+          sequence:
+            - action: script.therm_confort
+              data:
+                declencheur: "{{ trigger.id }}"
+              enabled: false
+            - action: input_datetime.set_datetime
+              data:
+                time: 00:00:00
+              target:
+                entity_id: input_datetime.heure_reveil_30mn_avant
+            - action: climate.set_preset_mode
+              metadata: {}
+              data:
+                preset_mode: comfort
+              target:
+                entity_id: climate.therm_sejour
+            - action: climate.set_preset_mode
+              metadata: {}
+              data:
+                preset_mode: comfort
+              target:
+                entity_id: climate.therm_sdb
+  mode: single
+- id: "1740041790487"
+  alias: Reveil 3 mn avant
+  description: ""
+  triggers:
+    - trigger: template
+      value_template:
+        "{{ states('input_datetime.heure_reveil_03mn_avant')[0:5] ==
+        states('sensor.time')[0:5] }}"
+      id: reveil
+      alias: heure_reveil_03mn_avant == sensor.time
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                "{{ states('input_datetime.heure_reveil_03mn_avant') !=
+                '00:00:00' }}"
+              alias: heure_reveil_03mn_avant != 00:00:00
+          sequence:
+            - action: switch.turn_on
+              target:
+                entity_id: switch.priscafe
+              data: {}
+            - action: input_datetime.set_datetime
+              data:
+                time: 00:00:00
+              target:
+                entity_id: input_datetime.heure_reveil_03mn_avant
+  mode: single
+- id: "1740041925919"
+  alias: heure du reveil
+  description: ""
+  triggers:
+    - trigger: template
+      value_template:
+        "{{ states('input_datetime.heure_reveil')[0:5] == states('sensor.time')[0:5]
+        }}"
+      id: reveil
+      alias: heure_reveil == sensor.time
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                "{{ states('input_datetime.heure_reveil') != '00:00:00'
+                }}"
+              alias: heure_reveil != 00:00:00
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.jour_nuit
+              data:
+                value: jour
+            - action: light.turn_on
+              metadata: {}
+              data: {}
+              target:
+                entity_id:
+                  - light.awtrix_salon_matrix
+                  - light.awtrix_ulanzi_matrix
+            - action: wake_on_lan.send_magic_packet
+              data:
+                broadcast_port: 9
+                mac: 60:a4:4c:3e:12:6f
+            - action: media_player.media_play
+              metadata: {}
+              data: {}
+              target:
+                entity_id: media_player.partout_2
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.heure_reveil
+              data:
+                time: 00:00:00
+  mode: single
+- id: "1740042035550"
+  alias: Reveil 15mn apres
+  description: ""
+  triggers:
+    - trigger: template
+      value_template:
+        "{{ states('input_datetime.heure_reveil_15mn_apres')[0:5] ==
+        states('sensor.time')[0:5] }}"
+      id: reveil
+      alias: heure_reveil_15mn_apres == sensor.time
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template:
+                "{{ states('input_datetime.heure_reveil_15mn_apres') !=
+                '00:00:00' }}"
+              alias: heure_reveil_15mn_apres != 00:00:00
+          sequence:
+            - action: input_button.press
+              target:
+                entity_id: input_button.douche
+              data: {}
+            - action: input_datetime.set_datetime
+              data:
+                time: 00:00:00
+              target:
+                entity_id: input_datetime.heure_reveil_15mn_apres
+        - conditions: []
+          sequence: []
+  mode: single
+- id: "1740042944107"
+  alias: Café
+  description: ""
+  triggers:
+    - entity_id:
+        - switch.priscafe
+      to: "on"
+      id: priscaf
+      trigger: state
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - priscaf
+          sequence:
+            - delay:
+                hours: 0
+                minutes: 3
+                seconds: 0
+                milliseconds: 0
+            - action: switch.turn_off
+              metadata: {}
+              data: {}
+              target:
+                entity_id: switch.priscafe
+            - sequence:
+                - action: google_generative_ai_conversation.generate_content
+                  data:
+                    prompt:
+                      "Génère un message vocal pour prévenir que le café est prêt.
+
+
+                      Le ton doit être court, factuel, avec une touche d’humour ou de sarcasme
+                      léger, dans le style d’un droïde reprogrammé façon K-2SO (Star Wars).
+
+                      Tu peux glisser une référence geek ou pop culture si c’est pertinent.
+
+                      La réponse doit être adaptée au TTS : courte, claire, sans smileys ni
+                      émoticônes.
+
+                      Aucune insulte, aucune menace.
+
+
+                      Exemples de ton attendu :
+
+
+                      « Le café est prêt. Vous avez survécu jusque-là, autant continuer. »
+
+
+                      « Café disponible. Taux de réveil cérébral à suivre… »
+
+
+                      « Mission accomplie : café prêt. J’espère que c’est assez fort. »
+
+
+                      « Activation de la routine café terminée. Bonne chance pour la suite.
+                      »
+
+
+                      Génère uniquement la phrase, sans explications, sans balises, sans métadonnées.
+
+
+                      "
+                  response_variable: generated_message
+                - action: script.1717220445110
+                  data:
+                    message: "{{ generated_message.text }}"
+                  enabled: true
+                - action: tts.speak
+                  target:
+                    entity_id: tts.piper
+                  data:
+                    cache: true
+                    media_player_entity_id: media_player.esp_ball
+                    message: "{{ generated_message.text }}"
+                  enabled: false
+            - action: script.awtrix_dynamique_customapp_dupliquer
+              data:
+                icone: cafe
+                rainbow: "true"
+                scrollspeed: "50"
+                duree: "25"
+                message: le café est prêt
+  mode: single
+- id: "1740056843505"
+  alias: Customapp tempsejour
+  description: ""
+  triggers:
+    - entity_id:
+        - sensor.sejour
+      enabled: true
+      id: tempsejour
+      trigger: state
+  conditions: []
+  actions:
+    - variables:
+        tempsejour: '{{ "Sejour" + " " + states(''sensor.sejour'')  + "°C" }}
+
+          '
+        color:
+          "{% set state = states('sensor.sejour') %}  \n  {% if state >= '23' %}\n
+          \   #8b0000\n  {% elif state >= '19' %}\n    #2e8b57\n  {% else %}\n    #0000ff\n
+          \ {% endif %}\n"
+      enabled: true
+    - action: script.awtrix_dynamique_customapp_dupliquer
+      data:
+        icone: therm
+        rainbow: "false"
+        scrollspeed: "50"
+        color: "{{ color }}"
+        customapp: temp_sejour
+        message: "{{ tempsejour }}"
+  mode: single
+- id: "1740060163461"
+  alias: customapp temp_cham
+  description: ""
+  triggers:
+    - entity_id:
+        - sensor.temperature_chambre
+      id: tempcham
+      trigger: state
+  conditions: []
+  actions:
+    - variables:
+        seuil_chaud: 23
+        seuil_confortable: 19
+        couleur_chaud: "#8b0000"
+        couleur_confortable: "#2e8b57"
+        couleur_froid: "#0000ff"
+        temp_value: "{{ states('sensor.temperature_chambre') | float }}"
+        temp_cham: "{{ 'Chambre ' + (temp_value|round(1))|string + '°C' }}"
+        color:
+          "{% if temp_value >= seuil_chaud %}\n  {{ couleur_chaud }}\n{% elif temp_value
+          >= seuil_confortable %}\n  {{ couleur_confortable }}\n{% else %}\n  {{ couleur_froid
+          }}\n{% endif %}\n"
+    - action: script.awtrix_dynamique_customapp_dupliquer
+      data:
+        icone: temp_ch
+        rainbow: "false"
+        scrollspeed: "50"
+        color: "{{ color }}"
+        duree: "25"
+        customapp: temp_cham
+        message: "{{ temp_cham }}"
+  mode: single
+- id: "1740060517827"
+  alias: customapp temp_sdb
+  description: ""
+  triggers:
+    - entity_id:
+        - sensor.temperature_sdb
+      id: tempsdb
+      trigger: state
+  conditions: []
+  actions:
+    - variables:
+        temp_sdb:
+          '{{ "SdB" + " " + states(''sensor.temperature_sdb'')  + "°C" }}
+
+          '
+        color:
+          "{% set state = states('sensor.temperature_sdb') %}  \n  {% if state
+          >= '23' %}\n    #8b0000\n  {% elif state >= '19' %}\n    #2e8b57\n  {% else
+          %}\n    #0000ff\n  {% endif %}\n"
+    - action: script.awtrix_dynamique_customapp_dupliquer
+      data:
+        icone: temp_sdb
+        rainbow: "false"
+        scrollspeed: "50"
+        color: "{{ color }}"
+        duree: "25"
+        customapp: temp_sdb
+        message: "{{ temp_sdb }}"
+  mode: single
+- id: "1742812962172"
+  alias: mode dodo (repeat.item)
+  description: Prépare la maison pour la nuit avec vérifications d'état
+  triggers:
+    - command:
+        - passe en mode dodo
+        - mode dodo
+      id: dodo
+      trigger: conversation
+    - entity_id:
+        - input_button.mode_dodo
+      to: pressed
+      id: dodo
+      trigger: state
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id:
+                - dodo
+          sequence:
+            - target:
+                entity_id:
+                  - button.mode_dodo_3
+              data: {}
+              action: button.press
+            - repeat:
+                for_each:
+                  - light.awtrix_ulanzi_matrix
+                  - light.awtrix_salon_matrix
+                  - light.ambi
+                sequence:
+                  - choose:
+                      - conditions:
+                          - condition: template
+                            value_template: "{{ is_state(repeat.item, 'on') }}"
+                        sequence:
+                          - action: light.turn_off
+                            data: {}
+                            target:
+                              entity_id: "{{ repeat.item }}"
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: switch.pristvchamb
+                      state: "off"
+                  sequence:
+                    - action: switch.turn_on
+                      data: {}
+                      target:
+                        entity_id: switch.pristvchamb
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: input_boolean.switch_tv_2
+                      state: "on"
+                  sequence:
+                    - action: input_boolean.turn_off
+                      target:
+                        entity_id: input_boolean.switch_tv_2
+                      data: {}
+            - action: button.press
+              data: {}
+              target:
+                entity_id: button.pc_debian_shutdown
+            - alias: lumières off
+              parallel:
+                - repeat:
+                    for_each:
+                      - light.hue_salon
+                      - light.hue_sam
+                      - light.hue_cuisine
+                      - light.hue_sdb
+                    sequence:
+                      - choose:
+                          - conditions:
+                              - condition: template
+                                value_template: "{{ is_state(repeat.item, 'on') }}"
+                            sequence:
+                              - action: light.turn_off
+                                data: {}
+                                target:
+                                  entity_id: "{{ repeat.item }}"
+            - sequence:
+                - repeat:
+                    for_each:
+                      - climate.therm_sejour
+                      - climate.therm_sdb
+                    sequence:
+                      - choose:
+                          - conditions:
+                              - condition: template
+                                value_template: "{{ is_state(repeat.item, 'heat') }}"
+                            sequence:
+                              - action: climate.set_preset_mode
+                                data:
+                                  preset_mode: eco
+                                target:
+                                  entity_id: "{{ repeat.item }}"
+              alias: therm eco
+            - action: media_player.volume_set
+              data:
+                volume_level: 0.13
+              target:
+                entity_id: media_player.partout_2
+              enabled: true
+            - sequence:
+                - action: google_generative_ai_conversation.generate_content
+                  data:
+                    prompt:
+                      "Génère un message vocal pour souhaiter une bonne nuit à l’utilisateur.
+
+
+                      Le ton doit être court, avec une touche d’humour ou de sarcasme léger,
+                      inspiré d’un droïde reprogrammé façon K-2SO dans Star Wars : direct,
+                      factuel, légèrement ironique mais jamais méchant.
+
+                      La phrase doit rester bienveillante, sans insulte ni menace.
+
+                      Pas de smileys, pas d’émoticônes, pas de balises.
+
+                      Le message doit être adapté au TTS : court, fluide et sans fioritures.
+
+
+                      Exemples de ton attendu :
+
+
+                      « Fin de journée détectée. Bonne nuit… enfin, si tout se passe bien.
+                      »
+
+
+                      « Extinction des feux… et de moi par la même occasion. Bonne nuit. »
+
+
+                      « Bonne nuit. J’espère que les capteurs ne détecteront rien d’anormal
+                      pendant votre sommeil. »
+
+
+                      « Bonne nuit. Aucune alerte de menace à signaler… pour le moment. »
+
+
+                      Génère uniquement la phrase, sans explication, sans balises, sans métadonnées."
+                  response_variable: generated_message
+                - action: script.1717220445110
+                  data:
+                    message: "{{ generated_message.text }}"
+              alias: bonne nuit
+              enabled: true
+            - delay:
+                hours: 0
+                minutes: 1
+                seconds: 0
+                milliseconds: 0
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: light.esp_va_salon_lcd_backlight
+                      state: "on"
+                  sequence:
+                    - action: light.turn_off
+                      data: {}
+                      target:
+                        entity_id: light.esp_va_salon_lcd_backlight
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.jour_nuit
+              data:
+                value: nuit
+            - alias: allumer chambre
+              sequence:
+                - choose:
+                    - conditions:
+                        - condition: state
+                          entity_id: light.hue_chambre
+                          state: "off"
+                      sequence:
+                        - action: light.turn_on
+                          data: {}
+                          target:
+                            entity_id: light.hue_chambre
+                - delay:
+                    hours: 0
+                    minutes: 0
+                    seconds: 1
+                    milliseconds: 0
+                - action: light.turn_on
+                  metadata: {}
+                  data: {}
+                  target:
+                    entity_id: light.hue_chambre
+                - delay:
+                    hours: 0
+                    minutes: 0
+                    seconds: 1
+                    milliseconds: 0
+                - action: scene.turn_on
+                  target:
+                    entity_id: scene.hue_chambre_5_dodo
+                  data: {}
+            - delay:
+                hours: 3
+                minutes: 0
+                seconds: 0
+                milliseconds: 0
+            - choose:
+                - conditions:
+                    - condition: state
+                      entity_id: switch.pristvchamb
+                      state: "on"
+                  sequence:
+                    - action: switch.turn_off
+                      data: {}
+                      target:
+                        entity_id: switch.pristvchamb
+  mode: single

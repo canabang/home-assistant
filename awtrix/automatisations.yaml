@@ -1,0 +1,37 @@
+alias: customapp temp_cham
+description: ""
+triggers:
+  - entity_id:
+      - sensor.temperature_chambre
+    id: tempcham
+    trigger: state
+conditions: []
+actions:
+  - variables:
+      # Constantes définies une seule fois
+      seuil_chaud: 23
+      seuil_confortable: 19
+      couleur_chaud: "#8b0000"
+      couleur_confortable: "#2e8b57"
+      couleur_froid: "#0000ff"
+      
+      temp_value: "{{ states('sensor.temperature_chambre') | float }}"
+      temp_cham: "{{ 'Chambre ' + (temp_value|round(1))|string + '°C' }}"
+      color: >
+        {% if temp_value >= seuil_chaud %}
+          {{ couleur_chaud }}
+        {% elif temp_value >= seuil_confortable %}
+          {{ couleur_confortable }}
+        {% else %}
+          {{ couleur_froid }}
+        {% endif %}
+  - action: script.awtrix_dynamique_customapp
+    data:
+      icone: temp_ch
+      rainbow: "false"
+      scrollspeed: "50"
+      color: "{{ color }}"
+      duree: "25"
+      customapp: temp_cham
+      message: "{{ temp_cham }}"
+mode: single

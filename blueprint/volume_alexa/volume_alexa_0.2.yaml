@@ -1,0 +1,136 @@
+blueprint:
+  name: Initialisation des volumes Alexa
+  description: >
+    Initialise automatiquement les volumes des appareils Alexa Media Player au démarrage 
+    de Home Assistant ou lors du rechargement de l'intégration. 
+    Permet de définir un volume par défaut et de sélectionner les appareils à configurer.
+    
+    Utile pour résoudre le problème des attributs volume_level et previous_volume 
+    qui sont null au démarrage.
+  domain: automation
+  author: "Communauté Home Assistant"
+  source_url: https://github.com/home-assistant/blueprints
+  input:
+    media_players:
+      name: Appareils Alexa
+      description: Sélectionnez les appareils Alexa Media Player à initialiser
+      selector:
+        entity:
+          domain: media_player
+          integration: alexa_media
+          multiple: true
+    default_volume:
+      name: Volume par défaut
+      description: Volume à définir (0.0 = muet, 1.0 = maximum)
+      default: 0.13
+      selector:
+        number:
+          min: 0.0
+          max: 1.0
+          step: 0.01
+          mode: slider
+    startup_delay:
+      name: Délai au démarrage
+      description: Temps d'attente après le démarrage de HA avant l'initialisation
+      default: 30
+      selector:
+        number:
+          min: 10
+          max: 120
+          step: 5
+          unit_of_measurement: "secondes"
+          mode: box
+    device_delay:
+      name: Délai entre appareils
+      description: Temps d'attente entre chaque appareil (évite la surcharge)
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          unit_of_measurement: "secondes"
+          mode: box
+    trigger_on_reload:
+      name: Déclencher lors du rechargement
+      description: Active le déclenchement quand les appareils redeviennent disponibles
+      default: true
+      selector:
+        boolean:
+
+mode: single
+max_exceeded: silent
+
+variables:
+  media_players: !input media_players
+  default_volume: !input default_volume
+  startup_delay: !input startup_delay
+  device_delay: !input device_delay
+  trigger_on_reload: !input trigger_on_reload
+
+trigger:
+  - platform: homeassistant
+    event: start
+    id: "startup"
+  - platform: state
+    entity_id: !input media_players
+    from: "unavailable"
+    for: "00:00:05"
+    id: "reload"
+    enabled: !input trigger_on_reload
+
+condition:
+  - condition: template
+    value_template: "{{ media_players | length > 0 }}"
+
+action:
+  - if:
+      - condition: trigger
+        id: "startup"
+    then:
+      - delay: "{{ '%02d:%02d:%02d' % (0, startup_delay // 60, startup_delay % 60) }}"
+    else:
+      - delay: "00:00:10"  # Délai réduit pour le rechargement
+  
+  - repeat:
+      for_each: "{{ media_players }}"
+      sequence:
+        - if:
+            - condition: template
+              value_template: "{{ states(repeat.item) not in ['unavailable', 'unknown'] }}"
+          then:
+            # Étape 1: Définir un volume temporaire différent pour créer l'historique
+            - service: media_player.volume_set
+              target:
+                entity_id: "{{ repeat.item }}"
+              data:
+                volume_level: "{{ ([0.01, default_volume - 0.01] | max) | round(2) }}"
+            - delay: "00:00:02"  # Attendre que le changement soit pris en compte
+            
+            # Étape 2: Définir le volume final souhaité (cela va créer previous_volume)
+            - service: media_player.volume_set
+              target:
+                entity_id: "{{ repeat.item }}"
+              data:
+                volume_level: "{{ default_volume | round(2) }}"
+            
+            # Étape 3: Vérification et log
+            - delay: "00:00:01"
+            - service: system_log.write
+              data:
+                message: >
+                  Alexa {{ repeat.item }}: volume_level={{ state_attr(repeat.item, 'volume_level') }}, 
+                  previous_volume={{ state_attr(repeat.item, 'previous_volume') }}
+                level: info
+            
+            # Délai entre appareils si configuré
+            - if:
+                - condition: template
+                  value_template: "{{ device_delay > 0 }}"
+              then:
+                - delay: "{{ '%02d:%02d:%02d' % (0, device_delay // 60, device_delay % 60) }}"
+          else:
+            - service: system_log.write
+              data:
+                message: "Appareil Alexa {{ repeat.item }} non disponible lors de l'initialisation du volume"
+                level: warning
