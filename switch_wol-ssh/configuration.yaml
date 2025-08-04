@@ -1,3 +1,4 @@
+### Option 1 tout dans le fichier configuration
 # Switch ON/OFF pour machine Linux (Wake-on-LAN + SSH shutdown)
 switch:
   - platform: wake_on_lan
@@ -11,3 +12,8 @@ switch:
 # Commande shell pour éteindre la machine Linux via SSH
 shell_command:
   shutdown_linux: "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 USERNAME@IP_LINUX 'sudo shutdown -h now'"
+
+### Option 2 fichiers séparés
+# Inclusion des fichiers de configuration
+switch: !include switch.yaml
+shell_command: !include shell_command.yaml
