@@ -1,0 +1,8 @@
+# Switch ON/OFF pour machine Linux (Wake-on-LAN + SSH shutdown)
+- platform: wake_on_lan
+  mac: "XX:XX:XX:XX:XX:XX"  # Adresse MAC de votre machine Linux
+  name: "Linux Server"
+  host: "192.XXX.XXX.XXX"     # Adresse IP de votre machine Linux
+  broadcast_address: "192.XXX.XXX.XXX"  # Adresse broadcast de votre réseau
+  turn_off:
+    service: shell_command.shutdown_linux
