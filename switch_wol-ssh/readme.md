@@ -17,7 +17,7 @@ Configuration pour contrôler une machine Linux depuis Home Assistant avec :
 
 ### Sur Home Assistant
 - Add-on SSH & Web Terminal installé
-- Accès réseau vers la machine linux
+- Accès réseau vers votre machine linux
 
 ## Informations nécessaires
 
@@ -136,6 +136,8 @@ ssh USERNAME@IP_LINUX 'whoami'
 
 ### 3. Configuration Home Assistant
 
+#### Option 1 : Configuration dans configuration.yaml
+
 Ajouter dans `configuration.yaml` :
 
 ```yaml
@@ -152,6 +154,33 @@ switch:
 # Commande shell pour éteindre la machine Linux via SSH
 shell_command:
   shutdown_linux: "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 USERNAME@IP_LINUX 'sudo shutdown -h now'"
+```
+
+#### Option 2 : Configuration avec fichier séparé (recommandée)
+
+**Dans `configuration.yaml`, ajouter :**
+```yaml
+# Inclusion des fichiers de configuration
+switch: !include switch.yaml
+shell_command: !include shell_command.yaml
+```
+
+**Créer le fichier `switch.yaml` :**
+```yaml
+# Switch ON/OFF pour machine Linux (Wake-on-LAN + SSH shutdown)
+- platform: wake_on_lan
+  mac: "XX:XX:XX:XX:XX:XX"  # Adresse MAC de votre machine Linux
+  name: "Linux Server"
+  host: "192.XXX.XXX.XXX"     # Adresse IP de votre machine Linux
+  broadcast_address: "192.XXX.XXX.XXX"  # Adresse broadcast de votre réseau
+  turn_off:
+    service: shell_command.shutdown_linux
+```
+
+**Créer le fichier `shell_command.yaml` :**
+```yaml
+# Commande shell pour éteindre la machine Linux via SSH
+shutdown_linux: "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 USERNAME@IP_LINUX 'sudo shutdown -h now'"
 ```
 
 **Remplacer :**
