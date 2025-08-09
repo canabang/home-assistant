@@ -1,2 +1,2 @@
 # Commande shell pour éteindre la machine Linux via SSH
-shutdown_linux: "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 USERNAME@IP_LINUX 'sudo shutdown -h now'"
+shutdown_linux: "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@IP_LINUX 'shutdown -h now'"
