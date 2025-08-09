@@ -1,144 +1,61 @@
-# Contrôle d'une machine Linux depuis Home Assistant
+# Switch Wake-on-LAN + SSH Shutdown pour Home Assistant
 
-## Vue d'ensemble
+Ce projet permet de créer un switch dans Home Assistant pour allumer (Wake-on-LAN) et éteindre (SSH shutdown) une machine Linux distante.
 
-Configuration pour contrôler une machine Linux depuis Home Assistant avec :
-- **Allumage** : Wake-on-LAN (WOL)
-- **Extinction** : SSH avec commande shutdown
-- **Interface** : Switch unique ON/OFF dans Home Assistant
+## 📋 Prérequis
 
-## Prérequis
+### Sur la machine Linux cible :
+- Wake-on-LAN activé dans le BIOS/UEFI
+- Wake-on-LAN activé sur l'interface réseau
+- SSH activé et configuré
+- Utilisateur avec droits sudo pour shutdown (ou utilisation de root)
 
-### Sur la machine Linux cible
-- SSH activé et accessible
-- Wake-on-LAN activé sur la carte réseau (voir section configuration WOL)
-- Utilisateur avec droits sudo
-- **Authentication par clé publique activée** dans la configuration SSH
+### Sur Home Assistant :
+- Add-on Terminal & SSH installé
+- Accès au répertoire `/config/`
 
-### Sur Home Assistant
-- Add-on SSH & Web Terminal installé
-- Accès réseau vers votre machine linux
+## 🔧 Installation
 
-## Informations nécessaires
+### 1. Configuration SSH
 
-Avant de commencer, récupérez ces informations :
-- **Adresse MAC** de votre machine Linux : `ip link show` ou `ifconfig`
-- **Adresse IP** de votre machine Linux : `ip addr` ou `ifconfig`
-- **Nom d'utilisateur** avec droits sudo sur la machine Linux
-
-## Configuration
-
-### 0. Configuration Wake-on-LAN sur Linux
-
-#### Vérifier la compatibilité WOL :
+#### Générer une paire de clés SSH (si nécessaire)
 ```bash
-# Connectez-vous à la machine Linux en SSH
-ssh USERNAME@IP_LINUX
-
-# Identifier l'interface réseau
-ip link show
-
-# Vérifier le support WOL (remplacer eth0 par votre interface)
-sudo ethtool eth0 | grep -i wake
+# Sur Home Assistant, via Terminal & SSH
+ssh-keygen -t rsa -b 4096 -f /config/.ssh/id_rsa
 ```
 
-Vous devriez voir quelque chose comme :
-```
-Supports Wake-on: pumbg
-Wake-on: d
-```
-
-#### Activer WOL temporairement :
+#### Copier la clé publique vers la machine cible
 ```bash
-# Activer WOL sur l'interface (remplacer eth0)
-sudo ethtool -s eth0 wol g
-
-# Vérifier l'activation
-sudo ethtool eth0 | grep -i wake
-# Doit afficher : Wake-on: g
+# Copier la clé publique vers la machine Linux
+ssh-copy-id -i /config/.ssh/id_rsa.pub root@IP_MACHINE_LINUX
 ```
 
-#### Activer WOL de manière permanente :
-
-**Méthode 1 - Service systemd (recommandée) :**
+#### Vérifier la connexion SSH
 ```bash
-# Créer le service
-sudo nano /etc/systemd/system/wol.service
+ssh -i /config/.ssh/id_rsa root@IP_MACHINE_LINUX
 ```
 
-Contenu du fichier :
-```ini
-[Unit]
-Description=Enable Wake-on-LAN
-After=network.target
+### 2. Configuration des fichiers
 
-[Service]
-Type=oneshot
-ExecStart=/sbin/ethtool -s eth0 wol g
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-```
+#### Créer le script de shutdown
+Créer le fichier `/config/shutdown_linux.sh` :
 
 ```bash
-# Activer le service
-sudo systemctl enable wol.service
-sudo systemctl start wol.service
+#!/bin/bash
+/usr/bin/ssh -i /config/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@IP_MACHINE_LINUX'/sbin/shutdown -h now'
 ```
 
-**Méthode 2 - Fichier de configuration réseau :**
-
-Pour Debian/Ubuntu :
+Rendre le script exécutable :
 ```bash
-# Éditer le fichier interfaces
-sudo nano /etc/network/interfaces
-
-# Ajouter après la configuration de l'interface :
-post-up /sbin/ethtool -s eth0 wol g
+chmod +x /config/shutdown_linux.sh
 ```
 
-#### Configuration BIOS/UEFI :
-Sur la machine Linux, vérifiez dans le BIOS :
-- **Power Management** → **Wake-on-LAN** : **Enabled**
-- **Advanced** → **APM Configuration** → **Power On By PCI-E** : **Enabled**
+#### Configuration des fichiers YAML
 
-### 2. Configuration SSH sans mot de passe
+Deux options sont disponibles :
 
-#### Sur Home Assistant (via SSH) :
-```bash
-# Générer la paire de clés
-ssh-keygen -t rsa -b 4096
-# Appuyer sur ENTRÉE pour tous les choix (pas de passphrase)
-
-# Copier la clé vers la machine Linux (remplacer USERNAME et IP_LINUX)
-ssh-copy-id USERNAME@IP_LINUX
-```
-
-#### Sur la machine Linux :
-```bash
-# Éditer la configuration SSH
-sudo nano /etc/ssh/sshd_config
-
-# Vérifier/ajouter ces lignes :
-PubkeyAuthentication yes
-AuthorizedKeysFile .ssh/authorized_keys
-
-# Redémarrer SSH
-sudo systemctl restart ssh
-```
-
-#### Test :
-```bash
-# Depuis Home Assistant - ne doit plus demander de mot de passe
-ssh USERNAME@IP_LINUX 'whoami'
-```
-
-### 3. Configuration Home Assistant
-
-#### Option 1 : Configuration dans configuration.yaml
-
-Ajouter dans `configuration.yaml` :
+##### Option 1 : Configuration dans configuration.yaml
+Ajouter directement dans `/config/configuration.yaml` :
 
 ```yaml
 # Switch ON/OFF pour machine Linux (Wake-on-LAN + SSH shutdown)
@@ -147,110 +64,134 @@ switch:
     mac: "XX:XX:XX:XX:XX:XX"  # Adresse MAC de votre machine Linux
     name: "Linux Server"
     host: "192.XXX.XXX.XXX"     # Adresse IP de votre machine Linux
-    broadcast_address: "192.XXX.XXX.XXX"  # Adresse broadcast de votre réseau
+    broadcast_address: "192.XXX.XXX.255"  # Adresse broadcast de votre réseau
     turn_off:
       service: shell_command.shutdown_linux
 
 # Commande shell pour éteindre la machine Linux via SSH
 shell_command:
-  shutdown_linux: "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 USERNAME@IP_LINUX 'sudo shutdown -h now'"
+  shutdown_linux: bash /config/shutdown_linux.sh
 ```
 
-#### Option 2 : Configuration avec fichier séparé (recommandée)
+##### Option 2 : Fichiers séparés (recommandé)
 
-**Dans `configuration.yaml`, ajouter :**
+**configuration.yaml :**
 ```yaml
 # Inclusion des fichiers de configuration
 switch: !include switch.yaml
 shell_command: !include shell_command.yaml
 ```
 
-**Créer le fichier `switch.yaml` :**
+**switch.yaml :**
 ```yaml
 # Switch ON/OFF pour machine Linux (Wake-on-LAN + SSH shutdown)
 - platform: wake_on_lan
   mac: "XX:XX:XX:XX:XX:XX"  # Adresse MAC de votre machine Linux
   name: "Linux Server"
-  host: "192.XXX.XXX.XXX"     # Adresse IP de votre machine Linux
-  broadcast_address: "192.XXX.XXX.XXX"  # Adresse broadcast de votre réseau
+  host: "192.168.1.XXX"     # Adresse IP de votre machine Linux
+  broadcast_address: "192.XXX.XXX.255"  # Adresse broadcast de votre réseau
   turn_off:
     service: shell_command.shutdown_linux
 ```
 
-**Créer le fichier `shell_command.yaml` :**
+**shell_command.yaml :**
 ```yaml
 # Commande shell pour éteindre la machine Linux via SSH
-shutdown_linux: "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 USERNAME@IP_LINUX 'sudo shutdown -h now'"
+shutdown_linux: bash /config/shutdown_linux.sh
 ```
 
-**Remplacer :**
-- `XX:XX:XX:XX:XX:XX` par l'adresse MAC de votre machine Linux
-- `192.XXX.XXX.XXX` par l'adresse IP de votre machine Linux
-- `USERNAME` par votre nom d'utilisateur Linux
-- `IP_LINUX` par l'adresse IP de votre machine Linux
+### 3. Configuration personnalisée
 
-### 4. Redémarrer Home Assistant
+Modifier les valeurs suivantes dans vos fichiers :
 
-Après modification de `configuration.yaml`, redémarrer Home Assistant.
+- `XX:XX:XX:XX:XX:XX` : Adresse MAC de votre machine Linux
+- `192.XXX.XXX.XXX` : Adresse IP de votre machine Linux
+- `192.XXX.XXX.255` : Adresse broadcast de votre réseau
+- `root@192.XXX.XXX.XXX` : Utilisateur et IP dans le script shutdown
 
-## Utilisation
+## 🚀 Utilisation
 
-Dans l'interface Home Assistant :
-- **Switch ON** : Allume la machine Linux via Wake-on-LAN
-- **Switch OFF** : Éteint la machine Linux via SSH
-- **État automatique** : Détection par ping de l'IP
+1. Redémarrer Home Assistant après la configuration
+2. Le switch "Linux Server" apparaîtra dans l'interface
+3. **ON** : Envoie un packet Wake-on-LAN
+4. **OFF** : Exécute la commande SSH shutdown
 
-## Dépannage
+## 🔒 Sécurité
 
-### SSH demande encore un mot de passe
-1. Vérifier que `PubkeyAuthentication yes` est dans `/etc/ssh/sshd_config`
-2. Redémarrer le service SSH sur OMV
-3. Vérifier les permissions sur OMV :
-   ```bash
-   chmod 700 ~/.ssh
-   chmod 600 ~/.ssh/authorized_keys
-   ```
+### Pourquoi utiliser /config/.ssh/ ?
 
-### Wake-on-LAN ne fonctionne pas
-1. **Vérifier l'état WOL** :
-   ```bash
-   sudo ethtool eth0 | grep -i wake
-   # Doit afficher : Wake-on: g
-   ```
+- Le répertoire `/config/` est persistant lors des mises à jour de Home Assistant
+- Le répertoire `/root/` peut être réinitialisé lors des mises à jour
+- Les clés SSH restent disponibles après les redémarrages et mises à jour
 
-2. **Réactiver WOL** :
-   ```bash
-   sudo ethtool -s eth0 wol g
-   ```
-
-3. **Vérifier la configuration réseau de la carte mère/BIOS**
-4. **Tester manuellement** : `wakeonlan XX:XX:XX:XX:XX:XX`
-5. **Vérifier le service systemd** :
-   ```bash
-   sudo systemctl status wol.service
-   ```
-
-### Commandes utiles
+### Permissions des fichiers SSH
 
 ```bash
-# Récupérer l'adresse MAC
-ip link show
+# Définir les bonnes permissions
+chmod 700 /config/.ssh
+chmod 600 /config/.ssh/id_rsa
+chmod 644 /config/.ssh/id_rsa.pub
+```
 
-# Récupérer l'adresse IP
-ip addr
+## 🐛 Dépannage
 
-# Tester Wake-on-LAN manuellement
-wakeonlan XX:XX:XX:XX:XX:XX
+### Problèmes courants
 
-# Tester SSH sans mot de passe
-ssh USERNAME@IP_LINUX 'whoami'
+1. **SSH ne fonctionne pas :**
+   - Vérifier que la clé publique est bien installée sur la machine cible
+   - Tester la connexion SSH manuellement
+   - Vérifier les permissions des fichiers SSH
 
-# Tester l'extinction
-ssh USERNAME@IP_LINUX 'sudo reboot'  # Pour test (redémarre au lieu d'éteindre)
+2. **Wake-on-LAN ne fonctionne pas :**
+   - Vérifier que WOL est activé dans le BIOS
+   - Vérifier que WOL est activé sur l'interface réseau
+   - Tester avec `wakeonlan` en ligne de commande
 
-# Vérifier l'état WOL
-sudo ethtool eth0 | grep -i wake
+3. **Switch n'apparaît pas :**
+   - Vérifier la syntaxe YAML
+   - Redémarrer Home Assistant
+   - Consulter les logs d'erreur
 
-# Activer WOL manuellement
-sudo ethtool -s eth0 wol g
+### Logs utiles
+
+```bash
+# Voir les logs de Home Assistant
+journalctl -u homeassistant.service -f
+
+# Tester le script manuellement
+bash /config/shutdown_linux.sh
+```
+
+## 📁 Structure des fichiers
+
+```
+/config/
+├── configuration.yaml
+├── switch.yaml (optionnel)
+├── shell_command.yaml (optionnel)
+├── shutdown_linux.sh
+└── .ssh/
+    ├── id_rsa
+    ├── id_rsa.pub
+    └── known_hosts
+```
+
+## ⚡ Commandes utiles
+
+```bash
+# Générer les clés SSH
+ssh-keygen -t rsa -b 4096 -f /config/.ssh/id_rsa
+
+# Copier la clé publique
+ssh-copy-id -i /config/.ssh/id_rsa.pub user@ip_machine
+
+# Tester la connexion SSH
+ssh -i /config/.ssh/id_rsa user@ip_machine
+
+# Rendre le script exécutable
+chmod +x /config/shutdown_linux.sh
+
+# Définir les permissions SSH
+chmod 700 /config/.ssh
+chmod 600 /config/.ssh/id_rsa
 ```
