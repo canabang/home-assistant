@@ -1,0 +1,725 @@
+title: 🐾 Pet Feeder
+path: petfeeder
+icon: mdi:food-drumstick
+cards: []
+type: sections
+sections:
+  # ================================
+  # SECTION 1 : VUE D'ENSEMBLE (EXISTANTE + AMÉLIORÉE)
+  # ================================
+  - type: grid
+    cards:
+      - type: horizontal-stack
+        cards:
+          - type: gauge
+            entity: sensor.pourcentage_croquette_restant
+            name: Stock Restant
+            min: 0
+            max: 100
+            severity:
+              green: 50
+              yellow: 25
+              red: 10
+            needle: true
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.jours_restants_nourriture_methode_cumulative
+                name: Jours restants (précis)
+                show_state: true
+                show_graph: false
+                color: "#2196f3"
+              - entity: sensor.prediction_autonomie_amelioree
+                name: Prédiction IA
+                show_state: true
+                show_graph: false
+                color: "#ff9800"
+            height: 80
+            font_size: 65
+            card_mod:
+              style: |
+                ha-card {
+                  text-align: center;
+                  {% if states('sensor.prediction_autonomie_amelioree')|float < 3 %}
+                    background: rgba(244,67,54,0.1);
+                    border: 2px solid #f44336;
+                  {% elif states('sensor.prediction_autonomie_amelioree')|float < 7 %}
+                    background: rgba(255,152,0,0.1);
+                    border: 2px solid #ff9800;
+                  {% endif %}
+                }
+
+      # NOUVELLE CARTE : Alertes et Anomalies
+      - type: entities
+        title: 🚨 État du Système
+        entities:
+          - entity: sensor.validation_systeme_complet
+            name: Validation Globale
+            icon: mdi:check-decagram
+            card_mod:
+              style: |
+                :host {
+                  --paper-item-icon-color: 
+                    {% if states('sensor.validation_systeme_complet') == 'SYSTEME_OPTIMAL' %}
+                      green
+                    {% elif states('sensor.validation_systeme_complet') in ['EAU_FAIBLE', 'ATTENTION_CROQUETTES'] %}
+                      orange
+                    {% else %}
+                      red
+                    {% endif %} !important;
+                }
+          - entity: sensor.detection_anomalie_alimentaire
+            name: Détection Anomalie
+            icon: mdi:alert-circle-outline
+            card_mod:
+              style: |
+                :host {
+                  --paper-item-icon-color: 
+                    {% if states('sensor.detection_anomalie_alimentaire') == 'NORMALE' %}
+                      green
+                    {% elif states('sensor.detection_anomalie_alimentaire') in ['CONSOMMATION_ELEVEE', 'CONSOMMATION_FAIBLE'] %}
+                      orange
+                    {% else %}
+                      red
+                    {% endif %} !important;
+                }
+          - entity: sensor.tendance_consommation
+            name: Tendance 7j vs 30j
+            icon: mdi:trending-up
+            secondary_info: |
+              {{ state_attr('sensor.tendance_consommation', 'variation_7j_vs_30j') }}
+
+      # Graphique d'évolution amélioré
+      - type: conditional
+        conditions:
+          - entity: sensor.esp_pet_scales_eau
+            state_not: unavailable
+        card:
+          type: custom:mini-graph-card
+          name: Évolution Multi-Sources (24h)
+          entities:
+            - entity: sensor.esp_pet_scales_eau
+              name: Eau %
+              color: "#2196f3"
+              y_axis: secondary
+            - entity: sensor.esp_pet_scales_croquettes
+              name: Croquettes (balance)
+              color: "#ff9800"
+            - entity: sensor.pourcentage_croquette_restant
+              name: Croquettes (estimation)
+              color: "#ff5722"
+              show_line: false
+              show_points: true
+          hours_to_show: 24
+          points_per_hour: 4
+          line_width: 2
+          show:
+            graph: line
+            labels: true
+            legend: true
+
+  # ================================
+  # SECTION 2 : ANALYTICS HISTORIQUES (NOUVELLE)
+  # ================================
+  - type: grid
+    cards:
+      - type: entities
+        title: 📊 Analytics Long Terme
+        entities:
+          - type: custom:multiple-entity-row
+            entity: sensor.consommation_moyenne_7_jours
+            name: Moyennes Historiques
+            show_state: false
+            entities:
+              - entity: sensor.consommation_moyenne_7_jours
+                name: 7j
+                unit: g
+              - entity: sensor.consommation_moyenne_30_jours
+                name: 30j
+                unit: g
+              - entity: input_number.pet_feeder_target_daily_weight
+                name: Objectif
+                unit: g
+          - type: custom:template-entity-row
+            entity: sensor.tendance_consommation
+            name: Tendance & Évolution
+            icon: mdi:chart-line-variant
+            state: "{{ states('sensor.tendance_consommation') }}"
+            secondary: |
+              {{ state_attr('sensor.tendance_consommation', 'variation_7j_vs_30j') }} vs moyenne 30j
+          - entity: sensor.prediction_autonomie_amelioree
+            name: Prédiction IA Améliorée
+            icon: mdi:crystal-ball
+            secondary_info: |
+              {{ state_attr('sensor.prediction_autonomie_amelioree', 'fiabilite') }} de confiance
+          - type: divider
+          - entity: sensor.detection_anomalie_alimentaire
+            name: Détection d'Anomalies
+            icon: mdi:magnify-scan
+            secondary_info: |
+              Confiance: {{ state_attr('sensor.detection_anomalie_alimentaire', 'niveau_confiance') }}
+
+      # Graphique historique des consommations
+      - type: custom:mini-graph-card
+        name: Historique Consommation (7 jours)
+        entities:
+          - entity: input_number.pet_feeder_daily_consumption_counter
+            name: Consommation réelle
+            color: "#4caf50"
+          - entity: sensor.consommation_moyenne_7_jours
+            name: Moyenne mobile 7j
+            color: "#2196f3"
+            show_line: true
+            show_points: false
+          - entity: input_number.pet_feeder_target_daily_weight
+            name: Objectif
+            color: "#ff9800"
+            show_line: true
+            show_fill: false
+        hours_to_show: 168  # 7 jours
+        group_by: date
+        aggregate_func: max
+        show:
+          labels: true
+          legend: true
+
+      # Statistiques mensuelles
+      - type: entities
+        title: 📅 Rapport Mensuel en Cours
+        entities:
+          - entity: sensor.stats_mensuelles_pet_feeder
+            name: Moyenne du mois
+            icon: mdi:calendar-month
+            secondary_info: |
+              {{ state_attr('sensor.stats_mensuelles_pet_feeder', 'jours_avec_donnees') }} jours de données
+          - type: custom:template-entity-row
+            entity: sensor.stats_mensuelles_pet_feeder
+            name: Consommation totale
+            icon: mdi:chart-pie
+            state: |
+              {{ state_attr('sensor.stats_mensuelles_pet_feeder', 'consommation_totale_mois') }}
+            secondary: |
+              Projection fin mois: {{ state_attr('sensor.stats_mensuelles_pet_feeder', 'projection_mois') }}
+          - type: custom:bar-card
+            entity: sensor.stats_mensuelles_pet_feeder
+            name: Performance vs Objectif
+            max: "{{ states('input_number.pet_feeder_target_daily_weight') | float * 1.2 }}"
+            positions:
+              icon: "off"
+              name: inside
+            severity:
+              - color: "#f44336"
+                from: 0
+                to: "{{ states('input_number.pet_feeder_target_daily_weight') | float * 0.6 }}"
+              - color: "#ff9800"
+                from: "{{ states('input_number.pet_feeder_target_daily_weight') | float * 0.6 }}"
+                to: "{{ states('input_number.pet_feeder_target_daily_weight') | float * 0.9 }}"
+              - color: "#4caf50"
+                from: "{{ states('input_number.pet_feeder_target_daily_weight') | float * 0.9 }}"
+                to: "{{ states('input_number.pet_feeder_target_daily_weight') | float * 1.1 }}"
+              - color: "#ff9800"
+                from: "{{ states('input_number.pet_feeder_target_daily_weight') | float * 1.1 }}"
+                to: "{{ states('input_number.pet_feeder_target_daily_weight') | float * 1.2 }}"
+
+  # ================================
+  # SECTION 3 : CONSOMMATION ACTUELLE (AMÉLIORÉE)
+  # ================================
+  - type: grid
+    cards:
+      - type: entities
+        title: 📊 Suivi Consommation Avancé
+        entities:
+          - entity: sensor.consommation_moyenne_reelle
+            name: Moyenne réelle depuis refill
+            icon: mdi:chart-line-variant
+            secondary_info: |
+              {{ state_attr('sensor.consommation_moyenne_reelle', 'methode') }}
+          - entity: input_number.pet_feeder_cumulative_distributed_since_refill
+            name: Cumulé depuis refill
+            icon: mdi:scale-balance
+          - entity: sensor.jours_restants_nourriture_methode_cumulative
+            name: Jours restants (méthode classique)
+            icon: mdi:calendar-clock
+            secondary_info: >
+              {{ state_attr('sensor.jours_restants_nourriture_methode_cumulative', 'precision') }}
+          - entity: sensor.prediction_autonomie_amelioree
+            name: Prédiction IA (avec historique)
+            icon: mdi:brain
+            secondary_info: >
+              {{ state_attr('sensor.prediction_autonomie_amelioree', 'methode') }}
+          - type: divider
+          - type: custom:template-entity-row
+            entity: input_number.pet_feeder_refill_date
+            name: Date dernier refill
+            icon: mdi:calendar-plus
+            state: >
+              {% set timestamp = states('input_number.pet_feeder_refill_date') | float(0) %}
+              {% if timestamp > 0 %}
+                {{ timestamp | timestamp_custom('%d/%m/%Y à %H:%M') }}
+              {% else %}
+                Non défini
+              {% endif %}
+            secondary: >
+              {% set timestamp = states('input_number.pet_feeder_refill_date') | float(0) %}
+              {% if timestamp > 0 %}
+                Il y a {{ ((now().timestamp() - timestamp) / 86400) | round(1) }} jours
+              {% else %}
+                -
+              {% endif %}
+
+      - type: entities
+        title: 📊 Consommation Aujourd'hui vs Historique
+        entities:
+          - entity: sensor.poids_reel_distribue_aujourd_hui
+            name: Dernier repas
+            icon: mdi:bowl
+          - entity: input_number.pet_feeder_daily_consumption_counter
+            name: Total consommé aujourd'hui
+            icon: mdi:counter
+          - type: custom:multiple-entity-row
+            entity: input_number.pet_feeder_daily_consumption_counter
+            name: Comparaison Historique
+            show_state: false
+            entities:
+              - entity: input_number.pet_feeder_daily_consumption_counter
+                name: Aujourd'hui
+                unit: g
+              - entity: sensor.consommation_moyenne_7_jours
+                name: Moy 7j
+                unit: g
+              - entity: sensor.consommation_moyenne_30_jours
+                name: Moy 30j
+                unit: g
+          - type: custom:template-entity-row
+            entity: sensor.detection_anomalie_alimentaire
+            name: Analyse comportementale
+            icon: mdi:head-question-outline
+            state: "{{ states('sensor.detection_anomalie_alimentaire') }}"
+            secondary: |
+              {% set ecart = state_attr('sensor.tendance_consommation', 'ecart_aujourd_hui_vs_moyenne') %}
+              Écart vs moyenne: {{ ecart }}
+          - entity: input_number.pet_feeder_target_daily_weight
+            name: Objectif quotidien
+            icon: mdi:target
+
+      # Graphique détaillé hydratation
+      - square: false
+        type: grid
+        cards:
+          - type: entities
+            title: 💧 Analyse Hydratation Avancée
+            entities:
+              - entity: sensor.esp_pet_scales_eau
+                name: Niveau Fontaine Actuel
+                secondary_info: |
+                  {{ states('sensor.balance_eau_en_litres') }}L
+                icon: mdi:water-percent
+              - entity: sensor.consommation_eau_quotidienne
+                name: Consommation Aujourd'hui
+                icon: mdi:cup-water
+              - entity: sensor.ratio_hydratation_quotidien
+                name: Ratio Hydratation Actuel
+                secondary_info: >
+                  {{ state_attr('sensor.ratio_hydratation_quotidien', 'evaluation') }}
+                icon: mdi:scale-balance
+              - entity: sensor.hydratation_moyenne_7_jours
+                name: Ratio Moyen 7 Jours
+                icon: mdi:chart-line
+              - entity: sensor.evolution_hydratation
+                name: Évolution Hydratation
+                icon: mdi:trending-up
+                card_mod:
+                  style: |
+                    :host {
+                      --paper-item-icon-color: 
+                        {% if states('sensor.evolution_hydratation') in ['FORTE_BAISSE', 'FORTE_HAUSSE'] %}
+                          red
+                        {% elif states('sensor.evolution_hydratation') in ['BAISSE_LEGERE', 'HAUSSE_LEGERE'] %}
+                          orange
+                        {% else %}
+                          green
+                        {% endif %} !important;
+                    }
+              - type: custom:bar-card
+                entity: sensor.esp_pet_scales_eau
+                name: Niveau Eau
+                positions:
+                  icon: "off"
+                  name: inside
+                severity:
+                  - color: "#f44336"
+                    from: 0
+                    to: 15
+                  - color: "#ff9800"
+                    from: 15
+                    to: 30
+                  - color: "#4caf50"
+                    from: 30
+                    to: 100
+            state_color: false
+        columns: 1
+        grid_options:
+          columns: 12
+          rows: auto
+
+  # ================================
+  # SECTION 4 : PORTIONS PROGRAMMÉES (EXISTANTE)
+  # ================================
+  - type: grid
+    cards:
+      - type: entities
+        title: ⏰ Portions Programmées
+        entities:
+          - entity: sensor.portions_calculees_matin
+            name: 🌅 Matin (8h00)
+            secondary_info: >
+              {{ state_attr('sensor.portions_calculees_matin', 'poids_theorique') }} -  
+              {{ state_attr('sensor.portions_calculees_matin', 'pourcentage') }}
+          - entity: sensor.portions_calculees_midi
+            name: ☀️ Midi (14h00)
+            secondary_info: >
+              {{ state_attr('sensor.portions_calculees_midi', 'poids_theorique') }} -  
+              {{ state_attr('sensor.portions_calculees_midi', 'pourcentage') }}
+          - entity: sensor.portions_calculees_soir
+            name: 🌙 Soir (20h00)
+            secondary_info: >
+              {{ state_attr('sensor.portions_calculees_soir', 'poids_theorique') }} -  
+              {{ state_attr('sensor.portions_calculees_soir', 'pourcentage') }}
+          - type: divider
+          - entity: sensor.total_portions_calculees
+            name: 📋 Total programmé
+            secondary_info: >
+              {{ state_attr('sensor.total_portions_calculees', 'poids_total_theorique') }}
+
+      - type: horizontal-stack
+        cards:
+          - type: entities
+            title: 📦 Gestion Stock
+            entities:
+              - entity: input_number.pet_feeder_stock_estime
+                name: Stock estimé
+                icon: mdi:warehouse
+              - entity: input_number.pet_feeder_max_capacity
+                name: Capacité max
+                icon: mdi:barrel
+              - entity: input_boolean.pet_feeder_stock_was_low
+                name: Stock était bas
+                icon: mdi:alert-circle
+              - entity: number.pet_feeder_portion_weight
+                name: Poids par portion
+                icon: mdi:scale
+
+      # Graphique comparatif des prédictions
+      - type: custom:mini-graph-card
+        name: Comparaison Prédictions d'Autonomie
+        entities:
+          - entity: sensor.jours_restants_nourriture_methode_cumulative
+            name: Méthode classique
+            color: "#2196f3"
+          - entity: sensor.prediction_autonomie_amelioree
+            name: Prédiction IA
+            color: "#ff9800"
+        hours_to_show: 168  # 7 jours
+        line_width: 2
+        show:
+          graph: line
+          labels: true
+          legend: true
+
+  # ================================
+  # SECTION 5 : STATISTIQUES AVANCÉES (AMÉLIORÉE)
+  # ================================
+  - type: grid
+    cards:
+      - type: conditional
+        conditions:
+          - entity: sensor.consommation_quotidienne_moyenne
+            state_not: "0"
+        card:
+          type: entities
+          title: 📈 Statistiques Multi-Temporelles
+          entities:
+            - type: custom:multiple-entity-row
+              entity: sensor.consommation_quotidienne_moyenne
+              name: Consommation comparée
+              show_state: false
+              entities:
+                - entity: sensor.consommation_quotidienne_moyenne
+                  name: Aujourd'hui
+                  unit: g
+                - entity: sensor.consommation_moyenne_7_jours
+                  name: Moy 7j
+                  unit: g
+                - entity: sensor.consommation_moyenne_30_jours
+                  name: Moy 30j
+                  unit: g
+            - type: custom:multiple-entity-row
+              entity: sensor.consommation_moyenne_reelle
+              name: Prédictions d'autonomie
+              show_state: false
+              entities:
+                - entity: sensor.jours_restants_nourriture_methode_cumulative
+                  name: Classique
+                  unit: j
+                - entity: sensor.prediction_autonomie_amelioree
+                  name: IA
+                  unit: j
+                - entity: input_number.pet_feeder_target_daily_weight
+                  name: Théorique
+                  unit: j
+            - entity: input_number.pet_feeder_total_distributed
+              name: Total distribué (cumul)
+              icon: mdi:counter
+            - type: custom:bar-card
+              entity: sensor.pourcentage_croquette_restant
+              name: Niveau du réservoir
+              positions:
+                icon: "off"
+                name: inside
+              severity:
+                - color: "#f44336"
+                  from: 0
+                  to: 15
+                - color: "#ff9800"
+                  from: 15
+                  to: 30
+                - color: "#4caf50"
+                  from: 30
+                  to: 100
+
+      # Nouvelle carte : Analyse de fiabilité
+      - type: entities
+        title: 🎯 Fiabilité du Système
+        entities:
+          - entity: sensor.validation_stock_multi_sources
+            name: Validation Croisée
+            icon: mdi:check-decagram-outline
+            secondary_info: |
+              Balance: {{ state_attr('sensor.validation_stock_multi_sources', 'balance_pourcentage') }} 
+              | Estimation: {{ state_attr('sensor.validation_stock_multi_sources', 'estimation_pourcentage') }}
+          - type: custom:template-entity-row
+            entity: sensor.validation_stock_multi_sources
+            name: Écart Sources
+            icon: mdi:compare-horizontal
+            state: |
+              {{ state_attr('sensor.validation_stock_multi_sources', 'ecart_absolu') }}
+            secondary: |
+              Écart relatif: {{ state_attr('sensor.validation_stock_multi_sources', 'ecart_relatif') }}
+          - entity: sensor.prediction_autonomie_amelioree
+            attribute: fiabilite
+            name: Confiance Prédiction IA
+            icon: mdi:brain
+          - type: custom:template-entity-row
+            entity: sensor.detection_anomalie_alimentaire
+            name: Seuils d'Alerte Adaptatifs
+            icon: mdi:alert-octagon-outline
+            state: |
+              {{ state_attr('sensor.detection_anomalie_alimentaire', 'niveau_confiance') }}
+            secondary: |
+              Alerte si < {{ state_attr('sensor.detection_anomalie_alimentaire', 'seuil_alerte_bas') }} 
+              ou > {{ state_attr('sensor.detection_anomalie_alimentaire', 'seuil_alerte_haut') }}
+
+      - type: conditional
+        conditions:
+          - entity: input_number.pet_feeder_refill_date
+            state_not: "0"
+        card:
+          type: vertical-stack
+          cards:
+            - type: entities
+              title: 📊 Comparaison Méthodes de Calcul
+              entities:
+                - entity: sensor.jours_restants_nourriture
+                  name: 📊 Estimation classique
+                  icon: mdi:chart-bell-curve
+                  secondary_info: |
+                    Basée sur consommation théorique
+                - entity: sensor.jours_restants_nourriture_methode_cumulative
+                  name: 🎯 Calcul temps réel
+                  icon: mdi:target
+                  secondary_info: >
+                    {{ state_attr('sensor.jours_restants_nourriture_methode_cumulative', 'precision') }}
+                - entity: sensor.prediction_autonomie_amelioree
+                  name: 🤖 Prédiction IA historique
+                  icon: mdi:brain
+                  secondary_info: >
+                    {{ state_attr('sensor.prediction_autonomie_amelioree', 'methode') }}
+                - type: custom:template-entity-row
+                  entity: sensor.consommation_moyenne_reelle
+                  name: Consommation de référence
+                  icon: mdi:speedometer
+                  state: "{{ states('sensor.consommation_moyenne_reelle') }} g/jour"
+                  secondary: >
+                    vs {{ states('sensor.consommation_moyenne_7_jours') }}g/jour (historique 7j)
+            - type: custom:mini-graph-card
+              name: Comparaison Fiabilité des Prédictions
+              entities:
+                - entity: sensor.jours_restants_nourriture_methode_cumulative
+                  name: Temps Réel
+                  color: "#2196f3"
+                - entity: sensor.prediction_autonomie_amelioree
+                  name: IA Prédictive
+                  color: "#ff9800"
+              hours_to_show: 72
+              line_width: 3
+              show:
+                graph: line
+                labels: true
+                legend: true
+
+  # ================================
+  # SECTION 6 : CONTRÔLES (EXISTANTE + HISTORIQUE)
+  # ================================
+  - type: grid
+    cards:
+      - type: entities
+        title: 🎛️ Contrôles Standards
+        entities:
+          - type: call-service
+            name: 🔄 Forcer recalcul portions
+            service: homeassistant.update_entity
+            service_data:
+              entity_id: sensor.portions_calculees_matin
+            icon: mdi:calculator
+          - type: call-service
+            name: 🍽️ Distribution manuelle test
+            service: mqtt.publish
+            service_data:
+              topic: zigbee2mqtt02/Pet feeder/set
+              payload: "{\"feed\": \"\"}"
+            icon: mdi:play
+          - type: call-service
+            name: 📊 Reset compteur jour
+            service: input_number.set_value
+            service_data:
+              entity_id: input_number.pet_feeder_daily_consumption_counter
+              value: 0
+            icon: mdi:restore
+            confirmation:
+              text: Êtes-vous sûr de vouloir remettre le compteur à zéro ?
+
+      # NOUVELLE CARTE : Contrôles Analytics
+      - type: entities
+        title: 📊 Contrôles Analytics
+        entities:
+          - type: call-service
+            name: 🔄 Actualiser Moyennes Historiques
+            service: homeassistant.update_entity
+            service_data:
+              entity_id: 
+                - sensor.consommation_moyenne_7_jours
+                - sensor.consommation_moyenne_30_jours
+                - sensor.tendance_consommation
+            icon: mdi:refresh-circle
+          - type: call-service
+            name: 🧠 Recalculer Prédiction IA
+            service: homeassistant.update_entity
+            service_data:
+              entity_id: sensor.prediction_autonomie_amelioree
+            icon: mdi:brain
+          - type: call-service
+            name: 🔍 Forcer Détection Anomalie
+            service: homeassistant.update_entity
+            service_data:
+              entity_id: sensor.detection_anomalie_alimentaire
+            icon: mdi:magnify-scan
+          - type: call-service
+            name: 📋 Générer Rapport Mensuel
+            service: automation.trigger
+            service_data:
+              entity_id: automation.pet_feeder_rapport_mensuel_automatique
+            icon: mdi:file-chart-outline
+            confirmation:
+              text: Générer le rapport mensuel maintenant ?
+
+      - type: entities
+        title: 🔧 Gestion Manuelle (Existante)
+        entities:
+          - entity: input_boolean.pet_feeder_manual_refill_trigger
+            name: Déclencher nouveau cycle
+            icon: mdi:reload
+            secondary_info: Remet à zéro tous les compteurs
+          - type: call-service
+            name: 📝 Initialiser refill manuel
+            service: input_boolean.turn_on
+            service_data:
+              entity_id: input_boolean.pet_feeder_manual_refill_trigger
+            icon: mdi:package-variant-closed
+            confirmation:
+              text: Cela va remettre à zéro le suivi de consommation ET l'historique. Continuer ?
+          - type: call-service
+            name: 📊 Mise à jour stock estimé
+            service: input_number.set_value
+            service_data:
+              entity_id: input_number.pet_feeder_stock_estime
+              value: "{{ states('input_number.pet_feeder_max_capacity') }}"
+            icon: mdi:warehouse
+            confirmation:
+              text: Marquer le réservoir comme plein ?
+
+      # NOUVELLE CARTE : Validation Système Étendue
+      - type: entities
+        title: 🔍 Validation Système Complète
+        entities:
+          - entity: sensor.validation_systeme_complet
+            name: État Système Global
+            icon: mdi:check-decagram
+            card_mod:
+              style: |
+                :host {
+                  --paper-item-icon-color: 
+                    {% if states('sensor.validation_systeme_complet') == 'SYSTEME_OPTIMAL' %}
+                      green
+                    {% elif states('sensor.validation_systeme_complet') in ['EAU_FAIBLE', 'ATTENTION_CROQUETTES'] %}
+                      orange
+                    {% else %}
+                      red
+                    {% endif %} !important;
+                }
+          - type: custom:multiple-entity-row
+            entity: sensor.validation_systeme_complet
+            name: Status Détaillé
+            show_state: false
+            entities:
+              - entity: sensor.validation_systeme_complet
+                attribute: status_eau
+                name: Eau
+              - entity: sensor.validation_systeme_complet
+                attribute: status_croquettes
+                name: Croquettes
+              - entity: sensor.validation_systeme_complet
+                attribute: score_global
+                name: Score
+          - entity: sensor.ratio_hydratation_quotidien
+            attribute: conseil_veterinaire
+            name: Conseil Santé
+            icon: mdi:medical-bag
+          - entity: sensor.detection_anomalie_alimentaire
+            attribute: niveau_confiance
+            name: Niveau Confiance Détection
+            icon: mdi:shield-check-outline
+
+      - type: entities
+        title: 🎛️ Contrôles Eau (Existante)
+        entities:
+          - entity: input_number.pet_water_max_capacity
+            name: Capacité fontaine
+          - entity: input_number.pet_water_level_morning
+            name: Niveau matinal sauvegardé
+          - type: call-service
+            name: 💧 Marquer fontaine remplie
+            service: input_number.set_value
+            service_data:
+              entity_id: input_number.pet_water_level_morning
+              value: "{{ states('sensor.esp_pet_scales_eau') }}"
+            icon: mdi:water-plus
+          - type: call-service
+            name: 📊 Reset compteur eau
+            service: input_number.set_value
+            service_data:
+              entity_id: input_number.pet_water_daily_counter
+              value: 0
+            icon: mdi:restore
+            confirmation:
+              text: Remettre à zéro le compteur d'eau ?
+
+max_columns: 4
