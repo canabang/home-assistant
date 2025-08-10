@@ -60,3 +60,30 @@ pet_feeder_refill_date:
   mode: box
   icon: mdi:calendar-clock
 
+pet_water_level_morning:
+  name: "Niveau eau du matin (%)"
+  min: 0
+  max: 100
+  step: 1
+  unit_of_measurement: "%"
+  mode: box
+  icon: mdi:cup-water
+
+pet_water_max_capacity:
+  name: "Capacité max fontaine (ml)"
+  min: 500
+  max: 3000
+  step: 50
+  unit_of_measurement: "ml"
+  mode: box
+  icon: mdi:water
+  initial: 1500
+
+pet_water_daily_counter:
+  name: "Compteur consommation eau quotidienne (ml)"
+  min: 0
+  max: 2000
+  step: 1
+  unit_of_measurement: "ml"
+  mode: box
+  icon: mdi:counter
