@@ -1,5 +1,5 @@
 title: 🐾 Pet Feeder
-path: petfeeder02
+path: petfeeder
 icon: mdi:food-drumstick
 cards: []
 type: sections
@@ -90,6 +90,47 @@ sections:
           - entity: input_number.pet_feeder_target_daily_weight
             name: Objectif quotidien
             icon: mdi:target
+      - square: false
+        type: grid
+        cards:
+          - type: entities
+            title: 💧 Statut Fontaine
+            entities:
+              - entity: sensor.esp_pet_scales_eau
+                name: Niveau Fontaine
+                secondary_info: |
+                  {{ states('sensor.balance_eau_en_litres') }}L
+                icon: mdi:water-percent
+              - entity: sensor.consommation_eau_quotidienne
+                name: Consommation Aujourd'hui
+                icon: mdi:cup-water
+              - entity: sensor.ratio_hydratation_quotidien
+                name: Ratio Hydratation
+                secondary_info: >
+                  {{ state_attr('sensor.ratio_hydratation_quotidien',
+                  'evaluation') }}
+                icon: mdi:scale-balance
+              - type: custom:bar-card
+                entity: sensor.esp_pet_scales_eau
+                name: Niveau Eau
+                positions:
+                  icon: "off"
+                  name: inside
+                severity:
+                  - color: "#f44336"
+                    from: 0
+                    to: 15
+                  - color: "#ff9800"
+                    from: 15
+                    to: 30
+                  - color: "#4caf50"
+                    from: 30
+                    to: 100
+            state_color: false
+        columns: 1
+        grid_options:
+          columns: 12
+          rows: auto
   - type: grid
     cards:
       - type: entities
@@ -136,6 +177,28 @@ sections:
               - entity: number.pet_feeder_portion_weight
                 name: Poids par portion
                 icon: mdi:scale
+      - type: conditional
+        conditions:
+          - entity: sensor.esp_pet_scales_eau
+            state_not: unavailable
+        card:
+          type: custom:mini-graph-card
+          name: Évolution Eau & Croquettes
+          entities:
+            - entity: sensor.esp_pet_scales_eau
+              name: Eau %
+              color: "#2196f3"
+              y_axis: secondary
+            - entity: sensor.esp_pet_scales_croquettes
+              name: Croquettes %
+              color: "#ff9800"
+          hours_to_show: 24
+          points_per_hour: 4
+          line_width: 2
+          show:
+            graph: line
+            labels: true
+            legend: true
   - type: grid
     cards:
       - type: conditional
@@ -279,4 +342,63 @@ sections:
             icon: mdi:warehouse
             confirmation:
               text: Marquer le réservoir comme plein ?
+      - type: entities
+        title: 🔍 Validation Système Complet
+        entities:
+          - entity: sensor.validation_systeme_complet
+            name: État Système Global
+            icon: mdi:check-decagram
+            card_mod:
+              style: |
+                :host {
+                  --paper-item-icon-color: 
+                    {% if states('sensor.validation_systeme_complet') == 'SYSTEME_OPTIMAL' %}
+                      green
+                    {% elif states('sensor.validation_systeme_complet') in ['EAU_FAIBLE', 'ATTENTION_CROQUETTES'] %}
+                      orange
+                    {% else %}
+                      red
+                    {% endif %} !important;
+                }
+          - type: custom:multiple-entity-row
+            entity: sensor.validation_systeme_complet
+            name: Status Détaillé
+            show_state: false
+            entities:
+              - entity: sensor.validation_systeme_complet
+                attribute: status_eau
+                name: Eau
+              - entity: sensor.validation_systeme_complet
+                attribute: status_croquettes
+                name: Croquettes
+              - entity: sensor.validation_systeme_complet
+                attribute: score_global
+                name: Score
+          - entity: sensor.ratio_hydratation_quotidien
+            attribute: conseil_veterinaire
+            name: Conseil Santé
+            icon: mdi:medical-bag
+      - type: entities
+        title: 🎛️ Contrôles Eau
+        entities:
+          - entity: input_number.pet_water_max_capacity
+            name: Capacité fontaine
+          - entity: input_number.pet_water_level_morning
+            name: Niveau matinal sauvegardé
+          - type: call-service
+            name: 💧 Marquer fontaine remplie
+            service: input_number.set_value
+            service_data:
+              entity_id: input_number.pet_water_level_morning
+              value: "{{ states('sensor.esp_pet_scales_eau') }}"
+            icon: mdi:water-plus
+          - type: call-service
+            name: 📊 Reset compteur eau
+            service: input_number.set_value
+            service_data:
+              entity_id: input_number.pet_water_daily_counter
+              value: 0
+            icon: mdi:restore
+            confirmation:
+              text: Remettre à zéro le compteur d'eau ?
 max_columns: 4
