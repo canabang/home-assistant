@@ -665,3 +665,88 @@ actions:
         
         {{ hydration_alert.text }}
 mode: single
+
+alias: "Pet Feeder - Alerte Anomalie Historique"
+description: "Détecte les anomalies basées sur l'historique long terme"
+triggers:
+  - platform: state
+    entity_id: sensor.detection_anomalie_alimentaire
+    to: 
+      - "SURCONSOMMATION"
+      - "SOUS_CONSOMMATION"
+    for:
+      hours: 2
+conditions:
+  - condition: template
+    value_template: |
+      {{ state_attr('sensor.detection_anomalie_alimentaire', 'niveau_confiance') in ['HAUTE', 'MOYENNE'] }}
+actions:
+  - service: google_generative_ai_conversation.generate_content
+    data:
+      prompt: |
+        Génère une alerte d'anomalie alimentaire détectée par l'analyse historique :
+        
+        🔍 Anomalie : {{ states('sensor.detection_anomalie_alimentaire') }}
+        📊 Consommation actuelle : {{ states('input_number.pet_feeder_daily_consumption_counter') }}g
+        📈 Moyenne 7 jours : {{ states('sensor.consommation_moyenne_7_jours') }}g  
+        📉 Tendance : {{ states('sensor.tendance_consommation') }}
+        🎯 Confiance : {{ state_attr('sensor.detection_anomalie_alimentaire', 'niveau_confiance') }}
+        
+        Style K-2SO mais avec une nuance de préoccupation pour la santé.
+        Suggère une surveillance ou consultation si nécessaire.
+    response_variable: anomaly_message
+  - service: script.1717220445110
+    data:
+      message: "{{ anomaly_message.text }}"
+  - service: persistent_notification.create
+    data:
+      notification_id: "pet_feeder_historical_anomaly"
+      title: "📊 Pet Feeder - Anomalie Historique"
+      message: |
+        **Anomalie détectée :** {{ states('sensor.detection_anomalie_alimentaire') }}
+        
+        📊 **Données :**
+        - Aujourd'hui : {{ states('input_number.pet_feeder_daily_consumption_counter') }}g
+        - Moyenne 7j : {{ states('sensor.consommation_moyenne_7_jours') }}g
+        - Tendance : {{ states('sensor.tendance_consommation') }}
+        - Confiance : {{ state_attr('sensor.detection_anomalie_alimentaire', 'niveau_confiance') }}
+        
+        {{ anomaly_message.text }}
+
+alias: "Pet Feeder - Rapport Mensuel Automatique"
+description: "Génère un rapport mensuel le 1er de chaque mois"
+triggers:
+  - platform: time
+    at: "09:00:00"
+conditions:
+  - condition: template
+    value_template: "{{ now().day == 1 }}"
+actions:
+  - service: google_generative_ai_conversation.generate_content
+    data:
+      prompt: |
+        Génère un rapport mensuel pour {{ now().strftime('%B %Y') }} :
+        
+        📊 **Statistiques du mois :**
+        - Consommation moyenne : {{ states('sensor.stats_mensuelles_pet_feeder') }}g/jour
+        - Total consommé : {{ state_attr('sensor.stats_mensuelles_pet_feeder', 'consommation_totale_mois') }}
+        - Jours avec données : {{ state_attr('sensor.stats_mensuelles_pet_feeder', 'jours_avec_donnees') }}
+        
+        💧 **Hydratation :**
+        - Ratio moyen : {{ states('sensor.hydratation_moyenne_7_jours') }}ml/g
+        - Évolution : {{ states('sensor.evolution_hydratation') }}
+        
+        🎯 **Tendances :**
+        - {{ states('sensor.tendance_consommation') }}
+        - Variation : {{ state_attr('sensor.tendance_consommation', 'variation_7j_vs_30j') }}
+        
+        Style rapport professionnel mais accessible. Inclure recommandations si nécessaire.
+    response_variable: monthly_report
+  - service: script.1717220445110
+    data:
+      message: "{{ monthly_report.text }}"
+  - service: persistent_notification.create
+    data:
+      notification_id: "pet_feeder_monthly_report"
+      title: "📊 Rapport Mensuel Pet Feeder - {{ now().strftime('%B %Y') }}"
+      message: "{{ monthly_report.text }}"
