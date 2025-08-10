@@ -349,3 +349,140 @@
         pourcentage_source: "{{ states('sensor.esp_pet_scales_croquettes') }}%"
         capacite_utilisee: "{{ states('input_number.pet_feeder_max_capacity') }}g"
         fiabilite_capteur: "{{ states('sensor.esp_pet_scales_croquettes_etat_capteur') }}"
+
+    # Conversion balance eau en litres
+    - name: "Balance Eau en Litres"
+      unique_id: balance_eau_litres
+      unit_of_measurement: "L"
+      state: >
+        {% set pourcentage = states('sensor.esp_pet_scales_eau') | float(0) %}
+        {% set capacite_ml = 1500 %}  # Capacité max en ml (ajuster selon votre fontaine)
+        {{ ((pourcentage / 100) * capacite_ml / 1000) | round(2) }}
+      attributes:
+        pourcentage_source: "{{ states('sensor.esp_pet_scales_eau') }}%"
+        capacite_ml: "1500ml"  # Ajustez selon votre fontaine
+        fiabilite_capteur: "{{ states('sensor.esp_pet_scales_eau_etat_capteur') | default('N/A') }}"
+
+    # Consommation eau quotidienne
+    - name: "Consommation Eau Quotidienne"
+      unique_id: pet_water_daily_consumption
+      unit_of_measurement: "ml"
+      state: >
+        {% set niveau_matin = states('input_number.pet_water_level_morning') | float(0) %}
+        {% set niveau_actuel = states('sensor.esp_pet_scales_eau') | float(0) %}
+        {% set capacite_ml = 1500 %}
+        
+        {% if niveau_matin > 0 %}
+          {{ ((niveau_matin - niveau_actuel) * capacite_ml / 100) | round(0) }}
+        {% else %}
+          0
+        {% endif %}
+      attributes:
+        niveau_matin: "{{ states('input_number.pet_water_level_morning') }}%"
+        niveau_actuel: "{{ states('sensor.esp_pet_scales_eau') }}%"
+        capacite_utilisee: "1500ml"
+
+    # Ratio hydratation (ml eau / g croquettes)
+    - name: "Ratio Hydratation Quotidien"
+      unique_id: pet_hydration_ratio
+      unit_of_measurement: "ml/g"
+      state: >
+        {% set eau_ml = states('sensor.consommation_eau_quotidienne') | float(0) %}
+        {% set croquettes_g = states('input_number.pet_feeder_daily_consumption_counter') | float(0) %}
+        
+        {% if croquettes_g > 5 %}  # Éviter division par 0
+          {{ (eau_ml / croquettes_g) | round(1) }}
+        {% else %}
+          0
+        {% endif %}
+      attributes:
+        eau_consommee: "{{ states('sensor.consommation_eau_quotidienne') }}ml"
+        croquettes_consommees: "{{ states('input_number.pet_feeder_daily_consumption_counter') }}g"
+        evaluation: >
+          {% set ratio = states('sensor.ratio_hydratation_quotidien') | float(0) %}
+          {% if ratio == 0 %}
+            "Pas de données"
+          {% elif ratio < 1.0 %}
+            "⚠️ Hydratation insuffisante"
+          {% elif ratio < 2.0 %}
+            "🟡 Hydratation faible"
+          {% elif ratio < 3.5 %}
+            "✅ Hydratation correcte"
+          {% elif ratio < 5.0 %}
+            "💧 Hydratation excellente"
+          {% else %}
+            "🌊 Très forte hydratation"
+          {% endif %}
+        conseil_veterinaire: >
+          {% set ratio = states('sensor.ratio_hydratation_quotidien') | float(0) %}
+          {% if ratio < 1.5 %}
+            "Consultez un vétérinaire si persistant"
+          {% elif ratio > 6.0 %}
+            "Surveillance recommandée (possible problème de santé)"
+          {% else %}
+            "Hydratation dans la norme"
+          {% endif %}
+
+    # Validation globale système (Eau + Croquettes)
+    - name: "Validation Système Complet"
+      unique_id: pet_system_complete_validation
+      state: >
+        {% set validation_croquettes = states('sensor.validation_stock_multi_sources') %}
+        {% set eau_niveau = states('sensor.esp_pet_scales_eau') | float(0) %}
+        {% set eau_etat = states('sensor.esp_pet_scales_eau_etat_capteur_code') | float(0) %}
+        {% set croquettes_etat = states('sensor.esp_pet_scales_croquettes_etat_capteur_code') | float(0) %}
+        
+        {% if eau_etat != 2.0 or croquettes_etat != 2.0 %}
+          "CAPTEURS_DEFAILLANTS"
+        {% elif validation_croquettes == 'DIVERGENCE_MAJEURE' %}
+          "DIVERGENCE_CROQUETTES"
+        {% elif eau_niveau < 10 %}
+          "EAU_CRITIQUE"
+        {% elif validation_croquettes in ['DIVERGENCE_MINEURE', 'ATTENTION'] %}
+          "ATTENTION_CROQUETTES"
+        {% elif eau_niveau < 20 %}
+          "EAU_FAIBLE"
+        {% else %}
+          "SYSTEME_OPTIMAL"
+        {% endif %}
+      attributes:
+        status_eau: >
+          {% set niveau = states('sensor.esp_pet_scales_eau') | float(0) %}
+          {% set etat = states('sensor.esp_pet_scales_eau_etat_capteur_code') | float(0) %}
+          {% if etat != 2.0 %}
+            "Capteur défaillant"
+          {% elif niveau < 10 %}
+            "🔴 Critique"
+          {% elif niveau < 20 %}
+            "🟠 Faible"
+          {% elif niveau < 40 %}
+            "🟡 Moyen"
+          {% else %}
+            "✅ OK"
+          {% endif %}
+        status_croquettes: >
+          {% set validation = states('sensor.validation_stock_multi_sources') %}
+          {% if validation == 'DIVERGENCE_MAJEURE' %}
+            "🔴 Divergence majeure"
+          {% elif validation == 'DIVERGENCE_MINEURE' %}
+            "🟠 Divergence mineure"
+          {% elif validation == 'ATTENTION' %}
+            "🟡 Attention"
+          {% else %}
+            "✅ OK"
+          {% endif %}
+        score_global: >
+          {% set score_croquettes = states('sensor.score_fiabilite_pet_feeder') | float(0) %}
+          {% set eau_niveau = states('sensor.esp_pet_scales_eau') | float(0) %}
+          {% set eau_etat = states('sensor.esp_pet_scales_eau_etat_capteur_code') | float(0) %}
+          
+          {% set score_eau = 10.0 %}
+          {% if eau_etat != 2.0 %}
+            {% set score_eau = 2.0 %}
+          {% elif eau_niveau < 15 %}
+            {% set score_eau = 4.0 %}
+          {% elif eau_niveau < 30 %}
+            {% set score_eau = 7.0 %}
+          {% endif %}
+          
+          {{ ((score_croquettes + score_eau) / 2) | round(1) }}/10
