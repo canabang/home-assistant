@@ -1,0 +1,48 @@
+# ================================
+# CONFIGURATION RECORDER.YAML OPTIMISÉE
+# ================================
+
+# Configuration de base (à adapter à votre setup MariaDB)
+recorder:
+  db_url: !secret mariadb_url  # mysql://user:pass@ip:3306/homeassistant
+  purge_keep_days: 365  # Garder 1 an d'historique détaillé
+  commit_interval: 5    # Commit toutes les 5 secondes
+  
+  # Entités à enregistrer avec historique long terme
+  include:
+    entities:
+      # === CAPTEURS PRINCIPAUX PET FEEDER ===
+      - input_number.pet_feeder_daily_consumption_counter
+      - input_number.pet_feeder_stock_estime
+      - input_number.pet_feeder_cumulative_distributed_since_refill
+      - sensor.pourcentage_croquette_restant
+      - sensor.consommation_moyenne_reelle
+      - sensor.jours_restants_nourriture_methode_cumulative
+      
+      # === CAPTEURS BALANCES ===
+      - sensor.esp_pet_scales_eau
+      - sensor.esp_pet_scales_croquettes
+      - sensor.balance_croquettes_en_grammes
+      - sensor.balance_eau_en_litres
+      
+      # === SANTÉ ET HYDRATATION ===
+      - sensor.consommation_eau_quotidienne
+      - sensor.ratio_hydratation_quotidien
+      - sensor.validation_stock_multi_sources
+      - sensor.validation_systeme_complet
+      
+      # === DISTRIBUTEUR ===
+      - sensor.pet_feeder_feeding_size
+      - sensor.pet_feeder_weight_per_day
+      - number.pet_feeder_portion_weight
+      
+  # Exclure les capteurs trop verbeux ou inutiles pour l'historique
+  exclude:
+    entities:
+      - sensor.pet_feeder_last_seen  # Trop verbeux
+      - sensor.water_scale_raw       # Valeur brute, pas utile
+      - sensor.food_scale_raw        # Valeur brute, pas utile
+    entity_globs:
+      - "*_raw_value"
+      - "*_instructions*"
+      - "*_etat_capteur*"
