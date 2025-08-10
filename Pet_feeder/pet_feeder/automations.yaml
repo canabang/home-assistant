@@ -215,47 +215,6 @@ actions:
     data: {}
 
 
-alias: niveau croquettes
-description: ""
-triggers:
-  - trigger: numeric_state
-    entity_id:
-      - sensor.esp_pet_scales_croquettes
-    below: 30
-    enabled: false
-  - trigger: state
-    entity_id:
-      - sensor.esp_pet_scales_croquettes
-  - trigger: homeassistant
-    event: start
-conditions: []
-actions:
-  - repeat:
-      sequence:
-        - action: script.awtrix_dynamique_customapp_dupliquer
-          data:
-            icone: catfood
-            rainbow: "false"
-            scrollspeed: "50"
-            color: "#8b0000"
-            duree: "25"
-            message: "croquettes : {{states('sensor.esp_pet_scales_croquettes')}} % "
-        - action: script.1717220445110
-          data:
-            message: >-
-              Monsieur, il ne reste que
-              {{states('sensor.esp_pet_scales_croquettes')}} % de croquette. 
-        - delay:
-            hours: 2
-            minutes: 0
-            seconds: 0
-            milliseconds: 0
-      while:
-        - condition: numeric_state
-          entity_id: sensor.esp_pet_scales_croquettes
-          below: 30
-mode: single
-
 
 alias: Niveau Fontaine
 description: ""
@@ -346,4 +305,265 @@ actions:
         - condition: numeric_state
           entity_id: sensor.esp_pet_scales_eau
           below: 30
+mode: single
+
+alias: "Pet Feeder - Correction Manuelle via Balance"
+  description: "Force la synchronisation avec la balance quand demandé manuellement"
+  triggers:
+    - platform: state
+      entity_id: input_boolean.pet_feeder_force_sync_balance
+      to: "on"
+  actions:
+    - variables:
+        ancien_stock: "{{ states('input_number.pet_feeder_stock_estime') | float(0) }}"
+        nouveau_stock: "{{ states('sensor.balance_croquettes_en_grammes') | float(0) }}"
+        ecart_correction: "{{ (nouveau_stock - ancien_stock) | abs }}"
+    - service: input_number.set_value
+      target:
+        entity_id: input_number.pet_feeder_stock_estime
+      data:
+        value: "{{ nouveau_stock }}"
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.pet_feeder_force_sync_balance
+    - service: persistent_notification.dismiss
+      data:
+        notification_id: "pet_feeder_divergence"
+    - service: script.1717220445110
+      data:
+        message: >
+          Correction manuelle effectuée. Stock corrigé de {{ ancien_stock | round(0) }}g 
+          vers {{ nouveau_stock | round(0) }}g selon la balance physique.
+    - service: system_log.write
+      data:
+        message: >
+          Pet Feeder: Correction manuelle forcée par utilisateur.
+          Ancien: {{ ancien_stock }}g → Nouveau: {{ nouveau_stock }}g (écart: {{ ecart_correction }}g)
+          Balance: {{ states('sensor.esp_pet_scales_croquettes') }}%
+        level: info
+  mode: single
+
+  alias: Pet Feeder - Correction Divergence Majeure
+description: Correction automatique en cas de divergence importante détectée
+triggers:
+  - entity_id: sensor.validation_stock_multi_sources
+    to: DIVERGENCE_MAJEURE
+    for:
+      minutes: 2
+    trigger: state
+conditions:
+  - condition: state
+    entity_id: sensor.esp_pet_scales_croquettes_etat_capteur_code
+    state: "2.0"
+  - condition: numeric_state
+    entity_id: sensor.esp_pet_scales_croquettes
+    above: 5
+actions:
+  - variables:
+      ancien_stock: "{{ states('input_number.pet_feeder_stock_estime') | float(0) }}"
+      stock_balance: "{{ states('sensor.balance_croquettes_en_grammes') | float(0) }}"
+      ecart_detecte: >-
+        {{ state_attr('sensor.validation_stock_multi_sources', 'ecart_absolu')
+        }}
+  - data:
+      notification_id: pet_feeder_divergence
+      title: 🐾 Pet Feeder - Divergence Détectée
+      message: >
+        DIVERGENCE MAJEURE détectée !
+
+        📊 Balance physique : {{ states('sensor.esp_pet_scales_croquettes') }}%
+        ({{ stock_balance }}g) 🧮 Estimation HA : {{
+        states('sensor.pourcentage_croquette_restant') }}% ({{ ancien_stock }}g)
+        ⚠️ Écart : {{ ecart_detecte }}
+
+        La balance indique {{ stock_balance }}g, faut-il corriger l'estimation ?
+
+        Cliquez sur 'Corriger avec Balance' pour synchroniser automatiquement.
+    action: persistent_notification.create
+  - data:
+      message: >
+        Pet Feeder: DIVERGENCE MAJEURE détectée ! Balance: {{
+        states('sensor.esp_pet_scales_croquettes') }}% ({{ stock_balance }}g)
+        Estimation: {{ ancien_stock }}g Écart: {{ ecart_detecte }} État capteur:
+        {{ states('sensor.esp_pet_scales_croquettes_etat_capteur') }}
+        Notification créée pour validation manuelle.
+      level: warning
+    action: system_log.write
+mode: single
+
+alias: Pet Feeder - Niveau Croquettes Multi-Sources Enhanced
+description: Alerte intelligente basée sur balance ET estimation avec validation croisée
+triggers:
+  - entity_id: sensor.esp_pet_scales_croquettes
+    below: 30
+    trigger: numeric_state
+  - entity_id: sensor.pourcentage_croquette_restant
+    below: 30
+    trigger: numeric_state
+  - entity_id: sensor.validation_stock_multi_sources
+    to: DIVERGENCE_MAJEURE
+    trigger: state
+  - event: start
+    trigger: homeassistant
+conditions:
+  - condition: or
+    conditions:
+      - condition: numeric_state
+        entity_id: sensor.esp_pet_scales_croquettes
+        below: 30
+      - condition: numeric_state
+        entity_id: sensor.pourcentage_croquette_restant
+        below: 30
+      - condition: state
+        entity_id: sensor.validation_stock_multi_sources
+        state: DIVERGENCE_MAJEURE
+actions:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: sensor.validation_stock_multi_sources
+            state: DIVERGENCE_MAJEURE
+        sequence:
+          - data:
+              prompt: >
+                Génère un message d'alerte technique indiquant une DIVERGENCE
+                MAJEURE  entre les mesures de stock de croquettes. Situation
+                critique à analyser.
+
+                📊 Balance physique : {{
+                states('sensor.esp_pet_scales_croquettes') }}% 🧮 Estimation
+                Home Assistant : {{
+                states('sensor.pourcentage_croquette_restant') }}% ⚠️ Écart
+                détecté : {{ state_attr('sensor.validation_stock_multi_sources',
+                'ecart_absolu') }} 🔧 État capteur : {{
+                states('sensor.esp_pet_scales_croquettes_etat_capteur') }}
+
+                Utilise un ton façon K-2SO (Star Wars) : factuel, légèrement
+                sarcastique,  mais indiquant la gravité de la situation. Sois
+                bref pour le TTS. Suggère une vérification manuelle.
+            response_variable: divergence_message
+            action: google_generative_ai_conversation.generate_content
+          - data:
+              message: "{{ divergence_message.text }}"
+            action: script.1717220445110
+          - data:
+              icone: catfood
+              rainbow: "true"
+              scrollspeed: "40"
+              color: "#ff0000"
+              duree: "30"
+              message: "DIVERGENCE: {{ divergence_message.text[:50] }}..."
+            action: script.awtrix_dynamique_customapp_dupliquer
+    default:
+      - repeat:
+          sequence:
+            - variables:
+                balance_niveau: "{{ states('sensor.esp_pet_scales_croquettes') | float(0) }}"
+                estimation_niveau: >-
+                  {{ states('sensor.pourcentage_croquette_restant') | float(0)
+                  }}
+                jours_restants_classique: "{{ states('sensor.jours_restants_nourriture') }}"
+                jours_restants_precis: >-
+                  {{
+                  states('sensor.jours_restants_nourriture_methode_cumulative')
+                  }}
+                validation_etat: "{{ states('sensor.validation_stock_multi_sources') }}"
+            - data:
+                prompt: >
+                  Génère un message d'alerte pour stock bas de croquettes avec
+                  données complètes.
+
+                  📊 Balance physique : {{ balance_niveau }}% 🧮 Estimation HA :
+                  {{ estimation_niveau }}% 📅 Autonomie classique : {{
+                  jours_restants_classique }} jours 🎯 Autonomie précise : {{
+                  jours_restants_precis }} jours   🔍 Validation : {{
+                  validation_etat }}
+
+                  Style K-2SO de Star Wars : factuel avec pointe
+                  d'humour/sarcasme. Mentionne la source la plus fiable selon la
+                  validation. Message bref pour TTS, max 2 phrases.
+
+                  Si validation = "COHERENT" : utilise les deux valeurs Si
+                  validation = "ATTENTION" : privilégie la balance Sinon :
+                  indique l'incertitude
+              response_variable: generated_message
+              action: google_generative_ai_conversation.generate_content
+            - data:
+                message: "{{ generated_message.text }}"
+              action: script.1717220445110
+            - data:
+                icone: catfood
+                rainbow: "false"
+                scrollspeed: "50"
+                color: |
+                  {% if balance_niveau < 15 or estimation_niveau < 15 %}
+                    "#ff0000"
+                  {% elif balance_niveau < 25 or estimation_niveau < 25 %}
+                    "#ff8000"
+                  {% else %}
+                    "#ffff00"
+                  {% endif %}
+                duree: "25"
+                message: "{{ generated_message.text }}"
+              action: script.awtrix_dynamique_customapp_dupliquer
+            - delay:
+                hours: 2
+          while:
+            - condition: or
+              conditions:
+                - condition: numeric_state
+                  entity_id: sensor.esp_pet_scales_croquettes
+                  below: 30
+                - condition: numeric_state
+                  entity_id: sensor.pourcentage_croquette_restant
+                  below: 30
+mode: single
+
+alias: Pet Feeder - Sync Balance vers Estimation
+description: Synchronise l'estimation avec la balance si les données sont cohérentes
+triggers:
+  - at: "06:00:00"
+    trigger: time
+  - entity_id: sensor.validation_stock_multi_sources
+    to: COHERENT
+    for:
+      minutes: 5
+    trigger: state
+conditions:
+  - condition: state
+    entity_id: sensor.validation_stock_multi_sources
+    state: COHERENT
+  - condition: numeric_state
+    entity_id: sensor.esp_pet_scales_croquettes
+    above: 10
+  - condition: state
+    entity_id: sensor.esp_pet_scales_croquettes_etat_capteur_code
+    state: "2.0"
+actions:
+  - variables:
+      ancien_stock: "{{ states('input_number.pet_feeder_stock_estime') | float(0) }}"
+      nouveau_stock: "{{ states('sensor.balance_croquettes_en_grammes') | float(0) }}"
+      ecart_sync: "{{ (nouveau_stock - ancien_stock) | abs }}"
+  - target:
+      entity_id: input_number.pet_feeder_stock_estime
+    data:
+      value: "{{ nouveau_stock }}"
+    action: input_number.set_value
+  - data:
+      message: >
+        Pet Feeder: Sync automatique balance → estimation réussie. Balance: {{
+        states('sensor.esp_pet_scales_croquettes') }}% ({{ nouveau_stock }}g)
+        Ancien estimé: {{ ancien_stock }}g → Nouveau: {{ nouveau_stock }}g Écart
+        corrigé: {{ ecart_sync }}g
+      level: info
+    action: system_log.write
+  - if:
+      - condition: template
+        value_template: "{{ ecart_sync > 100 }}"
+    then:
+      - data:
+          message: >
+            Correction automatique du stock : écart de {{ ecart_sync | round(0)
+            }}g  détecté et corrigé via la balance physique.
+        action: script.1717220445110
 mode: single
