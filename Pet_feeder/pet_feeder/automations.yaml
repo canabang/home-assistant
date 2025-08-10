@@ -567,3 +567,190 @@ actions:
             }}g  détecté et corrigé via la balance physique.
         action: script.1717220445110
 mode: single
+
+alias: "Pet Water - Sauvegarde Niveau Matinal"
+description: "Enregistre le niveau d'eau du matin pour calculer la consommation"
+triggers:
+  - platform: time
+    at: "06:00:00"
+actions:
+  - service: input_number.set_value
+    target:
+      entity_id: input_number.pet_water_level_morning
+    data:
+      value: "{{ states('sensor.esp_pet_scales_eau') | float(0) }}"
+  - service: system_log.write
+    data:
+      message: >
+        Pet Water: Niveau matinal enregistré: {{ states('sensor.esp_pet_scales_eau') }}%
+      level: info
+mode: single
+
+# Mise à jour compteur consommation eau
+alias: "Pet Water - Mise à Jour Consommation"
+description: "Met à jour le compteur de consommation d'eau"
+triggers:
+  - platform: state
+    entity_id: sensor.consommation_eau_quotidienne
+  - platform: time
+    at: "12:00:00"  # Mise à jour midi
+  - platform: time
+    at: "18:00:00"  # Mise à jour soir
+actions:
+  - service: input_number.set_value
+    target:
+      entity_id: input_number.pet_water_daily_counter
+    data:
+      value: "{{ states('sensor.consommation_eau_quotidienne') | float(0) }}"
+mode: single
+
+# Reset quotidien compteur eau
+alias: "Pet Water - Reset Quotidien"
+description: "Remet à zéro le compteur d'eau quotidien"
+triggers:
+  - platform: time
+    at: "00:00:05"
+actions:
+  - service: input_number.set_value
+    target:
+      entity_id: input_number.pet_water_daily_counter
+    data:
+      value: 0
+  - service: system_log.write
+    data:
+      message: "Pet Water: Reset quotidien compteur eau"
+      level: info
+mode: single
+
+# Amélioration de votre automation fontaine existante
+alias: "Pet Water - Niveau Fontaine Enhanced"
+description: "Version enrichie de votre alerte niveau eau avec données complètes"
+triggers:
+  - platform: numeric_state
+    entity_id: sensor.esp_pet_scales_eau
+    below: 30
+  - platform: state
+    entity_id: sensor.validation_systeme_complet
+    to: "EAU_CRITIQUE"
+  - platform: homeassistant
+    event: start
+conditions:
+  - condition: or
+    conditions:
+      - condition: numeric_state
+        entity_id: sensor.esp_pet_scales_eau
+        below: 30
+      - condition: state
+        entity_id: sensor.validation_systeme_complet
+        state: "EAU_CRITIQUE"
+actions:
+  - repeat:
+      sequence:
+        - variables:
+            niveau_eau: "{{ states('sensor.esp_pet_scales_eau') | float(0) }}"
+            consommation_jour: "{{ states('sensor.consommation_eau_quotidienne') | float(0) }}"
+            ratio_hydratation: "{{ states('sensor.ratio_hydratation_quotidien') | float(0) }}"
+            evaluation_hydratation: "{{ state_attr('sensor.ratio_hydratation_quotidien', 'evaluation') }}"
+        - service: google_generative_ai_conversation.generate_content
+          data:
+            prompt: >
+              Génère un message d'alerte pour niveau d'eau bas de la fontaine avec données complètes.
+              
+              💧 Niveau actuel: {{ niveau_eau }}%
+              📊 Consommation aujourd'hui: {{ consommation_jour }}ml
+              ⚖️ Ratio hydratation: {{ ratio_hydratation }}ml/g
+              📈 Évaluation: {{ evaluation_hydratation }}
+              
+              Style K-2SO (Star Wars): factuel avec légère touche d'humour/sarcasme.
+              Inclure une référence geek si pertinent selon les données d'hydratation.
+              Message bref pour TTS, max 2 phrases.
+              Si ratio d'hydratation préoccupant, le mentionner subtilement.
+          response_variable: water_message
+        - service: script.1717220445110
+          data:
+            message: "{{ water_message.text }}"
+        - service: script.awtrix_dynamique_customapp_dupliquer
+          data:
+            icone: fontaine
+            rainbow: "false"
+            scrollspeed: "50"
+            color: >
+              {% if niveau_eau < 15 %}
+                "#ff0000"
+              {% elif niveau_eau < 25 %}
+                "#ff8000"
+              {% else %}
+                "#ffff00"
+              {% endif %}
+            duree: "25"
+            message: "{{ water_message.text }}"
+        - delay:
+            hours: 2
+      while:
+        - condition: or
+          conditions:
+            - condition: numeric_state
+              entity_id: sensor.esp_pet_scales_eau
+              below: 30
+            - condition: state
+              entity_id: sensor.validation_systeme_complet
+              state: "EAU_CRITIQUE"
+mode: single
+
+# Alerte hydratation anormale
+alias: "Pet Water - Alerte Hydratation Anormale"
+description: "Notification si ratio d'hydratation préoccupant"
+triggers:
+  - platform: numeric_state
+    entity_id: sensor.ratio_hydratation_quotidien
+    below: 1.0
+    for:
+      hours: 2
+  - platform: numeric_state
+    entity_id: sensor.ratio_hydratation_quotidien
+    above: 6.0
+    for:
+      hours: 1
+conditions:
+  - condition: time
+    after: "10:00:00"  # Éviter fausses alertes matinales
+  - condition: numeric_state
+    entity_id: input_number.pet_feeder_daily_consumption_counter
+    above: 5  # Assurer données suffisantes
+actions:
+  - variables:
+      ratio: "{{ states('sensor.ratio_hydratation_quotidien') | float(0) }}"
+      evaluation: "{{ state_attr('sensor.ratio_hydratation_quotidien', 'evaluation') }}"
+      conseil: "{{ state_attr('sensor.ratio_hydratation_quotidien', 'conseil_veterinaire') }}"
+  - service: google_generative_ai_conversation.generate_content
+    data:
+      prompt: >
+        Génère une alerte sur l'hydratation anormale détectée.
+        
+        ⚖️ Ratio hydratation: {{ ratio }}ml/g
+        📊 Évaluation: {{ evaluation }}
+        🏥 Conseil: {{ conseil }}
+        
+        {% if ratio < 1.0 %}
+        Le chat boit très peu par rapport à ce qu'il mange. Possible déshydratation.
+        {% else %}
+        Le chat boit beaucoup par rapport à ce qu'il mange. Surveillance recommandée.
+        {% endif %}
+        
+        Style K-2SO mais avec une nuance de préoccupation pour la santé.
+        Suggère discretement une surveillance ou consultation vétérinaire si nécessaire.
+    response_variable: hydration_alert
+  - service: script.1717220445110
+    data:
+      message: "{{ hydration_alert.text }}"
+  - service: persistent_notification.create
+    data:
+      notification_id: "pet_hydration_alert"
+      title: "🩺 Pet Health - Hydratation Anormale"
+      message: >
+        **Ratio détecté:** {{ ratio }}ml/g
+        **Évaluation:** {{ evaluation }}
+        **Conseil:** {{ conseil }}
+        
+        {{ hydration_alert.text }}
+mode: single
