@@ -77,7 +77,7 @@ pet_water_max_capacity:
   unit_of_measurement: "ml"
   mode: box
   icon: mdi:water
-  initial: 1500
+ 
 
 pet_water_daily_counter:
   name: "Compteur consommation eau quotidienne (ml)"
