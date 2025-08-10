@@ -286,3 +286,66 @@
           {% else %}
             "Théorique (pas encore de données réelles)"
           {% endif %}
+
+# Nouveau sensor de validation croisée balance ↔ estimation
+    - name: "Validation Stock Multi-Sources"
+      unique_id: pet_feeder_stock_validation
+      state: >
+        {% set balance_pourcentage = states('sensor.esp_pet_scales_croquettes') | float(0) %}
+        {% set estimation_pourcentage = states('sensor.pourcentage_croquette_restant') | float(0) %}
+        {% set ecart = (balance_pourcentage - estimation_pourcentage) | abs %}
+        
+        {% if balance_pourcentage < 5 or estimation_pourcentage < 5 %}
+          "CAPTEUR_DEFAILLANT"
+        {% elif ecart > 25 %}
+          "DIVERGENCE_MAJEURE"
+        {% elif ecart > 15 %}
+          "DIVERGENCE_MINEURE"
+        {% elif ecart > 8 %}
+          "ATTENTION"
+        {% else %}
+          "COHERENT"
+        {% endif %}
+      attributes:
+        balance_pourcentage: "{{ states('sensor.esp_pet_scales_croquettes') }}%"
+        estimation_pourcentage: "{{ states('sensor.pourcentage_croquette_restant') }}%"
+        ecart_absolu: >
+          {% set balance = states('sensor.esp_pet_scales_croquettes') | float(0) %}
+          {% set estimation = states('sensor.pourcentage_croquette_restant') | float(0) %}
+          {{ (balance - estimation) | abs | round(1) }}%
+        ecart_relatif: >
+          {% set balance = states('sensor.esp_pet_scales_croquettes') | float(0) %}
+          {% set estimation = states('sensor.pourcentage_croquette_restant') | float(0) %}
+          {% if estimation > 0 %}
+            {{ (((balance - estimation) | abs / estimation) * 100) | round(1) }}%
+          {% else %}
+            "N/A"
+          {% endif %}
+        balance_grammes_calcule: >
+          {% set pourcentage = states('sensor.esp_pet_scales_croquettes') | float(0) %}
+          {% set capacite = states('input_number.pet_feeder_max_capacity') | float(1500) %}
+          {{ ((pourcentage / 100) * capacite) | round(0) }}g
+        estimation_grammes: "{{ states('input_number.pet_feeder_stock_estime') }}g"
+        fiabilite: >
+          {% set balance_etat = states('sensor.esp_pet_scales_croquettes_etat_capteur') %}
+          {% set balance_code = states('sensor.esp_pet_scales_croquettes_etat_capteur_code') | float(0) %}
+          {% if balance_code == 2.0 %}
+            "Balance OK"
+          {% elif balance_code == 1.0 %}
+            "Balance hors calibration"
+          {% else %}
+            "Balance défaillante"
+          {% endif %}
+
+    # Sensor pour conversion balance en grammes (utile pour sync)
+    - name: "Balance Croquettes en Grammes"
+      unique_id: balance_croquettes_grammes
+      unit_of_measurement: "g"
+      state: >
+        {% set pourcentage = states('sensor.esp_pet_scales_croquettes') | float(0) %}
+        {% set capacite = states('input_number.pet_feeder_max_capacity') | float(1500) %}
+        {{ ((pourcentage / 100) * capacite) | round(0) }}
+      attributes:
+        pourcentage_source: "{{ states('sensor.esp_pet_scales_croquettes') }}%"
+        capacite_utilisee: "{{ states('input_number.pet_feeder_max_capacity') }}g"
+        fiabilite_capteur: "{{ states('sensor.esp_pet_scales_croquettes_etat_capteur') }}"
