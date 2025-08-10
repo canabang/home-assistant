@@ -1,4 +1,5 @@
-<img width="1853" height="820" alt="image" src="https://github.com/user-attachments/assets/2554303f-317c-4197-90c9-a2878f52693f" />
+<img width="1866" height="1055" alt="image" src="https://github.com/user-attachments/assets/f139fa9e-ef1f-4e03-86ec-89e3d6c64390" />
+
 
 # 🐾 Pet Feeder - Home Assistant Integration
 
