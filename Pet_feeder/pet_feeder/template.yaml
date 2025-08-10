@@ -486,3 +486,249 @@
           {% endif %}
           
           {{ ((score_croquettes + score_eau) / 2) | round(1) }}/10
+
+# === MOYENNES HISTORIQUES ===
+    - name: "Consommation Moyenne 7 Jours"
+      unique_id: pet_feeder_avg_7days
+      unit_of_measurement: "g"
+      state: |
+        {% set ns = namespace(total=0, count=0) %}
+        {% for state in states.input_number.pet_feeder_daily_consumption_counter.history(days=7) %}
+          {% if state.state not in ['unknown', 'unavailable'] and state.state | float > 5 %}
+            {% set ns.total = ns.total + (state.state | float) %}
+            {% set ns.count = ns.count + 1 %}
+          {% endif %}
+        {% endfor %}
+        {% if ns.count > 0 %}
+          {{ (ns.total / ns.count) | round(1) }}
+        {% else %}
+          {{ states('input_number.pet_feeder_target_daily_weight') | float(85) }}
+        {% endif %}
+      attributes:
+        jours_données: |
+          {% set count = 0 %}
+          {% for state in states.input_number.pet_feeder_daily_consumption_counter.history(days=7) %}
+            {% if state.state not in ['unknown', 'unavailable'] and state.state | float > 5 %}
+              {% set count = count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ count }}
+
+    - name: "Consommation Moyenne 30 Jours"
+      unique_id: pet_feeder_avg_30days
+      unit_of_measurement: "g"
+      state: |
+        {% set ns = namespace(total=0, count=0) %}
+        {% for state in states.input_number.pet_feeder_daily_consumption_counter.history(days=30) %}
+          {% if state.state not in ['unknown', 'unavailable'] and state.state | float > 5 %}
+            {% set ns.total = ns.total + (state.state | float) %}
+            {% set ns.count = ns.count + 1 %}
+          {% endif %}
+        {% endfor %}
+        {% if ns.count > 0 %}
+          {{ (ns.total / ns.count) | round(1) }}
+        {% else %}
+          {{ states('sensor.consommation_moyenne_7_jours') | float(85) }}
+        {% endif %}
+
+    # === DÉTECTION TENDANCES ===
+    - name: "Tendance Consommation"
+      unique_id: pet_feeder_consumption_trend
+      state: |
+        {% set avg_7d = states('sensor.consommation_moyenne_7_jours') | float(0) %}
+        {% set avg_30d = states('sensor.consommation_moyenne_30_jours') | float(0) %}
+        {% set current = states('input_number.pet_feeder_daily_consumption_counter') | float(0) %}
+        
+        {% if avg_7d > avg_30d * 1.1 %}
+          "HAUSSE"
+        {% elif avg_7d < avg_30d * 0.9 %}
+          "BAISSE"  
+        {% else %}
+          "STABLE"
+        {% endif %}
+      attributes:
+        variation_7j_vs_30j: |
+          {% set avg_7d = states('sensor.consommation_moyenne_7_jours') | float(0) %}
+          {% set avg_30d = states('sensor.consommation_moyenne_30_jours') | float(0) %}
+          {% if avg_30d > 0 %}
+            {{ (((avg_7d - avg_30d) / avg_30d) * 100) | round(1) }}%
+          {% else %}
+            "N/A"
+          {% endif %}
+        ecart_aujourd_hui_vs_moyenne: |
+          {% set current = states('input_number.pet_feeder_daily_consumption_counter') | float(0) %}
+          {% set avg_7d = states('sensor.consommation_moyenne_7_jours') | float(0) %}
+          {% if avg_7d > 0 %}
+            {{ (current - avg_7d) | round(1) }}g
+          {% else %}
+            "N/A"
+          {% endif %}
+
+    # === ANOMALIES COMPORTEMENTALES ===
+    - name: "Détection Anomalie Alimentaire"
+      unique_id: pet_feeder_anomaly_detection
+      state: |
+        {% set current = states('input_number.pet_feeder_daily_consumption_counter') | float(0) %}
+        {% set avg_7d = states('sensor.consommation_moyenne_7_jours') | float(0) %}
+        {% set avg_30d = states('sensor.consommation_moyenne_30_jours') | float(0) %}
+        
+        {% if avg_7d > 0 %}
+          {% if current > avg_7d * 1.5 %}
+            "SURCONSOMMATION"
+          {% elif current < avg_7d * 0.4 %}
+            "SOUS_CONSOMMATION"
+          {% elif current > avg_7d * 1.2 %}
+            "CONSOMMATION_ELEVEE"
+          {% elif current < avg_7d * 0.7 %}
+            "CONSOMMATION_FAIBLE"
+          {% else %}
+            "NORMALE"
+          {% endif %}
+        {% else %}
+          "DONNEES_INSUFFISANTES"
+        {% endif %}
+      attributes:
+        seuil_alerte_haut: |
+          {{ (states('sensor.consommation_moyenne_7_jours') | float(0) * 1.5) | round(1) }}g
+        seuil_alerte_bas: |
+          {{ (states('sensor.consommation_moyenne_7_jours') | float(0) * 0.4) | round(1) }}g
+        niveau_confiance: |
+          {% set jours = state_attr('sensor.consommation_moyenne_7_jours', 'jours_données') | int(0) %}
+          {% if jours >= 7 %}
+            "HAUTE"
+          {% elif jours >= 3 %}
+            "MOYENNE"
+          {% else %}
+            "FAIBLE"
+          {% endif %}
+
+    # === HISTORIQUE HYDRATATION ===
+    - name: "Hydratation Moyenne 7 Jours"
+      unique_id: pet_water_avg_7days
+      unit_of_measurement: "ml/g"
+      state: |
+        {% set ns = namespace(total=0, count=0) %}
+        {% for state in states.sensor.ratio_hydratation_quotidien.history(days=7) %}
+          {% if state.state not in ['unknown', 'unavailable'] and state.state | float > 0.5 %}
+            {% set ns.total = ns.total + (state.state | float) %}
+            {% set ns.count = ns.count + 1 %}
+          {% endif %}
+        {% endfor %}
+        {% if ns.count > 0 %}
+          {{ (ns.total / ns.count) | round(1) }}
+        {% else %}
+          0
+        {% endif %}
+
+    - name: "Évolution Hydratation"
+      unique_id: pet_water_evolution
+      state: |
+        {% set current = states('sensor.ratio_hydratation_quotidien') | float(0) %}
+        {% set avg_7d = states('sensor.hydratation_moyenne_7_jours') | float(0) %}
+        
+        {% if avg_7d > 0 %}
+          {% if current > avg_7d * 1.3 %}
+            "FORTE_HAUSSE"
+          {% elif current > avg_7d * 1.1 %}
+            "HAUSSE_LEGERE"
+          {% elif current < avg_7d * 0.7 %}
+            "FORTE_BAISSE"
+          {% elif current < avg_7d * 0.9 %}
+            "BAISSE_LEGERE"
+          {% else %}
+            "STABLE"
+          {% endif %}
+        {% else %}
+          "DONNEES_INSUFFISANTES"
+        {% endif %}
+
+    # === PRÉDICTIONS BASÉES SUR L'HISTORIQUE ===
+    - name: "Prédiction Autonomie Améliorée"
+      unique_id: pet_feeder_enhanced_prediction
+      unit_of_measurement: "jours"
+      state: |
+        {% set stock = states('input_number.pet_feeder_stock_estime') | float(0) %}
+        {% set avg_7d = states('sensor.consommation_moyenne_7_jours') | float(0) %}
+        {% set avg_30d = states('sensor.consommation_moyenne_30_jours') | float(0) %}
+        {% set tendance = states('sensor.tendance_consommation') %}
+        
+        {% if avg_7d > 0 %}
+          {% set consommation_predite = avg_7d %}
+          {% if tendance == "HAUSSE" %}
+            {% set consommation_predite = avg_7d * 1.05 %}
+          {% elif tendance == "BAISSE" %}
+            {% set consommation_predite = avg_7d * 0.95 %}
+          {% endif %}
+          {{ (stock / consommation_predite) | round(1) }}
+        {% else %}
+          0
+        {% endif %}
+      attributes:
+        consommation_predite: |
+          {% set avg_7d = states('sensor.consommation_moyenne_7_jours') | float(0) %}
+          {% set tendance = states('sensor.tendance_consommation') %}
+          {% if avg_7d > 0 %}
+            {% if tendance == "HAUSSE" %}
+              {{ (avg_7d * 1.05) | round(1) }}g/jour
+            {% elif tendance == "BAISSE" %}
+              {{ (avg_7d * 0.95) | round(1) }}g/jour
+            {% else %}
+              {{ avg_7d }}g/jour
+            {% endif %}
+          {% else %}
+            "N/A"
+          {% endif %}
+        methode: "Moyenne 7j avec correction tendancielle"
+        fiabilite: |
+          {% set jours = state_attr('sensor.consommation_moyenne_7_jours', 'jours_données') | int(0) %}
+          {% if jours >= 7 %}
+            "95%"
+          {% elif jours >= 5 %}
+            "85%"
+          {% else %}
+            "70%"
+          {% endif %}
+
+    # === STATISTIQUES MENSUELLES ===
+    - name: "Stats Mensuelles Pet Feeder"
+      unique_id: pet_feeder_monthly_stats
+      state: |
+        {% set now_month = now().month %}
+        {% set consommation_mois = 0 %}
+        {% set jours_mois = 0 %}
+        
+        {% for state in states.input_number.pet_feeder_daily_consumption_counter.history(days=31) %}
+          {% if state.last_updated.month == now_month and state.state | float > 0 %}
+            {% set consommation_mois = consommation_mois + (state.state | float) %}
+            {% set jours_mois = jours_mois + 1 %}
+          {% endif %}
+        {% endfor %}
+        
+        {% if jours_mois > 0 %}
+          {{ (consommation_mois / jours_mois) | round(1) }}
+        {% else %}
+          0
+        {% endif %}
+      attributes:
+        consommation_totale_mois: |
+          {% set now_month = now().month %}
+          {% set total = 0 %}
+          {% for state in states.input_number.pet_feeder_daily_consumption_counter.history(days=31) %}
+            {% if state.last_updated.month == now_month and state.state | float > 0 %}
+              {% set total = total + (state.state | float) %}
+            {% endif %}
+          {% endfor %}
+          {{ total | round(0) }}g
+        jours_avec_donnees: |
+          {% set now_month = now().month %}
+          {% set jours = 0 %}
+          {% for state in states.input_number.pet_feeder_daily_consumption_counter.history(days=31) %}
+            {% if state.last_updated.month == now_month and state.state | float > 0 %}
+              {% set jours = jours + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ jours }}
+        projection_mois: |
+          {% set current_avg = states('sensor.stats_mensuelles_pet_feeder') | float(0) %}
+          {% set jours_restants = (now().replace(month=now().month+1, day=1) - now()).days %}
+          {{ (current_avg * jours_restants) | round(0) }}g
