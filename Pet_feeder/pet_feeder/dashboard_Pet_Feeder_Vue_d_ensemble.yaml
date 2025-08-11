@@ -1,0 +1,250 @@
+title: 🐾 Pet Feeder - Vue d'ensemble
+path: petfeeder-main_01
+icon: mdi:food-drumstick
+cards: []
+type: sections
+sections:
+  - type: grid
+    cards:
+      - type: heading
+        heading: 📊 État Général
+      - type: horizontal-stack
+        cards:
+          - type: gauge
+            entity: sensor.pourcentage_croquette_restant
+            name: Stock Croquettes
+            min: 0
+            max: 100
+            severity:
+              green: 50
+              yellow: 25
+              red: 10
+            needle: true
+          - type: gauge
+            entity: sensor.esp_pet_scales_eau
+            name: Niveau Eau
+            min: 0
+            max: 100
+            severity:
+              green: 30
+              yellow: 15
+              red: 10
+            needle: true
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.jours_restants_nourriture_methode_cumulative
+                name: Jours restants (précis)
+                show_state: true
+                show_graph: false
+                color: "#2196f3"
+              - entity: sensor.prediction_autonomie_amelioree
+                name: Prédiction IA
+                show_state: true
+                show_graph: false
+                color: "#ff9800"
+            height: 80
+            font_size: 65
+            card_mod:
+              style: |
+                ha-card {
+                  text-align: center;
+                  {% if states('sensor.prediction_autonomie_amelioree')|float < 3 %}
+                    background: rgba(244,67,54,0.1);
+                    border: 2px solid #f44336;
+                  {% elif states('sensor.prediction_autonomie_amelioree')|float < 7 %}
+                    background: rgba(255,152,0,0.1);
+                    border: 2px solid #ff9800;
+                  {% endif %}
+                }
+      - type: conditional
+        conditions:
+          - entity: sensor.esp_pet_scales_eau
+            state_not: unavailable
+        card:
+          type: custom:mini-graph-card
+          name: Évolution (24h)
+          entities:
+            - entity: sensor.esp_pet_scales_eau
+              name: Eau %
+              color: "#2196f3"
+              y_axis: secondary
+            - entity: sensor.esp_pet_scales_croquettes
+              name: Croquettes (balance)
+              color: "#ff9800"
+            - entity: sensor.pourcentage_croquette_restant
+              name: Croquettes (estimation)
+              color: "#ff5722"
+              show_line: false
+              show_points: true
+          hours_to_show: 24
+          points_per_hour: 4
+          line_width: 2
+          show:
+            graph: line
+            labels: true
+            legend: true
+      - type: entities
+        title: 🚨 État du Système
+        entities:
+          - entity: sensor.validation_systeme_complet
+            name: Validation Globale
+            icon: mdi:check-decagram
+            card_mod:
+              style: |
+                :host {
+                  --paper-item-icon-color: 
+                    {% if states('sensor.validation_systeme_complet') == 'SYSTEME_OPTIMAL' %}
+                      green
+                    {% elif states('sensor.validation_systeme_complet') in ['EAU_FAIBLE', 'ATTENTION_CROQUETTES'] %}
+                      orange
+                    {% else %}
+                      red
+                    {% endif %} !important;
+                }
+          - entity: sensor.detection_anomalie_alimentaire
+            name: Détection Anomalie
+            icon: mdi:alert-circle-outline
+            card_mod:
+              style: |
+                :host {
+                  --paper-item-icon-color: 
+                    {% if states('sensor.detection_anomalie_alimentaire') == 'NORMALE' %}
+                      green
+                    {% elif states('sensor.detection_anomalie_alimentaire') in ['CONSOMMATION_ELEVEE', 'CONSOMMATION_FAIBLE'] %}
+                      orange
+                    {% else %}
+                      red
+                    {% endif %} !important;
+                }
+          - entity: sensor.tendance_consommation
+            name: Tendance 7j vs 30j
+            icon: mdi:trending-up
+            secondary_info: >
+              {{ state_attr('sensor.tendance_consommation',
+              'variation_7j_vs_30j') }}
+          - type: custom:multiple-entity-row
+            entity: sensor.validation_systeme_complet
+            name: Status Détaillé
+            show_state: false
+            entities:
+              - entity: sensor.validation_systeme_complet
+                attribute: status_eau
+                name: Eau
+              - entity: sensor.validation_systeme_complet
+                attribute: status_croquettes
+                name: Croquettes
+              - entity: sensor.validation_systeme_complet
+                attribute: score_global
+                name: Score
+  - type: grid
+    cards:
+      - type: heading
+        heading: 🍽️ Aujourd'hui
+      - type: entities
+        title: 📊 Consommation Aujourd'hui
+        entities:
+          - entity: sensor.poids_reel_distribue_aujourd_hui
+            name: Dernier repas
+            icon: mdi:bowl
+          - entity: input_number.pet_feeder_daily_consumption_counter
+            name: Total consommé aujourd'hui
+            icon: mdi:counter
+          - entity: input_number.pet_feeder_target_daily_weight
+            name: Objectif quotidien
+            icon: mdi:target
+          - entity: sensor.consommation_quotidienne_moyenne
+            name: Moyenne quotidienne
+            icon: mdi:chart-line
+      - type: entities
+        title: 💧 Hydratation Aujourd'hui
+        entities:
+          - entity: sensor.esp_pet_scales_eau
+            name: Niveau Fontaine Actuel
+            secondary_info: |
+              {{ states('sensor.balance_eau_en_litres') }}L
+            icon: mdi:water-percent
+          - entity: sensor.consommation_eau_quotidienne
+            name: Consommation Aujourd'hui
+            icon: mdi:cup-water
+          - entity: sensor.ratio_hydratation_quotidien
+            name: Ratio Hydratation
+            secondary_info: >
+              {{ state_attr('sensor.ratio_hydratation_quotidien', 'evaluation')
+              }}
+            icon: mdi:scale-balance
+          - type: custom:bar-card
+            name: Niveau Eau
+            positions:
+              icon: "off"
+              name: inside
+            severity:
+              - color: "#f44336"
+                from: 0
+                to: 15
+              - color: "#ff9800"
+                from: 15
+                to: 30
+              - color: "#4caf50"
+                from: 30
+                to: 100
+            entities:
+              - entity: sensor.esp_pet_scales_eau
+  - type: grid
+    cards:
+      - type: heading
+        heading: ⏰ Repas Programmés
+      - type: entities
+        title: Portions du Jour
+        entities:
+          - entity: sensor.portions_calculees_matin
+            name: 🌅 Matin (8h00)
+            secondary_info: >
+              {{ state_attr('sensor.portions_calculees_matin',
+              'poids_theorique') }}
+          - entity: sensor.portions_calculees_midi
+            name: ☀️ Midi (14h00)
+            secondary_info: >
+              {{ state_attr('sensor.portions_calculees_midi', 'poids_theorique')
+              }}
+          - entity: sensor.portions_calculees_soir
+            name: 🌙 Soir (20h00)
+            secondary_info: >
+              {{ state_attr('sensor.portions_calculees_soir', 'poids_theorique')
+              }}
+          - type: divider
+          - entity: sensor.total_portions_calculees
+            name: 📋 Total programmé
+            secondary_info: >
+              {{ state_attr('sensor.total_portions_calculees',
+              'poids_total_theorique') }}
+      - type: heading
+        heading: 🎛️ Actions Rapides
+        heading_style: title
+      - type: entities
+        title: Contrôles Essentiels
+        entities:
+          - type: call-service
+            name: 🍽️ Distribution test
+            service: mqtt.publish
+            service_data:
+              topic: zigbee2mqtt02/Pet feeder/set
+              payload: "{\"feed\": \"\"}"
+            icon: mdi:play
+          - type: call-service
+            name: 💧 Marquer eau remplie
+            service: input_number.set_value
+            service_data:
+              entity_id: input_number.pet_water_level_morning
+              value: "{{ states('sensor.esp_pet_scales_eau') }}"
+            icon: mdi:water-plus
+          - entity: input_boolean.pet_feeder_manual_refill_trigger
+            name: 🔄 Nouveau cycle
+            icon: mdi:reload
+max_columns: 3
+background:
+  opacity: 100
+  alignment: center
+  size: cover
+  repeat: no-repeat
+  attachment: scroll
+  image: /api/image/serve/42b2c391fc6fa00e0c293b0b336b7cf6/original
