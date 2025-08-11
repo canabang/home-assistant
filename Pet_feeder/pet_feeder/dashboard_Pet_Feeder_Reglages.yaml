@@ -1,0 +1,322 @@
+title: 🔧 Pet Feeder - Réglages
+path: petfeeder-settings
+icon: mdi:cog
+cards: []
+type: sections
+sections:
+  - type: grid
+    cards:
+      - type: entities
+        title: 📦 Gestion Stock
+        entities:
+          - entity: input_number.pet_feeder_stock_estime
+            name: Stock estimé
+            icon: mdi:warehouse
+          - entity: input_number.pet_feeder_max_capacity
+            name: Capacité max
+            icon: mdi:barrel
+          - entity: input_boolean.pet_feeder_stock_was_low
+            name: Stock était bas
+            icon: mdi:alert-circle
+          - entity: number.pet_feeder_portion_weight
+            name: Poids par portion
+            icon: mdi:scale
+      - type: entities
+        title: 🎛️ Contrôles Eau
+        entities:
+          - entity: input_number.pet_water_max_capacity
+            name: Capacité fontaine
+            icon: mdi:water-tank
+          - entity: input_number.pet_water_level_morning
+            name: Niveau matinal sauvegardé
+            icon: mdi:weather-sunset-up
+          - entity: input_number.pet_water_daily_counter
+            name: Compteur eau quotidien
+            icon: mdi:counter
+  - type: grid
+    cards:
+      - type: entities
+        title: 🎛️ Contrôles Standards
+        entities:
+          - type: call-service
+            name: 🔄 Forcer recalcul portions
+            service: homeassistant.update_entity
+            service_data:
+              entity_id: sensor.portions_calculees_matin
+            icon: mdi:calculator
+          - type: call-service
+            name: 🍽️ Distribution manuelle test
+            service: mqtt.publish
+            service_data:
+              topic: zigbee2mqtt02/Pet feeder/set
+              payload: "{\"feed\": \"\"}"
+            icon: mdi:play
+          - type: call-service
+            name: 📊 Reset compteur jour
+            service: input_number.set_value
+            service_data:
+              entity_id: input_number.pet_feeder_daily_consumption_counter
+              value: 0
+            icon: mdi:restore
+            confirmation:
+              text: Êtes-vous sûr de vouloir remettre le compteur à zéro ?
+          - type: call-service
+            name: 💧 Marquer fontaine remplie
+            service: input_number.set_value
+            service_data:
+              entity_id: input_number.pet_water_level_morning
+              value: "{{ states('sensor.esp_pet_scales_eau') }}"
+            icon: mdi:water-plus
+          - type: call-service
+            name: 📊 Reset compteur eau
+            service: input_number.set_value
+            service_data:
+              entity_id: input_number.pet_water_daily_counter
+              value: 0
+            icon: mdi:restore
+            confirmation:
+              text: Remettre à zéro le compteur d'eau ?
+      - type: entities
+        title: 📊 Contrôles Analytics
+        entities:
+          - type: call-service
+            name: 🔄 Actualiser Moyennes Historiques
+            service: homeassistant.update_entity
+            service_data:
+              entity_id:
+                - sensor.consommation_moyenne_7_jours
+                - sensor.consommation_moyenne_30_jours
+                - sensor.tendance_consommation
+            icon: mdi:refresh-circle
+          - type: call-service
+            name: 🧠 Recalculer Prédiction IA
+            service: homeassistant.update_entity
+            service_data:
+              entity_id: sensor.prediction_autonomie_amelioree
+            icon: mdi:brain
+          - type: call-service
+            name: 🔍 Forcer Détection Anomalie
+            service: homeassistant.update_entity
+            service_data:
+              entity_id: sensor.detection_anomalie_alimentaire
+            icon: mdi:magnify-scan
+          - type: call-service
+            name: 📋 Générer Rapport Mensuel
+            service: automation.trigger
+            service_data:
+              entity_id: automation.pet_feeder_rapport_mensuel_automatique
+            icon: mdi:file-chart-outline
+            confirmation:
+              text: Générer le rapport mensuel maintenant ?
+  - type: grid
+    cards:
+      - type: entities
+        title: 🔧 Gestion Manuelle
+        entities:
+          - entity: input_boolean.pet_feeder_manual_refill_trigger
+            name: Déclencher nouveau cycle
+            icon: mdi:reload
+            secondary_info: Remet à zéro tous les compteurs
+          - type: call-service
+            name: 📝 Initialiser refill manuel
+            service: input_boolean.turn_on
+            service_data:
+              entity_id: input_boolean.pet_feeder_manual_refill_trigger
+            icon: mdi:package-variant-closed
+            confirmation:
+              text: >-
+                Cela va remettre à zéro le suivi de consommation ET
+                l'historique. Continuer ?
+          - type: call-service
+            name: 📊 Mise à jour stock estimé
+            service: input_number.set_value
+            service_data:
+              entity_id: input_number.pet_feeder_stock_estime
+              value: "{{ states('input_number.pet_feeder_max_capacity') }}"
+            icon: mdi:warehouse
+            confirmation:
+              text: Marquer le réservoir comme plein ?
+  - type: grid
+    cards:
+      - type: entities
+        title: 🔍 Validation Système Complète
+        entities:
+          - entity: sensor.validation_systeme_complet
+            name: État Système Global
+            icon: mdi:check-decagram
+            card_mod:
+              style: |
+                :host {
+                  --paper-item-icon-color: 
+                    {% if states('sensor.validation_systeme_complet') == 'SYSTEME_OPTIMAL' %}
+                      green
+                    {% elif states('sensor.validation_systeme_complet') in ['EAU_FAIBLE', 'ATTENTION_CROQUETTES'] %}
+                      orange
+                    {% else %}
+                      red
+                    {% endif %} !important;
+                }
+          - type: custom:multiple-entity-row
+            entity: sensor.validation_systeme_complet
+            name: Status Détaillé
+            show_state: false
+            entities:
+              - entity: sensor.validation_systeme_complet
+                attribute: status_eau
+                name: Eau
+              - entity: sensor.validation_systeme_complet
+                attribute: status_croquettes
+                name: Croquettes
+              - entity: sensor.validation_systeme_complet
+                attribute: score_global
+                name: Score
+          - entity: sensor.detection_anomalie_alimentaire
+            attribute: niveau_confiance
+            name: Niveau Confiance Détection
+            icon: mdi:shield-check-outline
+          - entity: sensor.ratio_hydratation_quotidien
+            attribute: conseil_veterinaire
+            name: Conseil Santé
+            icon: mdi:medical-bag
+      - type: entities
+        title: ⚙️ Configuration Avancée
+        entities:
+          - entity: input_number.pet_feeder_target_daily_weight
+            name: Objectif quotidien croquettes
+            icon: mdi:target
+          - entity: input_number.pet_feeder_total_distributed
+            name: Total distribué (historique)
+            icon: mdi:counter
+          - entity: input_number.pet_feeder_cumulative_distributed_since_refill
+            name: Distribué depuis refill
+            icon: mdi:scale-balance
+          - entity: input_number.pet_feeder_daily_consumption_counter
+            name: Compteur consommation quotidienne
+            icon: mdi:counter
+      - type: entities
+        title: 📈 Données de Référence
+        entities:
+          - entity: sensor.consommation_quotidienne_moyenne
+            name: Moyenne quotidienne
+            icon: mdi:chart-line
+          - entity: sensor.consommation_moyenne_reelle
+            name: Moyenne réelle depuis refill
+            icon: mdi:chart-line-variant
+          - entity: sensor.consommation_moyenne_7_jours
+            name: Moyenne 7 jours
+            icon: mdi:chart-timeline-variant
+          - entity: sensor.consommation_moyenne_30_jours
+            name: Moyenne 30 jours
+            icon: mdi:chart-timeline-variant
+          - type: custom:template-entity-row
+            entity: input_number.pet_feeder_refill_date
+            name: Dernier refill
+            icon: mdi:calendar-plus
+            state: >
+              {% set timestamp = states('input_number.pet_feeder_refill_date') |
+              float(0) %} {% if timestamp > 0 %}
+                {{ timestamp | timestamp_custom('%d/%m/%Y à %H:%M') }}
+              {% else %}
+                Non défini
+              {% endif %}
+  - type: grid
+    cards:
+      - type: entities
+        title: 🧪 Tests & Diagnostics
+        entities:
+          - type: call-service
+            name: 🔄 Mise à jour tous capteurs
+            service: homeassistant.update_entity
+            service_data:
+              entity_id:
+                - sensor.portions_calculees_matin
+                - sensor.portions_calculees_midi
+                - sensor.portions_calculees_soir
+                - sensor.validation_systeme_complet
+                - sensor.consommation_moyenne_reelle
+            icon: mdi:refresh
+          - type: call-service
+            name: 🎯 Test validation croisée
+            service: homeassistant.update_entity
+            service_data:
+              entity_id: sensor.validation_stock_multi_sources
+            icon: mdi:check-decagram-outline
+          - type: call-service
+            name: 📊 Recalcul statistiques complètes
+            service: homeassistant.update_entity
+            service_data:
+              entity_id:
+                - sensor.stats_mensuelles_pet_feeder
+                - sensor.tendance_consommation
+                - sensor.hydratation_moyenne_7_jours
+                - sensor.evolution_hydratation
+            icon: mdi:calculator-variant
+      - type: entities
+        title: 🔍 État Détaillé Système
+        entities:
+          - entity: sensor.validation_stock_multi_sources
+            name: Validation Croisée Sources
+            icon: mdi:check-decagram-outline
+            secondary_info: >
+              Balance: {{ state_attr('sensor.validation_stock_multi_sources',
+              'balance_pourcentage') }}% 
+
+              | Estimation: {{
+              state_attr('sensor.validation_stock_multi_sources',
+              'estimation_pourcentage') }}%
+          - type: custom:template-entity-row
+            entity: sensor.validation_stock_multi_sources
+            name: Écart entre sources
+            icon: mdi:compare-horizontal
+            state: >
+              {{ state_attr('sensor.validation_stock_multi_sources',
+              'ecart_absolu') }}
+            secondary: >
+              Écart relatif: {{
+              state_attr('sensor.validation_stock_multi_sources',
+              'ecart_relatif') }}
+          - entity: sensor.prediction_autonomie_amelioree
+            attribute: fiabilite
+            name: Confiance Prédiction IA
+            icon: mdi:brain
+          - type: custom:template-entity-row
+            entity: sensor.detection_anomalie_alimentaire
+            name: Seuils d'Alerte Adaptatifs
+            icon: mdi:alert-octagon-outline
+            state: >
+              {{ state_attr('sensor.detection_anomalie_alimentaire',
+              'niveau_confiance') }}
+            secondary: >
+              Alerte si < {{ state_attr('sensor.detection_anomalie_alimentaire',
+              'seuil_alerte_bas') }}g 
+
+              ou > {{ state_attr('sensor.detection_anomalie_alimentaire',
+              'seuil_alerte_haut') }}g
+      - type: entities
+        title: 🛠️ Maintenance Avancée
+        entities:
+          - type: call-service
+            name: 🔄 Reset complet système
+            service: script.pet_feeder_reset_complet
+            icon: mdi:restore-alert
+            confirmation:
+              text: >-
+                ATTENTION: Cela va remettre à zéro TOUTES les données
+                historiques. Êtes-vous sûr ?
+          - type: call-service
+            name: 📤 Export données historiques
+            service: script.pet_feeder_export_data
+            icon: mdi:database-export
+          - type: call-service
+            name: 🔧 Calibrage balance
+            service: script.pet_feeder_calibrage_balance
+            icon: mdi:scale-balance
+            confirmation:
+              text: Démarrer le processus de calibrage de la balance ?
+          - type: call-service
+            name: 🧹 Nettoyage données anciennes
+            service: script.pet_feeder_cleanup_old_data
+            icon: mdi:delete-sweep
+            confirmation:
+              text: Supprimer les données de plus de 90 jours ?
+max_columns: 4
