@@ -1,0 +1,148 @@
+alias: Surveillance des portes de réfrigération
+description: >-
+  Surveille l'ouverture des portes du frigo et congélateurs. Déclenche des
+  notifications vocales et Ulanzi si une porte reste ouverte plus d'1 minute
+  quand on est présent et en journée. Répète toutes les 5 minutes jusqu'à
+  fermeture.
+triggers:
+  - entity_id:
+      - binary_sensor.ouvportfrig_contact
+      - binary_sensor.ouvportcong_contact
+      - binary_sensor.ouvportcong2_contact
+    to: "on"
+    trigger: state
+conditions:
+  - condition: state
+    entity_id: sensor.etat_canabang_et_device_tracker
+    state: home
+  - condition: state
+    entity_id: input_text.jour_nuit
+    state: jour
+actions:
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 20
+      milliseconds: 0
+  - condition: template
+    value_template: |-
+      {{ is_state('binary_sensor.ouvportfrig_contact', 'on') or 
+         is_state('binary_sensor.ouvportcong_contact', 'on') or 
+         is_state('binary_sensor.ouvportcong2_contact', 'on') }}
+  - repeat:
+      until:
+        - condition: template
+          value_template: |-
+            {{ is_state('binary_sensor.ouvportfrig_contact', 'off') and 
+               is_state('binary_sensor.ouvportcong_contact', 'off') and 
+               is_state('binary_sensor.ouvportcong2_contact', 'off') }}
+      sequence:
+        - variables:
+            portes_info: >-
+              {% set portes = [] %} {% if
+              is_state('binary_sensor.ouvportfrig_contact', 'on') %}
+                {% set duree = ((now() - states.binary_sensor.ouvportfrig_contact.last_changed).total_seconds() / 60) | round(0) %}
+                {% set portes = portes + [{'nom': 'frigo', 'duree': duree}] %}
+              {% endif %} {% if is_state('binary_sensor.ouvportcong_contact',
+              'on') %}
+                {% set duree = ((now() - states.binary_sensor.ouvportcong_contact.last_changed).total_seconds() / 60) | round(0) %}
+                {% set portes = portes + [{'nom': 'congélateur', 'duree': duree}] %}
+              {% endif %} {% if is_state('binary_sensor.ouvportcong2_contact',
+              'on') %}
+                {% set duree = ((now() - states.binary_sensor.ouvportcong2_contact.last_changed).total_seconds() / 60) | round(0) %}
+                {% set portes = portes + [{'nom': 'petit congélateur', 'duree': duree}] %}
+              {% endif %} {{ portes }}
+            duree_max: >-
+              {% set durees = [] %} {% if
+              is_state('binary_sensor.ouvportfrig_contact', 'on') %}
+                {% set duree = ((now() - states.binary_sensor.ouvportfrig_contact.last_changed).total_seconds() / 60) | round(0) %}
+                {% set durees = durees + [duree] %}
+              {% endif %} {% if is_state('binary_sensor.ouvportcong_contact',
+              'on') %}
+                {% set duree = ((now() - states.binary_sensor.ouvportcong_contact.last_changed).total_seconds() / 60) | round(0) %}
+                {% set durees = durees + [duree] %}
+              {% endif %} {% if is_state('binary_sensor.ouvportcong2_contact',
+              'on') %}
+                {% set duree = ((now() - states.binary_sensor.ouvportcong2_contact.last_changed).total_seconds() / 60) | round(0) %}
+                {% set durees = durees + [duree] %}
+              {% endif %} {{ durees | max if durees | length > 0 else 0 }}
+        - action: google_generative_ai_conversation.generate_content
+          data:
+            prompt: >-
+              {% set nb_portes = portes_info | length %} {% set est_rappel =
+              duree_max > 2 %}
+
+              {% if est_rappel %}
+                {% if nb_portes > 1 %}
+                  Génère un message vocal de rappel pour prévenir que plusieurs portes sont ouvertes depuis différentes durées :
+                  {% for porte in portes_info %}
+                  - {{ porte.nom }} : {{ porte.duree }} minute{{ 's' if porte.duree > 1 }}
+                  {% endfor %}
+                  Le ton doit être plus insistant mais toujours avec l'humour sarcastique d'un droïde K-2SO.
+                  Mentionne les durées spécifiques de chaque porte si c'est pertinent.
+                  Exemples :
+                  « Rappel : frigo ouvert depuis 6 minutes, congélateur depuis 3. Performance remarquable. »
+                  « Persistance notable : plusieurs portes ouvertes simultanément. Record en cours ? »
+                {% else %}
+                  Génère un message vocal de rappel pour prévenir que {{ portes_info[0].nom }} est encore ouverte depuis {{ portes_info[0].duree }} minute{{ 's' if portes_info[0].duree > 1 }}.
+                  Le ton doit être plus insistant mais toujours avec l'humour sarcastique d'un droïde K-2SO.
+                  Exemples :
+                  « Rappel : {{ portes_info[0].nom }} toujours ouverte. {{ portes_info[0].duree }} minutes et je compte... »
+                  « Persistance remarquable : {{ portes_info[0].nom }} ouverte depuis {{ portes_info[0].duree }} minutes. »
+                  « Nouveau record ? {{ portes_info[0].duree }} minutes d'ouverture continue. Fascinant. »
+                {% endif %}
+              {% else %}
+                {% if nb_portes > 1 %}
+                  Génère un message vocal pour prévenir que plusieurs portes sont ouvertes :
+                  {% for porte in portes_info %}
+                  - {{ porte.nom }} : {{ porte.duree }} minute{{ 's' if porte.duree > 1 }}
+                  {% endfor %}
+                  Le ton doit être court, factuel, avec une touche d'humour ou de sarcasme
+                  léger, dans le style d'un droïde reprogrammé façon K-2SO (Star Wars).
+                  Tu peux mentionner les durées différentes si c'est pertinent.
+                  Exemples :
+                  « Détection : frigo et congélateur ouverts. Efficacité énergétique en option ? »
+                  « Multiples anomalies thermiques détectées. Stratégie intéressante. »
+                  « Portes ouvertes simultanément. Les bactéries organisent une fête. »
+                {% else %}
+                  Génère un message vocal pour prévenir que {{ portes_info[0].nom }} est ouverte depuis {{ portes_info[0].duree }} minute{{ 's' if portes_info[0].duree > 1 }}.
+                  Le ton doit être court, factuel, avec une touche d'humour ou de sarcasme
+                  léger, dans le style d'un droïde reprogrammé façon K-2SO (Star Wars).
+                  Exemples :
+                  « Porte ouverte détectée. L'efficacité énergétique n'est visiblement pas votre fort. »
+                  « {{ portes_info[0].nom }} ouverte. Les bactéries apprécient votre générosité. »
+                  « Détection d'une anomalie thermique. Dois-je calculer le gaspillage ? »
+                {% endif %}
+              {% endif %}
+
+              Génère uniquement la phrase, sans explications, sans balises, sans
+              métadonnées.
+          response_variable: generated_message
+        - parallel:
+            - action: script.1717220445110
+              data:
+                message: "{{ generated_message.text }}"
+            - action: script.awtrix_dynamique_customapp_dupliquer
+              data:
+                message: "{{ generated_message.text }}"
+                icone: "{{ 'alert' if duree_max > 5 else 'snowflake' }}"
+                color: "{{ '#FF4444' if duree_max > 5 else '#FF6B6B' }}"
+                rainbow: "false"
+                scrollspeed: "{{ 70 if duree_max > 5 else 60 }}"
+                duree: "35"
+            - action: script.notification_discord
+              data:
+                nom: 🥶 Surveillance Frigo/Congélateur
+                description: "{{ generated_message.text }}"
+                image_url: https://i.ibb.co/3pYRvp4/Frigo-open.png
+        - condition: template
+          value_template: |-
+            {{ is_state('binary_sensor.ouvportfrig_contact', 'on') or 
+               is_state('binary_sensor.ouvportcong_contact', 'on') or 
+               is_state('binary_sensor.ouvportcong2_contact', 'on') }}
+        - delay:
+            hours: 0
+            minutes: 2
+            seconds: 0
+            milliseconds: 0
+mode: restart
