@@ -125,22 +125,6 @@
 # SOLUTION AVEC HELPERS POUR ÉVITER LES FAUX POSITIFS
 # ===================================================
 
-# 1. HELPERS À CRÉER DANS LES FICHIERS ADEQUATES > HELPERS
-# ===============================================
-# Dans input_boolean.yaml
-
-
-# Dans timers.yaml
-chambre_confirmation:
-  duration: "00:00:10"
-  name: "Délai confirmation présence chambre"
-  icon: mdi:timer-outline
-
-sdb_confirmation:
-  duration: "00:00:10"
-  name: "Délai confirmation présence SdB"
-  icon: mdi:timer-outline
-
 # 2. GESTION INTELLIGENTE PRÉSENCE CHAMBRE
 # ========================================
 
