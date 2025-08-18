@@ -1,0 +1,7 @@
+chambre_presence_confirmee:
+  name: "Chambre - Présence Confirmée"
+  icon: mdi:motion-sensor
+
+sdb_presence_confirmee:
+  name: "SdB - Présence Confirmée"  
+  icon: mdi:motion-sensor
