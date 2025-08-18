@@ -109,150 +109,7 @@ script:
       data:
         piece: "{{ trigger.id }}"
 
-# 2. CAPTEUR DE PRESENCE CHAMBRE
-# ===============================
 
-- alias: "Chambre - Gestion Présence"
-  trigger:
-    - platform: state
-      entity_id: binary_sensor.esp_chambre_presence
-      to: "on"
-      id: "presence_on"
-    - platform: state
-      entity_id: binary_sensor.esp_chambre_presence
-      to: "off"
-      id: "presence_off"
-  condition:
-    - condition: state
-      entity_id: sensor.etat_canabang_et_device_tracker
-      state: "home"
-  action:
-    - choose:
-        - conditions:
-            - condition: trigger
-              id: "presence_on"
-            # Vérifier que la lumière est éteinte
-            - condition: state
-              entity_id: light.hue_chambre
-              state: "off"
-            # Vérifier que vous êtes bien dans la chambre pour éviter les faux positifs
-            - condition: state
-              entity_id: sensor.presence_piece
-              state: "Chambre"
-            # Ne pas allumer automatiquement la nuit
-            - condition: not
-              conditions:
-                - condition: state
-                  entity_id: input_text.jour_nuit
-                  state: "nuit"
-          sequence:
-            - service: light.turn_on
-              target:
-                entity_id: light.hue_chambre
-            - service: script.appliquer_scene_lumiere_contextuelle
-              data:
-                piece: "chambre"
-        - conditions:
-            - condition: trigger
-              id: "presence_off"
-            # Vérifier que la lumière est allumée
-            - condition: state
-              entity_id: light.hue_chambre
-              state: "on"
-          sequence:
-            - service: light.turn_off
-              target:
-                entity_id: light.hue_chambre
-
-# 3. CAPTEUR DE PRESENCE SALLE DE BAIN (avec gestion faux positifs)
-# =================================================================
-
-- alias: "Salle de Bain - Gestion Présence"
-  trigger:
-    - platform: state
-      entity_id: binary_sensor.esp_sdb_presence
-      to: "on"
-      id: "presence_on"
-    - platform: state
-      entity_id: binary_sensor.esp_sdb_presence
-      to: "off"
-      id: "presence_off"
-  condition:
-    - condition: state
-      entity_id: sensor.etat_canabang_et_device_tracker
-      state: "home"
-  action:
-    - choose:
-        - conditions:
-            - condition: trigger
-              id: "presence_on"
-            # Vérifier que la lumière est éteinte
-            - condition: state
-              entity_id: light.hue_sdb
-              state: "off"
-            # Conditions pour éviter les faux positifs
-            - condition: or
-              conditions:
-                - condition: state
-                  entity_id: binary_sensor.ouvfenetsdb_contact
-                  state: "off"
-                - condition: and
-                  conditions:
-                    - condition: state
-                      entity_id: binary_sensor.ouvfenetsdb_contact
-                      state: "on"
-                    - condition: state
-                      entity_id: sensor.presence_piece
-                      state: "SdB"
-            - condition: or
-              conditions:
-                - condition: numeric_state
-                  entity_id: sensor.prismal_power
-                  below: 5
-                - condition: state
-                  entity_id: sensor.presence_piece
-                  state: "SdB"
-            # Vérification que le volet ne bouge pas
-            - condition: template
-              value_template: >
-                {{ states('cover.volsdb') in ['open', 'closed'] }}
-          sequence:
-            - service: light.turn_on
-              target:
-                entity_id: light.hue_sdb
-            - service: script.appliquer_scene_lumiere_contextuelle
-              data:
-                piece: "sdb"
-        - conditions:
-            - condition: trigger
-              id: "presence_off"
-            # Vérifier que la lumière est allumée
-            - condition: state
-              entity_id: light.hue_sdb
-              state: "on"
-            # Éviter d'éteindre si c'est un faux négatif
-            - condition: or
-              conditions:
-                - condition: state
-                  entity_id: binary_sensor.ouvfenetsdb_contact
-                  state: "off"
-                - condition: and
-                  conditions:
-                    - condition: state
-                      entity_id: binary_sensor.ouvfenetsdb_contact
-                      state: "on"
-                    - condition: not
-                      conditions:
-                        - condition: state
-                          entity_id: sensor.presence_piece
-                          state: "SdB"
-            - condition: numeric_state
-              entity_id: sensor.prismal_power
-              below: 5
-          sequence:
-            - service: light.turn_off
-              target:
-                entity_id: light.hue_sdb
 
 # 4. OUVERTURE PORTE D'ENTREE (Salon + Salle à Manger)
 # =====================================================
@@ -319,22 +176,409 @@ script:
       data:
         piece: "sam"
 
-# 5. SCENE SPECIALE DODO POUR LA CHAMBRE
-# ======================================
+# SOLUTION AVEC HELPERS POUR ÉVITER LES FAUX POSITIFS
+# ===================================================
 
-# Cette automatisation pourrait être déclenchée par un bouton, une heure, ou manuellement
-# Exemple avec un input_boolean pour activer le mode dodo
+# 1. HELPERS À CRÉER DANS LES FICHIERS ADEQUATES > HELPERS
+# ===============================================
+# Dans input_boolean.yaml
+chambre_presence_confirmee:
+  name: "Chambre - Présence Confirmée"
+  icon: mdi:motion-sensor
 
-- alias: "Chambre - Mode Dodo"
+sdb_presence_confirmee:
+  name: "SdB - Présence Confirmée"  
+  icon: mdi:motion-sensor
+
+# Dans timers.yaml
+chambre_confirmation:
+  duration: "00:00:10"
+  name: "Délai confirmation présence chambre"
+  icon: mdi:timer-outline
+
+sdb_confirmation:
+  duration: "00:00:10"
+  name: "Délai confirmation présence SdB"
+  icon: mdi:timer-outline
+
+# 2. GESTION INTELLIGENTE PRÉSENCE CHAMBRE
+# ========================================
+
+- alias: "Chambre - Analyse Présence"
+  description: "Gère la confirmation de présence en chambre avec logique anti-faux-positif"
   trigger:
+    # Détection immédiate
     - platform: state
-      entity_id: input_boolean.mode_dodo
+      entity_id: binary_sensor.esp_chambre_presence
       to: "on"
+      id: "presence_detectee"
+    # Fin de détection
+    - platform: state
+      entity_id: binary_sensor.esp_chambre_presence
+      to: "off"
+      for: "00:00:30"
+      id: "presence_finie"
+    # Fin du timer de confirmation
+    - platform: event
+      event_type: timer.finished
+      event_data:
+        entity_id: timer.chambre_confirmation
+      id: "timer_confirmation_fini"
+    # Mise à jour du sensor presence_piece
+    - platform: state
+      entity_id: sensor.presence_piece
+      to: "Chambre"
+      id: "presence_piece_confirmee"
   condition:
     - condition: state
       entity_id: sensor.etat_canabang_et_device_tracker
       state: "home"
   action:
-    - service: scene.turn_on
-      target:
-        entity_id: scene.hue_chambre_5_dodo
+    - choose:
+        # === PRÉSENCE DÉTECTÉE ===
+        - conditions:
+            - condition: trigger
+              id: "presence_detectee"
+          sequence:
+            - choose:
+                # Confirmation immédiate si conditions évidentes
+                - conditions:
+                    - condition: or
+                      conditions:
+                        # Le sensor presence_piece est déjà à jour (rare mais possible)
+                        - condition: state
+                          entity_id: sensor.presence_piece
+                          state: "Chambre"
+                        # Logique de proximité : vous venez d'une pièce adjacente
+                        - condition: and
+                          conditions:
+                            - condition: template
+                              value_template: >
+                                {{ states('sensor.presence_piece') in ['Salon', 'SdB', 'Cuisine'] }}
+                            # Pas d'autre détection simultanée
+                            - condition: state
+                              entity_id: binary_sensor.esp_sdb_presence
+                              state: "off"
+                            - condition: state
+                              entity_id: binary_sensor.esp_salon_presence  
+                              state: "off"
+                            - condition: state
+                              entity_id: binary_sensor.esp_multi_capteur_presence
+                              state: "off"
+                        # Vous étiez déjà confirmé en chambre récemment
+                        - condition: and
+                          conditions:
+                            - condition: template
+                              value_template: >
+                                {% set last_off = state_attr('input_boolean.chambre_presence_confirmee', 'last_changed') %}
+                                {% if last_off %}
+                                  {{ (as_timestamp(now()) - as_timestamp(last_off)) < 300 }}
+                                {% else %}
+                                  false
+                                {% endif %}
+                  sequence:
+                    - service: input_boolean.turn_on
+                      target:
+                        entity_id: input_boolean.chambre_presence_confirmee
+                    - service: timer.cancel
+                      target:
+                        entity_id: timer.chambre_confirmation
+              # Sinon, démarrer le timer de confirmation
+              default:
+                - service: timer.start
+                  target:
+                    entity_id: timer.chambre_confirmation
+                    
+        # === SENSOR PRESENCE_PIECE MIS À JOUR ===
+        - conditions:
+            - condition: trigger
+              id: "presence_piece_confirmee"
+            - condition: state
+              entity_id: binary_sensor.esp_chambre_presence
+              state: "on"
+          sequence:
+            - service: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.chambre_presence_confirmee
+            - service: timer.cancel
+              target:
+                entity_id: timer.chambre_confirmation
+                
+        # === TIMER DE CONFIRMATION FINI ===
+        - conditions:
+            - condition: trigger
+              id: "timer_confirmation_fini"
+            - condition: state
+              entity_id: binary_sensor.esp_chambre_presence
+              state: "on"
+          sequence:
+            # Vérification finale avant confirmation
+            - if:
+                - condition: or
+                  conditions:
+                    # Le sensor s'est enfin mis à jour
+                    - condition: state
+                      entity_id: sensor.presence_piece
+                      state: "Chambre"
+                    # Toujours pas d'autres détections (bonne probabilité)
+                    - condition: and
+                      conditions:
+                        - condition: state
+                          entity_id: binary_sensor.esp_sdb_presence
+                          state: "off"
+                        - condition: state
+                          entity_id: binary_sensor.esp_salon_presence
+                          state: "off"
+                        - condition: state
+                          entity_id: binary_sensor.esp_multi_capteur_presence
+                          state: "off"
+              then:
+                - service: input_boolean.turn_on
+                  target:
+                    entity_id: input_boolean.chambre_presence_confirmee
+                    
+        # === PRÉSENCE FINIE ===
+        - conditions:
+            - condition: trigger
+              id: "presence_finie"
+          sequence:
+            - service: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.chambre_presence_confirmee
+            - service: timer.cancel
+              target:
+                entity_id: timer.chambre_confirmation
+
+# 3. GESTION INTELLIGENTE PRÉSENCE SALLE DE BAIN
+# ===============================================
+
+- alias: "SdB - Analyse Présence"
+  description: "Gère la confirmation de présence en SdB avec logique anti-faux-positif renforcée"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.esp_sdb_presence
+      to: "on"
+      id: "presence_detectee"
+    - platform: state
+      entity_id: binary_sensor.esp_sdb_presence
+      to: "off"
+      for: "00:00:30"
+      id: "presence_finie"
+    - platform: event
+      event_type: timer.finished
+      event_data:
+        entity_id: timer.sdb_confirmation
+      id: "timer_confirmation_fini"
+    - platform: state
+      entity_id: sensor.presence_piece
+      to: "SdB"
+      id: "presence_piece_confirmee"
+  condition:
+    - condition: state
+      entity_id: sensor.etat_canabang_et_device_tracker
+      state: "home"
+  action:
+    - choose:
+        # === PRÉSENCE DÉTECTÉE ===
+        - conditions:
+            - condition: trigger
+              id: "presence_detectee"
+          sequence:
+            - choose:
+                # Conditions strictes pour confirmation immédiate SdB
+                - conditions:
+                    # Fenêtre fermée ET machine éteinte
+                    - condition: state
+                      entity_id: binary_sensor.ouvfenetsdb_contact
+                      state: "off"
+                    - condition: numeric_state
+                      entity_id: sensor.prismal_power
+                      below: 5
+                    # Volet stable
+                    - condition: template
+                      value_template: >
+                        {{ states('cover.volsdb') in ['open', 'closed'] }}
+                    # Pas d'autre détection OU sensor presence_piece déjà ok
+                    - condition: or
+                      conditions:
+                        - condition: state
+                          entity_id: sensor.presence_piece
+                          state: "SdB"
+                        - condition: and
+                          conditions:
+                            - condition: state
+                              entity_id: binary_sensor.esp_chambre_presence
+                              state: "off"
+                            - condition: template
+                              value_template: >
+                                {{ states('sensor.presence_piece') in ['Chambre', 'Salon', 'Cuisine'] }}
+                  sequence:
+                    - service: input_boolean.turn_on
+                      target:
+                        entity_id: input_boolean.sdb_presence_confirmee
+                    - service: timer.cancel
+                      target:
+                        entity_id: timer.sdb_confirmation
+              # Sinon, conditions défavorables = démarrer timer plus long
+              default:
+                - service: timer.start
+                  target:
+                    entity_id: timer.sdb_confirmation
+                    
+        # === SENSOR PRESENCE_PIECE MIS À JOUR ===
+        - conditions:
+            - condition: trigger
+              id: "presence_piece_confirmee"
+            - condition: state
+              entity_id: binary_sensor.esp_sdb_presence
+              state: "on"
+            # Conditions de sécurité pour la SdB
+            - condition: state
+              entity_id: binary_sensor.ouvfenetsdb_contact
+              state: "off"
+            - condition: numeric_state
+              entity_id: sensor.prismal_power
+              below: 5
+          sequence:
+            - service: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.sdb_presence_confirmee
+            - service: timer.cancel
+              target:
+                entity_id: timer.sdb_confirmation
+                
+        # === TIMER DE CONFIRMATION FINI ===
+        - conditions:
+            - condition: trigger
+              id: "timer_confirmation_fini"
+            - condition: state
+              entity_id: binary_sensor.esp_sdb_presence
+              state: "on"
+            # Vérifications finales strictes pour SdB
+            - condition: state
+              entity_id: binary_sensor.ouvfenetsdb_contact
+              state: "off"
+            - condition: numeric_state
+              entity_id: sensor.prismal_power
+              below: 5
+          sequence:
+            - if:
+                - condition: or
+                  conditions:
+                    - condition: state
+                      entity_id: sensor.presence_piece
+                      state: "SdB"
+                    # Même si le sensor n'est pas à jour, si pas d'autre détection = probablement bon
+                    - condition: template
+                      value_template: >
+                        {{ state_attr('sensor.presence_piece', 'nombre_pieces_occupees') | int <= 1 }}
+              then:
+                - service: input_boolean.turn_on
+                  target:
+                    entity_id: input_boolean.sdb_presence_confirmee
+                    
+        # === PRÉSENCE FINIE ===
+        - conditions:
+            - condition: trigger
+              id: "presence_finie"
+          sequence:
+            - service: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.sdb_presence_confirmee
+            - service: timer.cancel
+              target:
+                entity_id: timer.sdb_confirmation
+
+# 4. CONTRÔLE DES LUMIÈRES BASÉ SUR LES HELPERS
+# =============================================
+
+- alias: "Chambre - Gestion Lumière Confirmée"
+  description: "Allume/éteint la lumière chambre basé sur la présence confirmée"
+  trigger:
+    - platform: state
+      entity_id: input_boolean.chambre_presence_confirmee
+      to: "on"
+      id: "presence_confirmee"
+    - platform: state
+      entity_id: input_boolean.chambre_presence_confirmee
+      to: "off"
+      id: "absence_confirmee"
+  condition:
+    - condition: state
+      entity_id: sensor.etat_canabang_et_device_tracker
+      state: "home"
+  action:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: "presence_confirmee"
+            - condition: state
+              entity_id: light.hue_chambre
+              state: "off"
+            # Ne pas allumer automatiquement la nuit
+            - condition: not
+              conditions:
+                - condition: state
+                  entity_id: input_text.jour_nuit
+                  state: "nuit"
+            # Vérifier que la scène dodo n'a pas été activée récemment
+            - condition: template
+              value_template: >
+                {% set last_dodo = state_attr('scene.hue_chambre_5_dodo', 'last_triggered') %}
+                {% if last_dodo %}
+                  {{ (as_timestamp(now()) - as_timestamp(last_dodo)) > 30 }}
+                {% else %}
+                  true
+                {% endif %}
+          sequence:
+            - service: script.appliquer_scene_lumiere_contextuelle
+              data:
+                piece: "chambre"
+        - conditions:
+            - condition: trigger
+              id: "absence_confirmee"
+            - condition: state
+              entity_id: light.hue_chambre
+              state: "on"
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.hue_chambre
+
+- alias: "SdB - Gestion Lumière Confirmée"
+  description: "Allume/éteint la lumière SdB basé sur la présence confirmée"
+  trigger:
+    - platform: state
+      entity_id: input_boolean.sdb_presence_confirmee
+      to: "on"
+      id: "presence_confirmee"
+    - platform: state
+      entity_id: input_boolean.sdb_presence_confirmee
+      to: "off"
+      id: "absence_confirmee"
+  condition:
+    - condition: state
+      entity_id: sensor.etat_canabang_et_device_tracker
+      state: "home"
+  action:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: "presence_confirmee"
+            - condition: state
+              entity_id: light.hue_sdb
+              state: "off"
+          sequence:
+            - service: script.appliquer_scene_lumiere_contextuelle
+              data:
+                piece: "sdb"
+        - conditions:
+            - condition: trigger
+              id: "absence_confirmee"
+            - condition: state
+              entity_id: light.hue_sdb
+              state: "on"
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.hue_sdb
