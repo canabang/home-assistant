@@ -1,0 +1,76 @@
+alias: Café
+description: ""
+triggers:
+  - entity_id:
+      - switch.priscafe
+    to: "on"
+    id: priscaf
+    trigger: state
+conditions: []
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - priscaf
+        sequence:
+          - delay:
+              hours: 0
+              minutes: 4
+              seconds: 0
+              milliseconds: 0
+          - parallel:
+              - action: switch.turn_off
+                metadata: {}
+                data: {}
+                target:
+                  entity_id: switch.priscafe
+              - sequence:
+                  - action: google_generative_ai_conversation.generate_content
+                    data:
+                      prompt: >+
+                        Génère un message vocal pour prévenir que le café est
+                        prêt.
+
+
+                        Le ton doit être court, factuel, avec une touche
+                        d’humour ou de sarcasme léger, dans le style d’un droïde
+                        reprogrammé façon K-2SO (Star Wars).
+
+                        Tu peux glisser une référence geek ou pop culture si
+                        c’est pertinent.
+
+                        La réponse doit être adaptée au TTS : courte, claire,
+                        sans smileys ni émoticônes.
+
+                        Aucune insulte, aucune menace.
+
+
+                        Exemples de ton attendu :
+
+
+                        « Le café est prêt. Vous avez survécu jusque-là, autant
+                        continuer. »
+
+
+                        « Café disponible. Taux de réveil cérébral à suivre… »
+
+
+                        « Mission accomplie : café prêt. J’espère que c’est
+                        assez fort. »
+
+
+                        « Activation de la routine café terminée. Bonne chance
+                        pour la suite. »
+
+
+                        Génère uniquement la phrase, sans explications, sans
+                        balises, sans métadonnées.
+
+                    response_variable: generated_message
+                  - action: script.1717220445110
+                    data:
+                      message: "{{ generated_message.text }}"
+                    enabled: true
+                  
+mode: single
