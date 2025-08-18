@@ -105,7 +105,7 @@ script:
                   true
                 {% endif %}
   action:
-    - service: script.appliquer_scene_lumiere
+    - service: script.appliquer_scene_lumiere_contextuelle
       data:
         piece: "{{ trigger.id }}"
 
@@ -145,7 +145,7 @@ script:
             - service: light.turn_on
               target:
                 entity_id: light.hue_chambre
-            - service: script.appliquer_scene_lumiere
+            - service: script.appliquer_scene_lumiere_contextuelle
               data:
                 piece: "chambre"
         - conditions:
@@ -216,7 +216,7 @@ script:
             - service: light.turn_on
               target:
                 entity_id: light.hue_sdb
-            - service: script.appliquer_scene_lumiere
+            - service: script.appliquer_scene_lumiere_contextuelle
               data:
                 piece: "sdb"
         - conditions:
@@ -308,10 +308,10 @@ script:
           - light.hue_salon
           - light.hue_sam
     # Appliquer les scènes appropriées
-    - service: script.appliquer_scene_lumiere
+    - service: script.appliquer_scene_lumiere_contextuelle
       data:
         piece: "salon"
-    - service: script.appliquer_scene_lumiere
+    - service: script.appliquer_scene_lumiere_contextuelle
       data:
         piece: "sam"
 
