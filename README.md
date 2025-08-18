@@ -53,12 +53,13 @@ Cette collection propose **5 projets majeurs** couvrant l'essentiel de la domoti
 - **⚡ Dual-mode** : Notifications temporaires OU applications permanentes
 - **🌈 Personnalisation totale** : Couleurs, icônes, effets, vitesse, dégradés
 - **📡 Diffusion multi-écrans** : Simultanée sur plusieurs appareils
-- **🎯 Applications contextuelles** : Température avec codes couleur adaptatifs
+- **🌡️ Exemple concret** : Affichage température avec codes couleur adaptatifs
 
 #### 💻 Interface intégrée
 - Documentation intégrée dans Home Assistant
 - Contrôles visuels pour tests en temps réel
 - Templates avancés pour contenu dynamique
+- Sensor température fusionnant plusieurs capteurs
 - Gestion intelligente des erreurs MQTT
 
 ---
@@ -72,11 +73,13 @@ Cette collection propose **5 projets majeurs** couvrant l'essentiel de la domoti
 - **🎵 Gestion musicale** : Pause/reprise automatique avec sauvegarde volume
 - **🌙 Modes temporels** : Jour/nuit avec conditions personnalisables
 - **⚡ Deux versions** : Echo principal OU diffusion simultanée
+- **🤖 Exemple IA** : Messages générés par Google AI style K-2SO pour cafetière
 
 #### 🔧 Logique avancée
 - Exclusion intelligente SdB (conditions fenêtre/prismal)
 - Calcul adaptatif durée des messages
 - Priorité spatiale configurable (Salon > Cuisine > Chambre)
+- Génération de contenu contextuel avec ton personnalisé
 - Attributs détaillés pour debugging et monitoring
 
 ---
@@ -104,7 +107,7 @@ Cette collection propose **5 projets majeurs** couvrant l'essentiel de la domoti
 | **ESPHome** | Lumières, Pet Feeder | Capteurs présence, balances HX711 |
 | **MQTT** | Awtrix, Pet Feeder | Communication temps réel |
 | **MariaDB** | Pet Feeder v2.0 | Historique long terme 365j |
-| **Google AI** | Pet Feeder v2.0 | Génération messages contextuels |
+| **Google AI** | Pet Feeder v2.0, Notifications | Génération messages contextuels |
 | **Templates avancés** | Tous projets | Logique conditionnelle complexe |
 | **SSH/WOL** | Wake-on-LAN | Contrôle machines distantes |
 
@@ -250,16 +253,25 @@ automation:
     action:
       # Allumage lumières contextuelles
       - service: script.appliquer_scene_lumiere_contextuelle
-      # Notification Alexa si conditions OK
+      # Notification Alexa avec message IA personnalisé
       - service: script.notification_alexa
         data:
-          message: "Bienvenue au salon"
-      # Affichage température sur Awtrix
+          message: >
+            {% set responses = [
+              "Bienvenue au salon. Tentative de relaxation détectée.",
+              "Présence au salon confirmée. Espérons que c'est pour se reposer.",
+              "Salon occupé. Taux de productivité en chute libre."
+            ] %}
+            {{ responses | random }}
+      # Affichage température sur Awtrix avec couleur adaptative
       - service: script.awtrix_dynamique_customapp
         data:
-          message: "Salon 22°C"
-          icone: "temp_salon"
-          color: "#2e8b57"
+          customapp: temp_salon
+          message: "Salon {{ states('sensor.temperature_salon') | round(1) }}°C"
+          icone: temp_salon
+          color: >
+            {% set temp = states('sensor.temperature_salon') | float %}
+            {% if temp >= 23 %}#8b0000{% elif temp >= 19 %}#2e8b57{% else %}#0000ff{% endif %}
 ```
 
 ## 📚 Ressources et support
