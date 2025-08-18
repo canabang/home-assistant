@@ -135,6 +135,10 @@ script:
             - condition: state
               entity_id: light.hue_chambre
               state: "off"
+            # Vérifier que vous êtes bien dans la chambre pour éviter les faux positifs
+            - condition: state
+              entity_id: sensor.presence_piece
+              state: "Chambre"
             # Ne pas allumer automatiquement la nuit
             - condition: not
               conditions:
