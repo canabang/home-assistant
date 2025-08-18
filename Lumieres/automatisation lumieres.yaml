@@ -1,0 +1,336 @@
+# SCRIPT POUR APPLIQUER LES SCENES SELON LE CONTEXTE
+# ===================================================
+
+script:
+  appliquer_scene_lumiere:
+    alias: "Appliquer Scène Lumière Contextuelle"
+    description: "Applique la bonne scène selon le mode jour/nuit et le contexte"
+    fields:
+      piece:
+        description: "Nom de la pièce (cuisine, salon, sam, chambre, sdb)"
+        example: "cuisine"
+      force_veilleuse:
+        description: "Forcer la veilleuse même en mode jour (optionnel)"
+        default: false
+    sequence:
+      - choose:
+          # Mode nuit ou veilleuse forcée
+          - conditions:
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity_id: input_text.jour_nuit
+                    state: "nuit"
+                  - condition: template
+                    value_template: "{{ force_veilleuse | default(false) }}"
+            sequence:
+              - service: scene.turn_on
+                target:
+                  entity_id: "scene.hue_{{ piece }}_1_veilleuse"
+          # Mode jour avec conditions pour atténué
+          - conditions:
+              - condition: state
+                entity_id: input_text.jour_nuit
+                state: "jour"
+              - condition: or
+                conditions:
+                  - condition: template
+                    value_template: >
+                      {% set dernier_changement = as_timestamp(states('input_datetime.dernier_changement_jour_nuit')) %}
+                      {% set maintenant = as_timestamp(now()) %}
+                      {{ (maintenant - dernier_changement) < 1200 }}
+                  - condition: state
+                    entity_id: sun.sun
+                    state: "below_horizon"
+            sequence:
+              - service: scene.turn_on
+                target:
+                  entity_id: "scene.hue_{{ piece }}_3_attenue"
+        # Par défaut : stimulation
+        default:
+          - service: scene.turn_on
+            target:
+              entity_id: "scene.hue_{{ piece }}_2_stimulation"
+
+# AUTOMATISATIONS LUMIÈRES HUE - VERSION OPTIMISÉE
+# =================================================
+
+# 1. ALLUMAGES MANUELS DES LUMIERES
+# ==================================
+
+- alias: "Lumières - Allumages Manuels"
+  trigger:
+    - platform: state
+      entity_id: light.hue_cuisine
+      to: "on"
+      id: "cuisine"
+    - platform: state
+      entity_id: light.hue_salon
+      to: "on"
+      id: "salon"
+    - platform: state
+      entity_id: light.hue_sam
+      to: "on"
+      id: "sam"
+    - platform: state
+      entity_id: light.hue_chambre
+      to: "on"
+      id: "chambre"
+    - platform: state
+      entity_id: light.hue_sdb
+      to: "on"
+      id: "sdb"
+  condition:
+    - condition: state
+      entity_id: sensor.etat_canabang_et_device_tracker
+      state: "home"
+    # Vérifier que la lumière vient vraiment de s'allumer
+    - condition: template
+      value_template: "{{ is_state('light.hue_' ~ trigger.id, 'on') }}"
+    # Pour la chambre, ne pas intervenir si la scène dodo vient d'être activée
+    - condition: or
+      conditions:
+        - condition: template
+          value_template: "{{ trigger.id != 'chambre' }}"
+        - condition: and
+          conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'chambre' }}"
+            - condition: template
+              value_template: >
+                {% set last_dodo = state_attr('scene.hue_chambre_5_dodo', 'last_triggered') %}
+                {% if last_dodo %}
+                  {{ (as_timestamp(now()) - as_timestamp(last_dodo)) > 30 }}
+                {% else %}
+                  true
+                {% endif %}
+  action:
+    - service: script.appliquer_scene_lumiere
+      data:
+        piece: "{{ trigger.id }}"
+
+# 2. CAPTEUR DE PRESENCE CHAMBRE
+# ===============================
+
+- alias: "Chambre - Gestion Présence"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.esp_chambre_presence
+      to: "on"
+      id: "presence_on"
+    - platform: state
+      entity_id: binary_sensor.esp_chambre_presence
+      to: "off"
+      id: "presence_off"
+  condition:
+    - condition: state
+      entity_id: sensor.etat_canabang_et_device_tracker
+      state: "home"
+  action:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: "presence_on"
+            # Vérifier que la lumière est éteinte
+            - condition: state
+              entity_id: light.hue_chambre
+              state: "off"
+            # Ne pas allumer automatiquement la nuit
+            - condition: not
+              conditions:
+                - condition: state
+                  entity_id: input_text.jour_nuit
+                  state: "nuit"
+          sequence:
+            - service: light.turn_on
+              target:
+                entity_id: light.hue_chambre
+            - service: script.appliquer_scene_lumiere
+              data:
+                piece: "chambre"
+        - conditions:
+            - condition: trigger
+              id: "presence_off"
+            # Vérifier que la lumière est allumée
+            - condition: state
+              entity_id: light.hue_chambre
+              state: "on"
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.hue_chambre
+
+# 3. CAPTEUR DE PRESENCE SALLE DE BAIN (avec gestion faux positifs)
+# =================================================================
+
+- alias: "Salle de Bain - Gestion Présence"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.esp_sdb_presence
+      to: "on"
+      id: "presence_on"
+    - platform: state
+      entity_id: binary_sensor.esp_sdb_presence
+      to: "off"
+      id: "presence_off"
+  condition:
+    - condition: state
+      entity_id: sensor.etat_canabang_et_device_tracker
+      state: "home"
+  action:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: "presence_on"
+            # Vérifier que la lumière est éteinte
+            - condition: state
+              entity_id: light.hue_sdb
+              state: "off"
+            # Conditions pour éviter les faux positifs
+            - condition: or
+              conditions:
+                - condition: state
+                  entity_id: binary_sensor.ouvfenetsdb_contact
+                  state: "off"
+                - condition: and
+                  conditions:
+                    - condition: state
+                      entity_id: binary_sensor.ouvfenetsdb_contact
+                      state: "on"
+                    - condition: state
+                      entity_id: sensor.presence_piece
+                      state: "SdB"
+            - condition: or
+              conditions:
+                - condition: numeric_state
+                  entity_id: sensor.prismal_power
+                  below: 5
+                - condition: state
+                  entity_id: sensor.presence_piece
+                  state: "SdB"
+            # Vérification que le volet ne bouge pas
+            - condition: template
+              value_template: >
+                {{ states('cover.volsdb') in ['open', 'closed'] }}
+          sequence:
+            - service: light.turn_on
+              target:
+                entity_id: light.hue_sdb
+            - service: script.appliquer_scene_lumiere
+              data:
+                piece: "sdb"
+        - conditions:
+            - condition: trigger
+              id: "presence_off"
+            # Vérifier que la lumière est allumée
+            - condition: state
+              entity_id: light.hue_sdb
+              state: "on"
+            # Éviter d'éteindre si c'est un faux négatif
+            - condition: or
+              conditions:
+                - condition: state
+                  entity_id: binary_sensor.ouvfenetsdb_contact
+                  state: "off"
+                - condition: and
+                  conditions:
+                    - condition: state
+                      entity_id: binary_sensor.ouvfenetsdb_contact
+                      state: "on"
+                    - condition: not
+                      conditions:
+                        - condition: state
+                          entity_id: sensor.presence_piece
+                          state: "SdB"
+            - condition: numeric_state
+              entity_id: sensor.prismal_power
+              below: 5
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.hue_sdb
+
+# 4. OUVERTURE PORTE D'ENTREE (Salon + Salle à Manger)
+# =====================================================
+
+- alias: "Entrée - Allumage Salon et Salle à Manger"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.ouvportent_contact
+      to: "on"
+  condition:
+    # Vous devez être présent récemment ou absent
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: sensor.etat_canabang_et_device_tracker
+          state: "absent"
+        - condition: and
+          conditions:
+            - condition: state
+              entity_id: sensor.etat_canabang_et_device_tracker
+              state: "home"
+            - condition: template
+              value_template: >
+                {% set last_change = state_attr('sensor.etat_canabang_et_device_tracker', 'last_changed') %}
+                {% if last_change %}
+                  {% set temps_ecoule = (as_timestamp(now()) - as_timestamp(last_change)) / 60 %}
+                  {{ temps_ecoule < 5 }}
+                {% else %}
+                  false
+                {% endif %}
+    # Luminosité faible
+    - condition: numeric_state
+      entity_id: sensor.lux_sejour
+      below: 2
+    # Tous les volets sont fermés
+    - condition: state
+      entity_id: cover.volcui
+      state: "closed"
+    - condition: state
+      entity_id: cover.volsal
+      state: "closed"
+    - condition: state
+      entity_id: cover.volsam
+      state: "closed"
+    # Vérifier que les lumières sont éteintes
+    - condition: state
+      entity_id: light.hue_salon
+      state: "off"
+    - condition: state
+      entity_id: light.hue_sam
+      state: "off"
+  action:
+    # Allumer les lumières salon et salle à manger
+    - service: light.turn_on
+      target:
+        entity_id: 
+          - light.hue_salon
+          - light.hue_sam
+    # Appliquer les scènes appropriées
+    - service: script.appliquer_scene_lumiere
+      data:
+        piece: "salon"
+    - service: script.appliquer_scene_lumiere
+      data:
+        piece: "sam"
+
+# 5. SCENE SPECIALE DODO POUR LA CHAMBRE
+# ======================================
+
+# Cette automatisation pourrait être déclenchée par un bouton, une heure, ou manuellement
+# Exemple avec un input_boolean pour activer le mode dodo
+
+- alias: "Chambre - Mode Dodo"
+  trigger:
+    - platform: state
+      entity_id: input_boolean.mode_dodo
+      to: "on"
+  condition:
+    - condition: state
+      entity_id: sensor.etat_canabang_et_device_tracker
+      state: "home"
+  action:
+    - service: scene.turn_on
+      target:
+        entity_id: scene.hue_chambre_5_dodo
