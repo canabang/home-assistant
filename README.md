@@ -1,3 +1,5 @@
+### test PR ###
+
 # 🏠 Home Assistant Advanced Projects Collection
 
 Une collection d'intégrations sophistiquées pour Home Assistant, offrant des solutions complètes d'automatisation domestique avec intelligence artificielle intégrée et interfaces utilisateur avancées.
