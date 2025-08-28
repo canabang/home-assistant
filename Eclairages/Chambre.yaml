@@ -10,6 +10,7 @@ triggers:
       hours: 0
       minutes: 0
       seconds: 3
+    id: chambre
 conditions: []
 actions:
   - choose:
@@ -17,65 +18,13 @@ actions:
           - condition: state
             entity_id: binary_sensor.esp_chambre_presence
             state: "on"
-          - condition: state
-            entity_id: sensor.etat_canabang_et_device_tracker
-            state: home
           - condition: numeric_state
             entity_id: sensor.esp_chambre_lux
             below: 1
-          - condition: state
-            entity_id: light.hue_chambre
-            state: "off"
         sequence:
-          - choose:
-              - conditions:
-                  - condition: state
-                    entity_id: input_text.jour_nuit
-                    state: nuit
-                sequence: []
-              - conditions:
-                  - condition: template
-                    value_template: >
-                      {% set dernier_changement =
-                      states('input_datetime.dernier_changement_jour_nuit') %}
-                      {% if dernier_changement not in ['unknown', 'unavailable']
-                      %}
-                        {% set changement_datetime = as_timestamp(dernier_changement) %}
-                        {% set current_timestamp = now().timestamp() %}
-                        {% set diff_seconds = current_timestamp - changement_datetime %}
-                        {{ diff_seconds < 1200 and states('input_text.jour_nuit') == 'jour' }}
-                      {% else %}
-                        false
-                      {% endif %}
-                sequence:
-                  - target:
-                      entity_id: scene.hue_chambre_1_veilleuse
-                    action: scene.turn_on
-                    data: {}
-              - conditions:
-                  - condition: state
-                    entity_id: input_text.jour_nuit
-                    state: jour
-                sequence:
-                  - choose:
-                      - conditions:
-                          - condition: state
-                            entity_id: sun.sun
-                            state: above_horizon
-                        sequence:
-                          - target:
-                              entity_id: scene.hue_chambre_2_stimulation
-                            action: scene.turn_on
-                            data: {}
-                      - conditions:
-                          - condition: state
-                            entity_id: sun.sun
-                            state: below_horizon
-                        sequence:
-                          - target:
-                              entity_id: scene.hue_chambre_3_attenue
-                            action: scene.turn_on
-                            data: {}
+          - action: script.eclairage_intelligent_multi_pieces
+            data:
+              piece: "{{ trigger.id }}"
       - conditions:
           - condition: state
             entity_id: binary_sensor.esp_chambre_presence
