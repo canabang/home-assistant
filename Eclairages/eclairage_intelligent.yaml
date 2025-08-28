@@ -1,94 +1,72 @@
-eclairage_intelligent:
-  alias: "Éclairage Intelligent Multi-Pièces"
-  description: "Script centralisé pour gérer l'éclairage selon les conditions communes"
-  
-  fields:
-    light_entity:
-      description: "Entité lumière (ex: light.hue_sdb)"
-      example: "light.hue_sdb"
-      required: true
-      selector:
-        entity:
-          domain: light
-  
-  sequence:
-    # Extraction automatique du nom de la pièce
-    - variables:
-        piece: "{{ light_entity.split('_')[1] }}"
-        lux_entity: "sensor.esp_{{ piece }}_lux"
-        
-    # Vérification des conditions communes
-    - condition: and
-      conditions:
-        # Vérifier que vous êtes à la maison
-        - condition: state
-          entity_id: sensor.etat_canabang_et_device_tracker
-          state: 'home'
-        
-        # Vérifier que la lumière est éteinte
-        - condition: state
-          entity_id: "{{ light_entity }}"
-          state: 'off'
-        
-        # Vérifier la luminosité SEULEMENT pour chambre et sdb
-        - condition: template
-          value_template: >
-            {% if piece in ['chambre', 'sdb'] %}
-              {{ states(lux_entity) | float(999) < 1 }}
-            {% else %}
-              true
-            {% endif %}
-    
-    # Choix de la scène selon les conditions
-    - choose:
-        # Si NUIT ou passage en mode jour < 20mn -> veilleuse
-        - conditions:
-            - condition: or
-              conditions:
-                - condition: state
-                  entity_id: input_text.jour_nuit
-                  state: 'nuit'
-                - condition: template
-                  value_template: >
-                    {% set dernier_changement = states('input_datetime.dernier_changement_jour_nuit') %}
-                    {% if dernier_changement not in ['unknown', 'unavailable'] %}
-                      {% set changement_datetime = as_timestamp(dernier_changement) %}
-                      {% set current_timestamp = now().timestamp() %}
-                      {% set diff_seconds = current_timestamp - changement_datetime %}
-                      {{ diff_seconds < 1200 and states('input_text.jour_nuit') == 'jour' }}
-                    {% else %}
-                      false
-                    {% endif %}
-          sequence:
-            - service: scene.turn_on
-              target:
-                entity_id: "scene.hue_{{ piece }}_1_veilleuse"
-              
-        # Si JOUR depuis > 20mn
-        - conditions:
-            - condition: state
-              entity_id: input_text.jour_nuit
-              state: 'jour'
-          sequence:
-            - choose:
-                # jour + soleil au-dessus -> stimulation
-                - conditions:
-                    - condition: state
-                      entity_id: sun.sun
-                      state: 'above_horizon'
-                  sequence:
-                    - service: scene.turn_on
-                      target:
-                        entity_id: "scene.hue_{{ piece }}_2_stimulation"
-                        
-                # jour + soleil en-dessous -> atténuée
-                - conditions:
-                    - condition: state
-                      entity_id: sun.sun
-                      state: 'below_horizon'
-                  sequence:
-                    - service: scene.turn_on
-                      target:
-                        entity_id: "scene.hue_{{ piece }}_3_attenue"
-
-  mode: single
+alias: Éclairage Intelligent Multi-Pièces
+description: Script centralisé pour gérer l'éclairage selon les conditions communes
+fields:
+  piece:
+    selector:
+      text: null
+    name: piece
+    description: Nom de la pièce (utiliser {{ trigger.id }})
+    example: chambre
+    required: true
+    default: " {{ trigger.id }}"
+sequence:
+  - variables:
+      light_entity: light.hue_{{ piece }}
+  - condition: and
+    conditions:
+      - condition: state
+        entity_id: sensor.etat_canabang_et_device_tracker
+        state: home
+      - condition: template
+        value_template: "{{ states(light_entity) == 'off' }}"
+        alias: Si lumiere == off
+  - choose:
+      - conditions:
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id: input_text.jour_nuit
+                state: nuit
+              - condition: template
+                value_template: >
+                  {% set dernier_changement =
+                  states('input_datetime.dernier_changement_jour_nuit') %} {% if
+                  dernier_changement not in ['unknown', 'unavailable'] %}
+                    {% set changement_datetime = as_timestamp(dernier_changement) %}
+                    {% set current_timestamp = now().timestamp() %}
+                    {% set diff_seconds = current_timestamp - changement_datetime %}
+                    {{ diff_seconds < 1200 and states('input_text.jour_nuit') == 'jour' }}
+                  {% else %}
+                    false
+                  {% endif %}
+            alias: si nuit ou jour < 20mn
+        sequence:
+          - target:
+              entity_id: scene.hue_{{ piece }}_1_veilleuse
+            action: scene.turn_on
+            data: {}
+      - conditions:
+          - condition: state
+            entity_id: input_text.jour_nuit
+            state: jour
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: sun.sun
+                    state: above_horizon
+                sequence:
+                  - target:
+                      entity_id: scene.hue_{{ piece }}_2_stimulation
+                    action: scene.turn_on
+                    data: {}
+              - conditions:
+                  - condition: state
+                    entity_id: sun.sun
+                    state: below_horizon
+                sequence:
+                  - target:
+                      entity_id: scene.hue_{{ piece }}_3_attenue
+                    action: scene.turn_on
+                    data: {}
+mode: single
