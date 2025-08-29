@@ -1,0 +1,105 @@
+alias: Éclairage - Gestion allumage lumières (boutons/vocal/autres)
+description: >-
+  Automatisation déclenchée quand une lumière s'allume manuellement.
+  Évite les conflits avec les automatisations de présence.
+triggers:
+  - entity_id: light.hue_sam
+    trigger: state
+    from: "off"
+    to: "on"
+    id: sam
+  - entity_id: light.hue_cuisine
+    trigger: state
+    from: "off"
+    to: "on"
+    id: cuisine
+  - entity_id: light.hue_chambre
+    trigger: state
+    from: "off"
+    to: "on"
+    id: chambre
+  - entity_id: light.hue_sdb
+    trigger: state
+    from: "off"
+    to: "on"
+    id: sdb
+  - entity_id: light.hue_salon
+    trigger: state
+    from: "off"
+    to: "on"
+    id: salon
+conditions: []
+actions:
+  - choose:
+      # CHAMBRE : Éviter conflit avec automatisation présence
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.id == 'chambre' }}"
+          # Ne pas intervenir si :
+          # 1. C'est la nuit (automatisation présence désactivée)
+          # 2. OU présence détectée + luminosité faible (= automatisation présence a pu se déclencher)
+          - condition: not
+            conditions:
+              - condition: or
+                conditions:
+                  # Si c'est la nuit, pas de conflit
+                  - condition: state
+                    entity_id: input_text.jour_nuit
+                    state: nuit
+                  # Si présence + faible luminosité = possiblement l'automatisation présence
+                  - condition: and
+                    conditions:
+                      - condition: state
+                        entity_id: binary_sensor.esp_chambre_presence
+                        state: "on"
+                      - condition: numeric_state
+                        entity_id: sensor.esp_chambre_lux
+                        below: 1
+        sequence:
+          - action: script.eclairage_intelligent_multi_pieces
+            data:
+              piece: "{{ trigger.id }}"
+
+      # SDB : Éviter conflit avec automatisation présence
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.id == 'sdb' }}"
+          # Ne pas intervenir si présence + conditions SDB réunies
+          - condition: not
+            conditions:
+              - condition: and
+                conditions:
+                  - condition: state
+                    entity_id: binary_sensor.esp_sdb_presence
+                    state: "on"
+                  - condition: numeric_state
+                    entity_id: sensor.esp_sdb_lux
+                    below: 1
+                  - condition: template
+                    value_template: |
+                      {{ states('cover.volsdb') not in ['opening', 'closing'] }}
+                  - condition: not
+                    conditions:
+                      - condition: and
+                        conditions:
+                          - condition: state
+                            entity_id: switch.prismal
+                            state: "on"
+                          - condition: numeric_state
+                            entity_id: sensor.prismal_power
+                            above: 5
+        sequence:
+          - action: script.eclairage_intelligent_multi_pieces
+            data:
+              piece: "{{ trigger.id }}"
+
+      # AUTRES PIÈCES : Pas d'automatisation présence, donc pas de conflit
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.id in ['sam', 'cuisine', 'salon'] }}"
+        sequence:
+          - action: script.eclairage_intelligent_multi_pieces
+            data:
+              piece: "{{ trigger.id }}"
+
+mode: single
