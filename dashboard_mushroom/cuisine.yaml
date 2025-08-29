@@ -1,0 +1,1041 @@
+title: Cuisine
+badges:
+  - type: entity
+    show_name: false
+    show_state: false
+    show_icon: true
+    color: ""
+    entity: binary_sensor.esp_cuisine_presence
+  - type: entity
+    show_name: false
+    show_state: false
+    show_icon: true
+    color: ""
+    entity: binary_sensor.esp_cuisine_movement
+  - type: custom:mushroom-template-badge
+    content: "{{states('sensor.temperature_cuisine') }}°C"
+    icon: mdi:thermometer
+    color: |-
+      {% set state = states('sensor.temperature_cuisine') %}  
+            {% if state >= '23' %}
+              red
+            {% elif state >= '19' %}
+              seagreen
+            {% else %}
+              blue
+            {% endif %}
+    entity: sensor.temperature_cuisine
+  - type: entity
+    show_name: false
+    show_state: true
+    show_icon: true
+    entity: sensor.esp_cuisine_lux
+    color: ""
+  - type: entity
+    show_name: false
+    show_state: true
+    show_icon: true
+    entity: weather.pompey
+    color: ""
+  - type: custom:mushroom-template-badge
+    content: "{{states('sensor.pompey_temperature') }}°C"
+    icon: mdi:thermometer
+    color: |-
+      {% set state = states('sensor.pompey_temperature') | float %}  
+            {% if state > 23 %}
+              red
+            {% elif state > 19 %}
+              seagreen
+            {% else %}
+              blue
+            {% endif %}
+    entity: sensor.pompey_temperature
+    tap_action:
+      action: more-info
+  - type: entity
+    show_name: false
+    show_state: false
+    show_icon: true
+    entity: sun.sun
+    color: ""
+  - type: custom:mushroom-template-badge
+    content: ""
+    icon: |-
+      {% set state = states('person.canabang') %}  
+            {% if state == 'home' %}
+              mdi:home-outline
+            {% else %}
+              mdi:home-off-outline
+            {% endif %} 
+    color: |-
+      {% set state = states('person.canabang') %}  
+            {% if state == 'home' %}
+              seagreen
+            {% else %}
+              gray
+            {% endif %}
+    entity: person.canabang
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-salon/home
+  - type: custom:mushroom-template-badge
+    content: ""
+    icon: |-
+      {% set state = states('binary_sensor.salon_presence_globale') %}  
+            {% if state == 'on' %}
+              hue:room-living
+            {% else %}
+              hue:room-living-off
+            {% endif %} 
+    color: |-
+      {% set state = states('binary_sensor.salon_presence_globale') %}  
+            {% if state == 'on' %}
+              seagreen
+            {% else %}
+              gray
+            {% endif %}
+    entity: binary_sensor.salon_presence_globale
+    tap_action:
+      action: navigate
+      navigation_path: /salon-mushroom/sejour
+  - type: custom:mushroom-template-badge
+    content: ""
+    icon: |-
+      {% set state = states('binary_sensor.esp_chambre_presence') %}  
+            {% if state == 'on' %}
+              hue:room-bedroom
+            {% else %}
+              hue:room-bedroom-off
+            {% endif %} 
+    color: |-
+      {% set state = states('binary_sensor.esp_chambre_presence') %}  
+            {% if state == 'on' %}
+              seagreen
+            {% else %}
+              gray
+            {% endif %}
+    entity: binary_sensor.esp_chambre_presence
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-salon/chambre
+  - type: custom:mushroom-template-badge
+    content: ""
+    icon: |-
+      {% set state = states('binary_sensor.esp_sdb_presence') %}  
+            {% if state == 'on' %}
+              hue:room-bathroom
+            {% else %}
+              hue:room-bathroom-off
+            {% endif %} 
+    color: |-
+      {% set state = states('binary_sensor.esp_sdb_presence') %}  
+            {% if state == 'on' %}
+              seagreen
+            {% else %}
+              gray
+            {% endif %}
+    entity: binary_sensor.esp_sdb_presence
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-salon/sdb
+  - type: custom:mushroom-template-badge
+    content: ""
+    icon: |-
+      {% set state = states('update.home_assistant_core_update') %}  
+            {% if state == 'on' %}
+              mdi:server
+            {% else %}
+              mdi:server-off
+            {% endif %} 
+    color: |-
+      {% set state = states('update.home_assistant_core_update') %}  
+            {% if state == 'on' %}
+              seagreen
+            {% else %}
+              gray
+            {% endif %}
+    entity: update.home_assistant_core_update
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-salon/baie-info
+  - type: custom:mushroom-template-badge
+    content: ""
+    icon: >
+      {% set kodi_playing = states('media_player.kodi_salon') == 'playing' or
+      states('media_player.kodi_chambre') == 'playing' %}
+
+      {% set plex_playing =
+      states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
+      states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing' %}
+
+      {% set partout_playing = states('media_player.partout_2') == 'playing' %}
+
+      {% if partout_playing %}
+        m3of:queue-music
+      {% elif kodi_playing %}
+        mdi:kodi
+      {% elif plex_playing %}
+        mdi:plex
+      {% else %}
+        mdi:multimedia
+      {% endif %}
+    color: >
+      {% set kodi_playing = states('media_player.kodi_salon') == 'playing' or
+      states('media_player.kodi_chambre') == 'playing' %}
+
+      {% set plex_playing =
+      states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
+      states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing' %}
+
+      {% set partout_playing = states('media_player.partout_2') == 'playing' %}
+
+      {% if partout_playing or kodi_playing or plex_playing %}
+        seagreen
+      {% else %}
+        gray
+      {% endif %}
+    tap_action:
+      action: navigate
+      navigation_path: /dashboard-salon/multimedia
+sections:
+  - type: grid
+    cards:
+      - type: custom:mushroom-empty-card
+      - type: custom:mushroom-empty-card
+      - type: custom:digital-clock
+        dateFormat:
+          weekday: long
+          day: 2-digit
+          month: long
+        timeFormat:
+          hour: 2-digit
+          minute: 2-digit
+        card_mod:
+          style: |
+            ha-card {
+              position: relative;
+              overflow: hidden;
+              background: rgb(40, 40, 40);
+              height: 120px;
+              font-size: 19px;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              text-align: center;
+              --ha-card-border-radius: 150px;
+            }
+      - type: custom:mushroom-template-card
+        primary: Minuteur
+        secondary: "{{ states('sensor.echo_show_cuisine_next_timer') }}"
+        icon: mdi:timer
+        icon_color: orange
+        entity: sensor.echo_show_cuisine_next_timer
+        card_mod:
+          style: |
+            ha-card {
+              --ha-card-border-radius: 25px;
+              background: rgba(255, 255, 255, 0.1) !important;
+              backdrop-filter: blur(10px) !important;
+              border: 1px solid rgba(255, 255, 255, 0.2) !important;
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            }
+        visibility:
+          - condition: state
+            entity: sensor.echo_show_cuisine_next_timer
+            state_not: unknown
+    column_span: 3
+  - type: grid
+    cards:
+      - square: false
+        type: grid
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Cuisine
+            secondary: >-
+              {{ 'Ouverte' if is_state('binary_sensor.ouvfenetcuis_contact',
+              'on') else 'Fermée' }}
+            icon: |-
+              {% if is_state('binary_sensor.ouvfenetcuis_contact', 'on') %}
+                mdi:window-open-variant
+              {% else %}
+                mdi:window-closed-variant
+              {% endif %}
+            icon_color: |-
+              {% if is_state('binary_sensor.ouvfenetcuis_contact', 'on') %}
+                seagreen
+              {% else %}
+                grey
+              {% endif %}
+            entity: binary_sensor.ouvfenetcuis_contact
+            badge_icon: mdi:battery
+            badge_color: |-
+              {% set battery = states('sensor.ouvfenetcuis_battery') | int %}
+              {% if battery >= 100 %}
+                green
+              {% elif battery >= 30 %}
+                seagreen
+              {% elif battery >= 20 %}
+                orange
+              {% else %}
+                red
+              {% endif %}
+            fill_container: false
+            layout: horizontal
+            tap_action:
+              action: more-info
+            multiline_secondary: false
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  --card-primary-color: {% if is_state('binary_sensor.ouvfenetcuis_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                  --card-secondary-color: {% if is_state('binary_sensor.ouvfenetcuis_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+                mushroom-badge {
+                  --badge-color: {% set battery = states('sensor.ouvfenetcuis_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}var(--orange-color){% else %}var(--red-color){% endif %} !important;
+                }
+                ha-state-icon {
+                 {% set state = states('binary_sensor.ouvfenetcuis_contact') %}
+                 {% if state == 'on' %}
+                   color: seagreen !important;
+                 {% else %}
+                   color: grey !important;
+                 {% endif %}  
+                }
+        title: Fenêtres
+        columns: 2
+      - square: false
+        type: grid
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Frigo
+            secondary: >-
+              {{ 'Ouverte' if is_state('binary_sensor.ouvportfrig_contact',
+              'on') else 'Fermée' }}
+            icon: mdi:fridge-industrial
+            icon_color: |-
+              {% if is_state('binary_sensor.ouvportfrig_contact', 'on') %}
+                seagreen
+              {% else %}
+                grey
+              {% endif %}
+            entity: binary_sensor.ouvportfrig_contact
+            badge_icon: mdi:battery
+            badge_color: |-
+              {% set battery = states('sensor.ouvportfrig_battery') | int %}
+              {% if battery >= 100 %}
+                green
+              {% elif battery >= 30 %}
+                seagreen
+              {% elif battery >= 20 %}
+                orange
+              {% else %}
+                red
+              {% endif %}
+            fill_container: false
+            layout: horizontal
+            tap_action:
+              action: more-info
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  --card-primary-color: {% if is_state('binary_sensor.ouvportfrig_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                  --card-secondary-color: {% if is_state('binary_sensor.ouvportfrig_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+                mushroom-badge {
+                  --badge-color: {% set battery = states('sensor.ouvportfrig_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
+                }
+                ha-state-icon {
+                 {% set state = states('binary_sensor.ouvportfrig_contact') %}
+                 {% if state == 'on' %}
+                   color: seagreen !important;
+                 {% else %}
+                   color: grey !important;
+                 {% endif %}  
+                }
+          - type: custom:mushroom-template-card
+            primary: Congel
+            secondary: >-
+              {{ 'Ouverte' if is_state('binary_sensor.ouvportcong_contact',
+              'on') else 'Fermée' }}
+            icon: mdi:fridge-industrial
+            icon_color: |-
+              {% if is_state('binary_sensor.ouvportcong_contact', 'on') %}
+                seagreen
+              {% else %}
+                grey
+              {% endif %}
+            entity: binary_sensor.ouvportcong_contact
+            badge_icon: mdi:battery
+            badge_color: |-
+              {% set battery = states('sensor.ouvportcong_battery') | int %}
+              {% if battery >= 100 %}
+                green
+              {% elif battery >= 30 %}
+                seagreen
+              {% elif battery >= 20 %}
+                orange
+              {% else %}
+                red
+              {% endif %}
+            fill_container: false
+            layout: horizontal
+            tap_action:
+              action: more-info
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  --card-primary-color: {% if is_state('binary_sensor.ouvportcong_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                  --card-secondary-color: {% if is_state('binary_sensor.ouvportcong_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+                mushroom-badge {
+                  --badge-color: {% set battery = states('sensor.ouvportcong_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
+                }
+                ha-state-icon {
+                 {% set state = states('binary_sensor.ouvportcong_contact') %}
+                 {% if state == 'on' %}
+                   color: seagreen !important;
+                 {% else %}
+                   color: grey !important;
+                 {% endif %}  
+                }
+          - type: custom:mushroom-template-card
+            primary: Petit congel
+            secondary: >-
+              {{ 'Ouverte' if is_state('binary_sensor.ouvportcong2_contact',
+              'on') else 'Fermée' }}
+            icon: mdi:fridge-industrial
+            icon_color: |-
+              {% if is_state('binary_sensor.ouvportcong2_contact', 'on') %}
+                seagreen
+              {% else %}
+                grey
+              {% endif %}
+            entity: binary_sensor.ouvportcong2_contact
+            badge_icon: mdi:battery
+            badge_color: |-
+              {% set battery = states('sensor.ouvportcong2_battery') | int %}
+              {% if battery >= 100 %}
+                green
+              {% elif battery >= 30 %}
+                seagreen
+              {% elif battery >= 20 %}
+                orange
+              {% else %}
+                red
+              {% endif %}
+            fill_container: false
+            layout: horizontal
+            tap_action:
+              action: more-info
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  --card-primary-color: {% if is_state('binary_sensor.ouvportcong2_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                  --card-secondary-color: {% if is_state('binary_sensor.ouvportcong2_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+                mushroom-badge {
+                  --badge-color: {% set battery = states('sensor.ouvportcong2_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
+                }
+                ha-state-icon {
+                 {% set state = states('binary_sensor.ouvportcong2_contact') %}
+                 {% if state == 'on' %}
+                   color: seagreen !important;
+                 {% else %}
+                   color: grey !important;
+                 {% endif %}  
+                }
+        title: Portes
+        columns: 2
+      - square: false
+        type: grid
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Température Frigo
+            secondary: "{{ states('sensor.capetalon_temperature') }}°C"
+            icon: mdi:thermometer
+            icon_color: |-
+              {% set temp = states('sensor.capetalon_temperature') | float %}
+              {% if temp >= 9 %}
+                red
+              {% elif temp >= 2 %}
+                seagreen
+              {% else %}
+                blue
+              {% endif %}
+            entity: sensor.capetalon_temperature
+            badge_icon: mdi:battery
+            badge_color: |-
+              {% set battery = states('sensor.capetalon_battery') | int %}
+              {% if battery >= 100 %}
+                seagreen
+              {% elif battery >= 30 %}
+                seagreen
+              {% elif battery >= 20 %}
+                orange
+              {% else %}
+                red
+              {% endif %}
+            tap_action:
+              action: navigate
+              navigation_path: "#temperature"
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  --card-primary-color: {% set temp = states('sensor.capetalon_temperature') | float %}{% if temp >= 9 %}red{% elif temp >= 2 %}seagreen{% else %}blue{% endif %};
+                  --card-secondary-color: {% set temp = states('sensor.capetalon_temperature') | float %}{% if temp >= 9 %}red{% elif temp >= 2 %}seagreen{% else %}blue{% endif %};
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+                mushroom-badge {
+                  --badge-color: {% set battery = states('sensor.capetalon_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
+                }
+                ha-state-icon {
+                  {% set temp = states('sensor.capetalon_temperature') | float %}
+                  {% if temp >= 9 %}
+                    color: red !important;
+                  {% elif temp >= 2 %}
+                    color: seagreen !important;
+                  {% else %}
+                    color: blue !important;
+                  {% endif %}
+                }
+        title: Autres
+        columns: 2
+    columns: 2
+  - type: grid
+    cards:
+      - type: custom:mini-media-player
+        entity: media_player.spotifyplus_gael
+        artwork: full-cover
+        artwork_border: true
+        power_color: true
+        show_source: true
+        group: false
+        source: full
+        info: scroll
+        hide:
+          power: false
+          repeat: false
+          runtime: false
+          shuffle: false
+          source: false
+          volume: false
+        sound_mode: icon
+        card_mod:
+          style: |
+            ha-card {
+              --ha-card-border-radius: 20px;
+            }
+        visibility:
+          - condition: state
+            entity: media_player.spotifyplus_gael
+            state: playing
+  - type: grid
+    cards:
+      - square: false
+        type: grid
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.hue_cuisine
+            name: Cuisine
+            show_brightness_control: true
+            show_color_temp_control: true
+            tap_action:
+              action: navigate
+              navigation_path: "#scene-cuisine"
+            use_light_color: true
+            collapsible_controls: true
+            double_tap_action:
+              action: toggle
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+          - type: custom:mushroom-light-card
+            entity: light.ledplancui_cct
+            name: Plan de travail
+            show_brightness_control: true
+            show_color_temp_control: true
+            use_light_color: true
+            collapsible_controls: true
+            double_tap_action:
+              action: toggle
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+        title: Lumières
+        columns: 2
+      - square: false
+        type: grid
+        cards:
+          - type: custom:mushroom-cover-card
+            entity: cover.volcui
+            name: Cuisine
+            show_position_control: true
+            fill_container: false
+            tap_action:
+              action: more-info
+            show_buttons_control: true
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  --card-primary-color: {% if is_state('cover.volcui', 'open') %} var(--green-color) {% else %} var(--primary-text-color) {% endif %};
+                  --card-secondary-color: {% if is_state('cover.volcui', 'open') %} var(--green-color) {% else %} var(--secondary-text-color) {% endif %};
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+                ha-state-icon {
+                 {% set state = states('cover.volcui') %}
+                 {% if state == 'open' %}
+                   color: var(--green-color) !important;
+                 {% else %}
+                   color: var(--primary-text-color) !important;
+                 {% endif %}  
+                }
+                mushroom-button {
+                 {% set state = states('cover.volcui') %}
+                 {% if state == 'open' %}
+                   --icon-color: var(--green-color) !important;
+                 {% else %}
+                   --icon-color: var(--primary-text-color) !important;
+                 {% endif %}  
+                }
+        title: Volets
+        columns: 2
+      - square: false
+        type: grid
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Horloge
+            secondary: "{{ states('sensor.awtrix_ulanzi_current_app') }}"
+            icon: mdi:clock-digital
+            icon_color: |-
+              {% if is_state('light.awtrix_ulanzi_matrix', 'on') %}
+                seagreen
+              {% else %}
+                grey
+              {% endif %}
+            entity: light.awtrix_ulanzi_matrix
+            tap_action:
+              action: toggle
+            multiline_secondary: false
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  --card-primary-color: {% if is_state('light.awtrix_ulanzi_matrix', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                  --card-secondary-color: {% if is_state('light.awtrix_ulanzi_matrix', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+                ha-state-icon {
+                 {% set state = states('light.awtrix_ulanzi_matrix') %}
+                 {% if state == 'on' %}
+                   color: seagreen !important;
+                 {% else %}
+                   color: grey !important;
+                 {% endif %}  
+                }
+          - type: custom:mushroom-template-card
+            primary: Café
+            secondary: >-
+              {{ 'Allumée' if is_state('switch.priscafe', 'on') else 'Éteinte'
+              }}
+            icon: m3rf:coffee
+            icon_color: |-
+              {% if is_state('switch.priscafe', 'on') %}
+                seagreen
+              {% else %}
+                grey
+              {% endif %}
+            entity: switch.priscafe
+            tap_action:
+              action: toggle
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  --card-primary-color: {% if is_state('switch.priscafe', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                  --card-secondary-color: {% if is_state('switch.priscafe', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+                ha-state-icon {
+                 {% set state = states('switch.priscafe') %}
+                 {% if state == 'on' %}
+                   color: seagreen !important;
+                   animation: pulse 2s infinite;
+                 {% else %}
+                   color: grey !important;
+                 {% endif %}  
+                }
+                @keyframes pulse {
+                  0%, 100% { color: seagreen !important; }
+                  50% { color: red !important; }
+                }
+          - type: custom:mushroom-template-card
+            primary: VA Cuisine
+            secondary: "{{ states('assist_satellite.esp_va_cuisine_satellite_assist') }}"
+            icon: mdi:account-voice
+            icon_color: |-
+              {% if is_state('light.esp_va_cuisine_esp_va_cuisine', 'on') %}
+                seagreen
+              {% else %}
+                grey
+              {% endif %}
+            entity: light.esp_va_cuisine_esp_va_cuisine
+            tap_action:
+              action: assist
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  --card-primary-color: {% if is_state('assist_satellite.esp_va_cuisine_satellite_assist', 'idle') %} var(--primary-text-color) {% else %} seagreen {% endif %};
+                  --card-secondary-color: {% if is_state('assist_satellite.esp_va_cuisine_satellite_assist', 'idle') %} var(--secondary-text-color) {% else %} seagreen {% endif %};
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+                ha-state-icon {
+                 {% set state = states('assist_satellite.esp_va_cuisine_satellite_assist') %}
+                 {% if state == 'idle' %}
+                   color: grey !important;
+                 {% else %}
+                   color: seagreen !important;
+                 {% endif %}  
+                }
+          - type: custom:mushroom-template-card
+            primary: Suckbot
+            secondary: "{{ states('vacuum.rockrobock') | title }}"
+            icon: mdi:robot-vacuum
+            icon_color: |-
+              {% if is_state('vacuum.rockrobock', 'cleaning') %}
+                seagreen
+              {% else %}
+                grey
+              {% endif %}
+            entity: vacuum.rockrobock
+            tap_action:
+              action: more-info
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  --card-primary-color: {% if is_state('vacuum.rockrobock', 'cleaning') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                  --card-secondary-color: {% if is_state('vacuum.rockrobock', 'cleaning') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+                ha-state-icon {
+                 {% set state = states('vacuum.rockrobock') %}
+                 {% if state == 'cleaning' %}
+                   color: seagreen !important;
+                   animation: spin 2s linear infinite;
+                 {% else %}
+                   color: grey !important;
+                 {% endif %}  
+                }
+                @keyframes spin {
+                  from { transform: rotate(0deg); }
+                  to { transform: rotate(360deg); }
+                }
+        title: Autres
+        columns: 2
+    columns: 2
+  - type: grid
+    cards:
+      - square: false
+        type: grid
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Eau
+            secondary: >-
+              {{ states('sensor.esp_pet_scales_eau') }}% - {{
+              states('sensor.esp_pet_scales_eau_poids_gamelle') }}g
+            icon: mdi:fountain
+            icon_color: |-
+              {% set level = states('sensor.esp_pet_scales_eau') | float %}
+              {% if level > 30 %}
+                mediumslateblue
+              {% elif level > 15 %}
+                goldenrod
+              {% else %}
+                red
+              {% endif %}
+            entity: sensor.esp_pet_scales_eau
+            tap_action:
+              action: more-info
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  background: linear-gradient(to right, 
+                    {% set level = states('sensor.esp_pet_scales_eau') | float %}
+                    {% if level > 30 %}mediumslateblue{% elif level > 15 %}goldenrod{% else %}red{% endif %} 0%, 
+                    {% if level > 30 %}mediumslateblue{% elif level > 15 %}goldenrod{% else %}red{% endif %} {{ level }}%,
+                    rgba(255, 255, 255, 0.1) {{ level }}%,
+                    rgba(255, 255, 255, 0.1) 100%) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+          - type: custom:mushroom-template-card
+            primary: Croquettes
+            secondary: >-
+              {{ states('sensor.esp_pet_scales_croquettes') }}% - {{
+              states('number.pet_feeder_portion_weight') }}g/portion
+            icon: mdi:food-drumstick
+            icon_color: >-
+              {% set level = states('sensor.esp_pet_scales_croquettes') | float
+              %}
+
+              {% if level > 30 %}
+                maroon
+              {% elif level > 15 %}
+                goldenrod
+              {% else %}
+                red
+              {% endif %}
+            entity: sensor.esp_pet_scales_croquettes
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.pet_feeder_feed
+              data:
+                option: START
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  background: linear-gradient(to right, 
+                    {% set level = states('sensor.esp_pet_scales_croquettes') | float %}
+                    {% if level > 30 %}maroon{% elif level > 15 %}goldenrod{% else %}red{% endif %} 0%, 
+                    {% if level > 30 %}maroon{% elif level > 15 %}goldenrod{% else %}red{% endif %} {{ level }}%,
+                    rgba(255, 255, 255, 0.1) {{ level }}%,
+                    rgba(255, 255, 255, 0.1) 100%) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+          - type: custom:mushroom-template-card
+            primary: Litière
+            secondary: >-
+              {{ states('sensor.litiere_niveau_litiere') }}% - {{
+              states('sensor.litiere_poids_litiere') }}g
+            icon: phu:litter-robot
+            icon_color: |-
+              {% set level = states('sensor.litiere_niveau_litiere') | float %}
+              {% if level > 30 %}
+                brown
+              {% elif level > 15 %}
+                goldenrod
+              {% else %}
+                red
+              {% endif %}
+            entity: sensor.litiere_niveau_litiere
+            tap_action:
+              action: navigate
+              navigation_path: >-
+                http://192.168.1.184:8123/config/devices/device/1f094f2e16ed9ff2baf7b11b56127144
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  background: linear-gradient(to right, 
+                    {% set level = states('sensor.litiere_niveau_litiere') | float %}
+                    {% if level > 30 %}brown{% elif level > 15 %}goldenrod{% else %}red{% endif %} 0%, 
+                    {% if level > 30 %}brown{% elif level > 15 %}goldenrod{% else %}red{% endif %} {{ level }}%,
+                    rgba(255, 255, 255, 0.1) {{ level }}%,
+                    rgba(255, 255, 255, 0.1) 100%) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+          - type: custom:mushroom-template-card
+            primary: Princesse
+            secondary: >-
+              {{ states('sensor.princesse_derniere_mesure_de_poids') }}g - {{
+              states('sensor.princesse_duree_derniere_utilisation') }}
+            icon: mdi:cat
+            icon_color: purple
+            entity: sensor.princesse_derniere_mesure_de_poids
+            tap_action:
+              action: more-info
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+        title: Princesse
+        columns: 2
+  - type: grid
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: custom:bubble-card
+            card_type: pop-up
+            hash: "#scene-cuisine"
+            show_header: false
+            close_on_click: true
+            margin_top_desktop: calc(100vh - 400px)
+          - type: custom:mushroom-template-card
+            primary: Veilleuse
+            icon: mdi:lightbulb-night
+            icon_color: orange
+            entity: scene.hue_cuisine_1_veilleuse
+            tap_action:
+              action: call-service
+              service: scene.turn_on
+              target:
+                entity_id: scene.hue_cuisine_1_veilleuse
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 20px;
+                }
+          - type: custom:mushroom-template-card
+            primary: Stimulation
+            icon: mdi:lightbulb-on
+            icon_color: blue
+            entity: scene.hue_cuisine_2_stimulation
+            tap_action:
+              action: call-service
+              service: scene.turn_on
+              target:
+                entity_id: scene.hue_cuisine_2_stimulation
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 20px;
+                }
+          - type: custom:mushroom-template-card
+            primary: Atténué
+            icon: mdi:lightbulb-variant
+            icon_color: yellow
+            entity: scene.hue_cuisine_3_attenue
+            tap_action:
+              action: call-service
+              service: scene.turn_on
+              target:
+                entity_id: scene.hue_cuisine_3_attenue
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 20px;
+                }
+          - type: custom:mushroom-template-card
+            primary: Lumineux
+            icon: mdi:lightbulb-on-outline
+            icon_color: white
+            entity: scene.hue_cuisine_4_lumineux
+            tap_action:
+              action: call-service
+              service: scene.turn_on
+              target:
+                entity_id: scene.hue_cuisine_4_lumineux
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 20px;
+                }
+      - type: vertical-stack
+        cards:
+          - type: custom:bubble-card
+            card_type: pop-up
+            hash: "#temperature"
+            show_header: false
+            close_on_click: true
+          - type: custom:mushroom-template-card
+            primary: Température Frigo
+            secondary: "{{ states('sensor.capetalon_temperature') }}°C"
+            icon: mdi:thermometer
+            icon_color: |-
+              {% set temp = states('sensor.capetalon_temperature') | float %}
+              {% if temp >= 9 %}
+                red
+              {% elif temp >= 2 %}
+                seagreen
+              {% else %}
+                blue
+              {% endif %}
+            entity: sensor.capetalon_temperature
+            badge_icon: mdi:battery
+            badge_color: |-
+              {% set battery = states('sensor.capetalon_battery') | int %}
+              {% if battery >= 100 %}
+                seagreen
+              {% elif battery >= 30 %}
+                seagreen
+              {% elif battery >= 20 %}
+                orange
+              {% else %}
+                red
+              {% endif %}
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 20px;
+                }
+type: sections
+max_columns: 3
+cards: []
+dense_section_placement: false
+background:
+  opacity: 100
+  alignment: center
+  size: cover
+  repeat: no-repeat
+  attachment: scroll
+  image: /api/image/serve/edb06720963981d9753feb01e18b7692/original
+path: cuisine
+subview: true
