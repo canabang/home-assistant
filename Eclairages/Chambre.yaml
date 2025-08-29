@@ -17,6 +17,16 @@ conditions:
       - condition: state
         entity_id: input_text.jour_nuit
         state: nuit
+  - condition: template
+    value_template: >
+      {% set scene_dodo = states.scene.hue_chambre_5_dodo %} {% if
+      scene_dodo.last_changed %}
+        {% set minutes_ago = (now() - scene_dodo.last_changed).total_seconds() / 60 %}
+        {{ minutes_ago > 10 }}
+      {% else %}
+        true
+      {% endif %}
+    alias: Scène dodo pas activée dans les 10 dernières minutes
 actions:
   - choose:
       - conditions:
