@@ -11,7 +11,12 @@ triggers:
       minutes: 0
       seconds: 3
     id: chambre
-conditions: []
+conditions:
+  - condition: not
+    conditions:
+      - condition: state
+        entity_id: input_text.jour_nuit
+        state: nuit
 actions:
   - choose:
       - conditions:
