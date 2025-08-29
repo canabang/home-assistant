@@ -1,0 +1,100 @@
+# .wind_detection.yaml
+# Package pour détecter les variations de pression causées par le vent
+# Utilise le BME280 existant pour éviter les faux positifs de mouvement
+
+sensor:
+  # Capteur de variation de pression pour détecter le vent
+  - platform: template
+    name: "${piece} Pressure Variation"
+    id: pressure_variation
+    unit_of_measurement: "hPa/min"
+    accuracy_decimals: 2
+    update_interval: 10s
+    lambda: |-
+      static float pressure_buffer[6] = {NAN, NAN, NAN, NAN, NAN, NAN};
+      static int buffer_index = 0;
+      static bool buffer_full = false;
+      
+      float current_pressure = id(BME280_Pressure).state;
+      if (isnan(current_pressure)) return {};
+      
+      // Stockage dans buffer circulaire (6 échantillons pour 1 minute de données)
+      pressure_buffer[buffer_index] = current_pressure;
+      int oldest_index = (buffer_index + 1) % 6;
+      buffer_index = oldest_index;
+      
+      if (!buffer_full && buffer_index == 0) buffer_full = true;
+      if (!buffer_full) return {};
+      
+      // Calcul de la variation sur 1 minute
+      float oldest_pressure = pressure_buffer[oldest_index];
+      if (isnan(oldest_pressure)) return {};
+      
+      float variation = current_pressure - oldest_pressure;
+      return fabs(variation); // Valeur absolue de la variation
+
+  # Capteur de tendance de pression (pour différencier météo vs vent)
+  - platform: template
+    name: "${piece} Pressure Trend"
+    id: pressure_trend
+    unit_of_measurement: "hPa/h"
+    accuracy_decimals: 2
+    update_interval: 30s
+    lambda: |-
+      static float trend_buffer[10] = {NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN};
+      static int trend_index = 0;
+      static bool trend_buffer_full = false;
+      
+      float current_pressure = id(BME280_Pressure).state;
+      if (isnan(current_pressure)) return {};
+      
+      // Buffer pour 5 minutes de données (10 échantillons * 30s)
+      trend_buffer[trend_index] = current_pressure;
+      int oldest_trend_index = (trend_index + 1) % 10;
+      trend_index = oldest_trend_index;
+      
+      if (!trend_buffer_full && trend_index == 0) trend_buffer_full = true;
+      if (!trend_buffer_full) return {};
+      
+      float oldest_trend_pressure = trend_buffer[oldest_trend_index];
+      if (isnan(oldest_trend_pressure)) return {};
+      
+      // Tendance sur 5 minutes convertie en hPa/h
+      float trend = (current_pressure - oldest_trend_pressure) * 12; // *12 pour hPa/h
+      return trend;
+
+binary_sensor:
+  # Détection de vent basée sur variations rapides de pression
+  - platform: template
+    name: "${piece} Wind Detected"
+    id: wind_detected
+    device_class: moving
+    lambda: |-
+      float variation = id(pressure_variation).state;
+      float trend = id(pressure_trend).state;
+      
+      if (isnan(variation) || isnan(trend)) return false;
+      
+      // Vent détecté si :
+      // 1. Variation rapide > seuil ET
+      // 2. Pas une tendance météo lente (< 2 hPa/h de changement)
+      bool rapid_variation = variation > 0.04; // Seuil à ajuster
+      bool not_weather_trend = fabs(trend) < 2.0;
+      
+      return rapid_variation && not_weather_trend;
+    filters:
+      - delayed_on: 5s      # Anti-rebond : attendre 5s de détection stable
+      - delayed_off: 45s    # Rester actif 45s après dernière détection
+
+  # Capteur combiné : vent ET fenêtre ouverte
+  - platform: template
+    name: "${piece} Wind Risk"
+    id: wind_risk
+    device_class: problem
+    lambda: |-
+      // Ce capteur sera utilisé dans Home Assistant
+      // Combine vent détecté + état fenêtre
+      return id(wind_detected).state;
+    filters:
+      - delayed_on: 3s
+      - delayed_off: 30s
