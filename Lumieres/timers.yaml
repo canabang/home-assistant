@@ -1,9 +1,0 @@
-chambre_confirmation:
-  duration: "00:00:10"
-  name: "Délai confirmation présence chambre"
-  icon: mdi:timer-outline
-
-sdb_confirmation:
-  duration: "00:00:10"
-  name: "Délai confirmation présence SdB"
-  icon: mdi:timer-outline
