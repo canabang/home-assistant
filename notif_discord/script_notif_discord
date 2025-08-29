@@ -1,0 +1,39 @@
+sequence:
+  - action: notify.bot_ha
+    metadata: {}
+    data:
+      target:
+        - "897186717214310420"
+      message: " "
+      data:
+        embed:
+          author:
+            name: "{{nom}}"
+          title: Notification Home Assistant
+          description: "{{description}}"
+          image:
+            url: "{{image_url}}"
+          footer:
+            text: le {{ now().strftime('%d/%m/%y %Hh%M') }}
+            icon_url: https://i.ibb.co/pRvFCBy/home-assistant.png
+alias: Notification Discord
+description: ""
+fields:
+  nom:
+    selector:
+      text: null
+    name: nom
+    required: true
+    default: à remplacer
+  description:
+    selector:
+      text: null
+    name: description
+    required: true
+    default: test de notif embed
+  image_url:
+    selector:
+      text: null
+    required: false
+    default: https://i.ibb.co/pRvFCBy/home-assistant.png
+    name: image_url
