@@ -1,0 +1,426 @@
+# =============================================================================
+# ÉTAPE 1: DÉFINIR LE TEMPLATE DANS LA CONFIGURATION PRINCIPALE
+# =============================================================================
+
+# À ajouter au début de votre configuration Lovelace
+# (Éditeur de configuration brute → tout en haut du fichier)
+
+button_card_templates:
+  esp_device_card:
+    # Variables par défaut (peuvent être surchargées)
+    variables:
+      device_id: "esp_default"
+      device_name: "ESP Device"
+    
+    # Configuration de base de la carte
+    show_name: false
+    styles:
+      card:
+        - background: rgba(var(--rgb-secondary-text-color), 0.2) !important
+        - padding: 0px
+        - border-radius: 50px !important
+        - box-shadow: none
+      grid:
+        - grid-template-areas: |
+            "name wifi uptime temp"
+            "name rssi status ."
+        - grid-template-columns: 120px 1fr 1.2fr 0.8fr
+        - grid-template-rows: auto auto
+    
+    # Champs personnalisés avec variables dynamiques
+    custom_fields:
+      # CHAMP NAME - Utilise les variables pour construire l'entité
+      name: |
+        [[[
+          // Construction dynamique du nom de l'entité IP
+          const entityId = 'sensor.' + variables.device_id + '_ip';
+          const s = states[entityId];
+          
+          return `
+            <div style="display:flex; flex-direction:column; justify-content:center; height:100%; padding:8px 12px;">
+              <div style="font-size:14px; font-weight:bold; white-space:nowrap; line-height:1.2;">
+                ${variables.device_name}
+              </div>
+              <div style="font-size:12px; opacity:0.7; white-space:nowrap; line-height:1.2; margin-top:2px;">
+                ${s ? s.state : 'N/A'}
+              </div>
+            </div>
+          `;
+        ]]]
+      
+      # CHAMP WIFI - Configuration complète avec variables
+      wifi:
+        card:
+          type: custom:button-card
+          # Entité construite dynamiquement avec la variable device_id
+          entity: "[[[ return 'sensor.' + variables.device_id + '_wifi_signal'; ]]]"
+          icon: mdi:wifi
+          show_state: true
+          show_name: false
+          show_icon: true
+          layout: icon_state
+          tap_action:
+            action: more-info
+          # Couleur conditionnelle basée sur la valeur du signal
+          color: |
+            [[[
+              const entityId = 'sensor.' + variables.device_id + '_wifi_signal';
+              const s = states[entityId];
+              if (!s || s.state === 'unavailable') return "grey";
+              const value = parseInt(s.state);
+              return value <= -70 ? "red" : value <= -55 ? "orange" : "seagreen";
+            ]]]
+          # Affichage personnalisé de l'état
+          state_display: |
+            [[[
+              const entityId = 'sensor.' + variables.device_id + '_wifi_signal';
+              const s = states[entityId];
+              if (!s || s.state === 'unavailable') return "N/A";
+              return Math.round(parseFloat(s.state)) + " dBm";
+            ]]]
+          styles:
+            card:
+              - box-shadow: none
+              - background: rgba(0,0,0,0.3)
+              - border-radius: 10px
+              - padding: 2px 6px
+              - cursor: pointer
+              - height: 20px
+              - min-height: 22px
+              - display: flex
+              - align-items: center
+              - justify-content: flex-start
+              - width: fit-content
+              - min-width: 100px
+            icon:
+              - width: 16px
+              - height: 16px
+              - margin-right: 2px
+              - margin-left: "-15px"
+            state:
+              - font-size: 11px
+              - font-weight: bold
+              - white-space: nowrap
+              - margin-left: "-40px"
+              - margin-right: "-20px"
+      
+      # CHAMP UPTIME
+      uptime:
+        card:
+          type: custom:button-card
+          entity: "[[[ return 'sensor.' + variables.device_id + '_uptime'; ]]]"
+          show_state: true
+          show_name: false
+          show_icon: true
+          layout: icon_state
+          tap_action:
+            action: more-info
+          icon: mdi:timer-outline
+          color: seagreen
+          styles:
+            card:
+              - box-shadow: none
+              - background: rgba(0,0,0,0.3)
+              - border-radius: 10px
+              - padding: 2px 6px
+              - cursor: pointer
+              - height: 20px
+              - min-height: 22px
+              - display: flex
+              - align-items: center
+              - justify-content: flex-start
+              - width: fit-content
+              - min-width: 150px
+            icon:
+              - width: 16px
+              - height: 16px
+              - margin-right: 2px
+              - margin-left: "-25px"
+            state:
+              - font-size: 11px
+              - font-weight: bold
+              - white-space: nowrap
+              - margin-left: "-70px"
+              - margin-right: "-20px"
+      
+      # CHAMP TEMPÉRATURE
+      temp:
+        card:
+          type: custom:button-card
+          entity: "[[[ return 'sensor.' + variables.device_id + '_interntemp'; ]]]"
+          show_state: true
+          show_name: false
+          show_icon: true
+          layout: icon_state
+          tap_action:
+            action: more-info
+          icon: mdi:thermometer
+          color: |
+            [[[
+              const entityId = 'sensor.' + variables.device_id + '_interntemp';
+              const s = states[entityId];
+              if (!s || s.state === 'unavailable') return "grey";
+              const value = parseFloat(s.state);
+              return value >= 65 ? "red" : value >= 50 ? "orange" : "seagreen";
+            ]]]
+          state_display: |
+            [[[
+              const entityId = 'sensor.' + variables.device_id + '_interntemp';
+              const s = states[entityId];
+              if (!s || s.state === 'unavailable') return "N/A";
+              return parseFloat(s.state).toFixed(1) + "°C";
+            ]]]
+          styles:
+            card:
+              - box-shadow: none
+              - background: rgba(0,0,0,0.3)
+              - border-radius: 10px
+              - padding: 2px 6px
+              - cursor: pointer
+              - height: 20px
+              - min-height: 22px
+              - display: flex
+              - align-items: center
+              - justify-content: flex-start
+              - width: fit-content
+              - min-width: 80px
+            icon:
+              - width: 16px
+              - height: 16px
+              - margin-right: 4px
+              - margin-left: "-10px"
+              - animation: |
+                  [[[
+                    const entityId = 'sensor.' + variables.device_id + '_interntemp';
+                    const s = states[entityId];
+                    if (!s || s.state === 'unavailable') return "none";
+                    const value = parseFloat(s.state);
+                    return value >= 65 ? "blink 1s infinite" : "none";
+                  ]]]
+            state:
+              - font-size: 11px
+              - font-weight: bold
+              - white-space: nowrap
+              - margin-left: "-40px"
+              - margin-right: "-20px"
+      
+      # CHAMP RSSI
+      rssi:
+        card:
+          type: custom:button-card
+          entity: "[[[ return 'sensor.' + variables.device_id + '_tricordeur_rssi'; ]]]"
+          icon: mdi:radio-tower
+          show_state: true
+          show_name: false
+          show_icon: true
+          layout: icon_state
+          tap_action:
+            action: more-info
+          color: |
+            [[[
+              const entityId = 'sensor.' + variables.device_id + '_tricordeur_rssi';
+              const s = states[entityId];
+              if (!s || s.state === 'unavailable') return "grey";
+              const value = parseInt(s.state);
+              return value <= -86 ? "red" : value <= -80 ? "orange" : "seagreen";
+            ]]]
+          state_display: |
+            [[[
+              const entityId = 'sensor.' + variables.device_id + '_tricordeur_rssi';
+              const s = states[entityId];
+              if (!s || s.state === 'unavailable') return "N/A";
+              return Math.round(parseFloat(s.state)) + " dBm";
+            ]]]
+          styles:
+            card:
+              - box-shadow: none
+              - background: rgba(0,0,0,0.3)
+              - border-radius: 10px
+              - padding: 2px 6px
+              - cursor: pointer
+              - height: 20px
+              - min-height: 22px
+              - display: flex
+              - align-items: center
+              - justify-content: flex-start
+              - width: fit-content
+              - min-width: 100px
+            icon:
+              - width: 16px
+              - height: 16px
+              - margin-right: 4px
+              - margin-left: "-10px"
+            state:
+              - font-size: 11px
+              - font-weight: bold
+              - white-space: nowrap
+              - margin-left: "-40px"
+              - margin-right: "-20px"
+      
+      # CHAMP STATUS
+      status:
+        card:
+          type: custom:button-card
+          entity: "[[[ return 'binary_sensor.' + variables.device_id + '_status'; ]]]"
+          show_state: true
+          show_name: false
+          show_icon: true
+          layout: icon_state
+          tap_action:
+            action: more-info
+          icon: |
+            [[[
+              const entityId = 'binary_sensor.' + variables.device_id + '_status';
+              const s = states[entityId];
+              if (!s || s.state === 'unavailable') return "mdi:help-network-outline";
+              return s.state === 'on' ? "mdi:check-network-outline" : "mdi:close-network-outline";
+            ]]]
+          state_display: |
+            [[[
+              const entityId = 'binary_sensor.' + variables.device_id + '_status';
+              const s = states[entityId];
+              if (!s || s.state === 'unavailable') return "Inconnu";
+              return s.state === 'on' ? 'Connecté' : 'Hors ligne';
+            ]]]
+          styles:
+            card:
+              - box-shadow: none
+              - background: rgba(0,0,0,0.3)
+              - border-radius: 10px
+              - padding: 2px 6px
+              - cursor: pointer
+              - height: 20px
+              - min-height: 22px
+              - display: flex
+              - align-items: center
+              - justify-content: flex-start
+              - width: fit-content
+              - min-width: 100px
+            icon:
+              - width: 16px
+              - height: 16px
+              - margin-right: 4px
+              - margin-left: "-10px"
+              - color: |
+                  [[[
+                    const entityId = 'binary_sensor.' + variables.device_id + '_status';
+                    const s = states[entityId];
+                    if (!s || s.state === 'unavailable') return "orange";
+                    return s.state === 'on' ? "seagreen" : "red";
+                  ]]]
+              - animation: |
+                  [[[
+                    const entityId = 'binary_sensor.' + variables.device_id + '_status';
+                    const s = states[entityId];
+                    if (!s || s.state === 'unavailable' || s.state === 'off') return "blink 1s infinite";
+                    return "none";
+                  ]]]
+            state:
+              - font-size: 11px
+              - font-weight: bold
+              - white-space: nowrap
+              - margin-left: "-40px"
+              - margin-right: "-20px"
+
+# =============================================================================
+# ÉTAPE 2: UTILISATION DU TEMPLATE (dans vos vues/cartes)
+# =============================================================================
+
+# Maintenant, pour chaque ESP, vous n'avez plus que quelques lignes !
+
+cards:
+  # ESP Salon (votre carte actuelle)
+  - type: custom:button-card
+    template: esp_device_card
+    variables:
+      device_id: "esp_salon"
+      device_name: "esp-salon"
+  
+  # ESP Cuisine
+  - type: custom:button-card
+    template: esp_device_card
+    variables:
+      device_id: "esp_cuisine"
+      device_name: "esp-cuisine"
+  
+  # ESP Chambre
+  - type: custom:button-card
+    template: esp_device_card
+    variables:
+      device_id: "esp_chambre"
+      device_name: "esp-chambre"
+  
+  # ESP Bureau
+  - type: custom:button-card
+    template: esp_device_card
+    variables:
+      device_id: "esp_bureau"
+      device_name: "esp-bureau"
+
+# =============================================================================
+# ÉTAPE 3: PERSONNALISATIONS OPTIONNELLES PAR DEVICE
+# =============================================================================
+
+# Si vous voulez personnaliser certains ESP, vous pouvez surcharger le template :
+
+# Exemple: ESP avec couleurs personnalisées
+- type: custom:button-card
+  template: esp_device_card
+  variables:
+    device_id: "esp_special"
+    device_name: "ESP Spécial"
+  # Surcharge des styles pour ce device spécifique
+  styles:
+    card:
+      - background: rgba(255, 0, 0, 0.2) !important  # Rouge au lieu du gris
+
+# Exemple: ESP sans certains champs
+- type: custom:button-card
+  template: esp_device_card
+  variables:
+    device_id: "esp_minimal"
+    device_name: "ESP Minimal"
+  # Masquer le champ température pour ce device
+  custom_fields:
+    temp: ""  # Champ vide = masqué
+
+# =============================================================================
+# AVANTAGES DE CETTE APPROCHE
+# =============================================================================
+
+# ✅ MAINTENANCE FACILE
+# - Un seul endroit pour modifier le design de toutes les cartes ESP
+# - Correction de bugs une seule fois
+# - Ajout de nouvelles fonctionnalités centralisé
+
+# ✅ COHÉRENCE VISUELLE
+# - Toutes les cartes ESP ont exactement le même style
+# - Pas de risque d'oublier une propriété lors de la copie
+
+# ✅ SIMPLICITÉ D'AJOUT
+# - Nouvelle carte ESP = seulement 4 lignes de code
+# - Plus d'erreurs de copier-coller
+
+# ✅ FLEXIBILITÉ
+# - Possibilité de surcharger n'importe quelle propriété pour un ESP spécifique
+# - Variables permettent la personnalisation facile
+
+# ✅ PERFORMANCE
+# - Home Assistant optimise les templates
+# - Moins de duplication = interface plus rapide
+
+# =============================================================================
+# NAMING CONVENTION IMPORTANTE
+# =============================================================================
+
+# Le template assume que vos entités suivent cette convention :
+# sensor.{device_id}_wifi_signal
+# sensor.{device_id}_uptime  
+# sensor.{device_id}_interntemp
+# sensor.{device_id}_tricordeur_rssi
+# sensor.{device_id}_ip
+# binary_sensor.{device_id}_status
+
+# Si vos entités ont des noms différents, modifiez les dans le template
+# Exemple si vos capteurs s'appellent "esp_xxx_temperature" au lieu de "esp_xxx_interntemp":
+# entity: "[[[ return 'sensor.' + variables.device_id + '_temperature'; ]]]"
