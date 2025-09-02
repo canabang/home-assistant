@@ -1,0 +1,195 @@
+# TEMPLATE BUTTON-CARD - À ajouter dans button_card_templates
+# Dans configuration.yaml ou dans un fichier séparé
+
+button_card_templates:
+  window_door_template:
+    # Entité principale construite dynamiquement
+    entity: |
+      [[[
+        return 'binary_sensor.' + variables.base_name + '_contact';
+      ]]]
+    show_name: true
+    show_state: true
+    show_icon: true
+    show_label: false
+    layout: icon_name_state2nd
+    
+    # État affiché
+    state_display: |
+      [[[
+        const contactEntity = states['binary_sensor.' + variables.base_name + '_contact'];
+        return contactEntity && contactEntity.state === 'on' ? 'Ouverte' : 'Fermée';
+      ]]]
+    
+    # Icône conditionnelle - utilise la variable icon_type
+    icon: |
+      [[[
+        const contactEntity = states['binary_sensor.' + variables.base_name + '_contact'];
+        const iconType = variables.icon_type || 'window';
+        
+        if (contactEntity && contactEntity.state === 'on') {
+          return iconType === 'door' ? 'phu:panel-door-open' : 'mdi:window-open-variant';
+        } else {
+          return iconType === 'door' ? 'phu:panel-door-close' : 'mdi:window-closed-variant';
+        }
+      ]]]
+    
+    # Couleur de l'icône
+    color: |
+      [[[
+        const contactEntity = states['binary_sensor.' + variables.base_name + '_contact'];
+        return contactEntity && contactEntity.state === 'on' ? 'seagreen' : 'grey';
+      ]]]
+    
+    tap_action:
+      action: more-info
+    
+    # Badge batterie
+    custom_fields:
+      battery_badge:
+        card:
+          type: custom:button-card
+          entity: |
+            [[[
+              return 'sensor.' + variables.base_name + '_battery';
+            ]]]
+          show_name: false
+          show_state: false
+          show_icon: true
+          icon: |
+            [[[
+              const batteryEntity = states['sensor.' + variables.base_name + '_battery'];
+              
+              console.log('Battery entity ID:', 'sensor.' + variables.base_name + '_battery');
+              console.log('Battery entity:', batteryEntity);
+              
+              if (!batteryEntity || !batteryEntity.state) {
+                return 'mdi:battery-alert';
+              }
+              
+              const battery = Number(batteryEntity.state);
+              console.log('Battery value:', battery);
+              
+              if (isNaN(battery)) return 'mdi:battery-unknown';
+              if (battery >= 95) return 'mdi:battery';
+              if (battery >= 85) return 'mdi:battery-90';
+              if (battery >= 75) return 'mdi:battery-80';
+              if (battery >= 65) return 'mdi:battery-70';
+              if (battery >= 55) return 'mdi:battery-60';
+              if (battery >= 45) return 'mdi:battery-50';
+              if (battery >= 35) return 'mdi:battery-40';
+              if (battery >= 25) return 'mdi:battery-30';
+              if (battery >= 15) return 'mdi:battery-20';
+              if (battery >= 5) return 'mdi:battery-10';
+              return 'mdi:battery-outline';
+            ]]]
+          color: |
+            [[[
+              const batteryEntity = states['sensor.' + variables.base_name + '_battery'];
+              
+              if (!batteryEntity || !batteryEntity.state) {
+                return 'grey';
+              }
+              
+              const battery = Number(batteryEntity.state);
+              
+              if (isNaN(battery)) return 'grey';
+              if (battery >= 30) return 'seagreen';
+              if (battery >= 20) return 'orange'; 
+              return 'red';
+            ]]]
+          styles:
+            card:
+              - width: 20px
+              - height: 20px
+              - background: transparent
+              - box-shadow: none
+              - padding: 0
+              - border: none
+            icon:
+              - width: 14px
+              - height: 14px
+    
+    # Styles
+    styles:
+      card:
+        - background: transparent
+        - border: 1px solid rgba(255, 255, 255, 0.2)
+        - border-radius: 25px
+        - box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3)
+        - padding: 12px 16px
+        - backdrop-filter: none
+        - min-height: 60px
+        - width: 150px
+        
+      name:
+        - font-size: 16px
+        - font-weight: 500
+        - color: |
+            [[[
+              const contactEntity = states['binary_sensor.' + variables.base_name + '_contact'];
+              return contactEntity && contactEntity.state === 'on' ? 'seagreen' : 'var(--primary-text-color)';
+            ]]]
+        - text-align: left
+        - justify-self: start
+        - align-self: center
+        - margin-left: 10px
+        - position: relative
+        - top: 5px
+        
+      state:
+        - font-size: 13px
+        - color: |
+            [[[
+              const contactEntity = states['binary_sensor.' + variables.base_name + '_contact'];
+              return contactEntity && contactEntity.state === 'on' ? 'seagreen' : 'var(--secondary-text-color)';
+            ]]]
+        - text-align: left
+        - justify-self: start
+        - align-self: center
+        - margin-top: -5px
+        - margin-left: 10px
+        
+      icon:
+        - width: 24px
+        - height: 24px
+        - color: |
+            [[[
+              const contactEntity = states['binary_sensor.' + variables.base_name + '_contact'];
+              return contactEntity && contactEntity.state === 'on' ? 'seagreen' : 'grey';
+            ]]]
+        
+      grid:
+        - grid-template-areas: '"i n" "i s"'
+        - grid-template-columns: auto 1fr
+        - grid-template-rows: auto auto
+        - grid-gap: 8px
+        - align-items: center
+        - position: relative
+        
+      custom_fields:
+        battery_badge:
+          - position: absolute
+          - top: 0px
+          - left: 17px
+          - z-index: 999
+
+# ====================================
+# UTILISATION DU TEMPLATE
+# ====================================
+
+# Pour une FENÊTRE :
+# type: custom:button-card
+# template: window_door_template
+# name: Salon
+# variables:
+#   base_name: ouvfenetsal
+#   icon_type: window
+
+# Pour une PORTE :
+# type: custom:button-card
+# template: window_door_template
+# name: Entrée
+# variables:
+#   base_name: ouvportent
+#   icon_type: door
