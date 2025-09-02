@@ -1,0 +1,297 @@
+# Guide complet des styles de button-card
+
+## Structure des styles
+
+La section `styles` permet de personnaliser l'apparence de chaque élément de la carte. Voici tous les éléments stylables :
+
+```yaml
+styles:
+  card:           # La carte elle-même
+  icon:           # L'icône
+  entity_picture: # L'image d'entité (si utilisée)
+  name:           # Le nom
+  state:          # L'état
+  label:          # Le label
+  lock:           # L'icône de verrouillage
+  tooltip:        # L'infobulle
+  custom_fields:  # Champs personnalisés
+  grid:           # Configuration de la grille CSS
+  img_cell:       # Cellule contenant l'icône
+```
+
+## Options principales par élément
+
+### **card** - Styles de la carte principale
+```yaml
+styles:
+  card:
+    - background: color/gradient/image      # Arrière-plan
+    - background-color: color               # Couleur de fond
+    - border: 1px solid color              # Bordure
+    - border-radius: 10px                  # Coins arrondis
+    - box-shadow: 0px 2px 10px rgba(0,0,0,0.2)  # Ombre
+    - padding: 10px                        # Espacement intérieur
+    - margin: 5px                          # Espacement extérieur
+    - width: 100px                         # Largeur
+    - height: 100px                        # Hauteur
+    - min-width: 50px                      # Largeur minimale
+    - min-height: 50px                     # Hauteur minimale
+    - max-width: 200px                     # Largeur maximale
+    - max-height: 200px                    # Hauteur maximale
+    - opacity: 0.8                         # Transparence
+    - filter: brightness(80%)              # Filtres CSS
+    - animation: blink 2s infinite         # Animations
+    - cursor: pointer                      # Curseur de souris
+    - overflow: hidden                     # Gestion du débordement
+    - position: relative/absolute          # Positionnement
+    - z-index: 1                          # Ordre d'affichage
+    - transform: rotate(45deg)             # Transformations
+    - transition: all 0.3s ease           # Transitions
+```
+
+### **icon** - Styles de l'icône
+```yaml
+styles:
+  icon:
+    - color: red                          # Couleur
+    - width: 40px                         # Largeur
+    - height: 40px                        # Hauteur
+    - margin: 5px                         # Marges
+    - margin-top: 10px                    # Marge du haut
+    - margin-right: 5px                   # Marge de droite
+    - margin-bottom: 10px                 # Marge du bas
+    - margin-left: 5px                    # Marge de gauche
+    - padding: 5px                        # Espacement
+    - filter: brightness(120%)            # Filtres
+    - opacity: 0.7                        # Transparence
+    - animation: spin 2s linear infinite   # Animation rotation
+    - transform: scale(1.2)               # Transformation
+    - align-self: center/start/end        # Alignement vertical
+    - justify-self: center/start/end      # Alignement horizontal
+```
+
+### **name** - Styles du nom
+```yaml
+styles:
+  name:
+    - color: white                        # Couleur du texte
+    - font-size: 14px                     # Taille de police
+    - font-weight: bold/normal            # Épaisseur
+    - font-family: Arial, sans-serif      # Police
+    - text-align: center/left/right       # Alignement
+    - text-transform: uppercase/lowercase # Transformation
+    - letter-spacing: 2px                 # Espacement des lettres
+    - line-height: 1.2                    # Hauteur de ligne
+    - text-shadow: 1px 1px 2px black     # Ombre du texte
+    - white-space: nowrap                 # Gestion des retours ligne
+    - overflow: hidden                    # Débordement
+    - text-overflow: ellipsis             # Points de suspension
+    - padding: 5px                        # Espacement
+    - margin: 2px                         # Marges
+    - align-self: center/start/end        # Alignement vertical
+    - justify-self: center/start/end      # Alignement horizontal
+```
+
+### **state** - Styles de l'état
+```yaml
+styles:
+  state:
+    - color: blue                         # Couleur
+    - font-size: 12px                     # Taille
+    - font-weight: normal                 # Épaisseur
+    - opacity: 0.8                        # Transparence
+    - text-align: center                  # Alignement
+    - padding: 2px                        # Espacement
+    - margin: 1px                         # Marges
+    - background: rgba(0,0,0,0.2)         # Fond
+    - border-radius: 5px                  # Coins arrondis
+    - white-space: nowrap                 # Pas de retour ligne
+```
+
+### **label** - Styles du label
+```yaml
+styles:
+  label:
+    - color: gray                         # Couleur
+    - font-size: 10px                     # Taille
+    - font-style: italic                  # Style italique
+    - text-align: center                  # Alignement
+    - padding: 2px                        # Espacement
+    - opacity: 0.7                        # Transparence
+    - writing-mode: vertical-rl           # Mode d'écriture vertical
+    - text-orientation: mixed             # Orientation du texte
+```
+
+### **custom_fields** - Champs personnalisés
+```yaml
+styles:
+  custom_fields:
+    mon_champ:
+      - position: absolute                # Position absolue
+      - top: 10%                         # Position du haut
+      - right: 10%                       # Position de droite
+      - background: red                   # Fond
+      - border-radius: 50%               # Cercle
+      - width: 20px                      # Largeur
+      - height: 20px                     # Hauteur
+      - display: flex                    # Type d'affichage
+      - align-items: center              # Alignement vertical
+      - justify-content: center          # Alignement horizontal
+      - font-size: 8px                   # Taille de police
+      - color: white                     # Couleur
+```
+
+## Styles avancés
+
+### **grid** - Configuration de la grille CSS
+```yaml
+styles:
+  grid:
+    - grid-template-areas: '"i n s" "i n l"'  # Zones de la grille
+    - grid-template-columns: 1fr 2fr 1fr      # Colonnes
+    - grid-template-rows: 1fr min-content     # Lignes
+    - grid-gap: 5px                           # Espacement
+    - position: relative                      # Position
+    - display: grid                           # Type d'affichage
+```
+
+### **img_cell** - Cellule de l'icône
+```yaml
+styles:
+  img_cell:
+    - align-self: start/center/end        # Alignement vertical
+    - justify-content: start/center/end   # Alignement horizontal
+    - text-align: center                  # Alignement du texte
+    - margin: 5px                         # Marges
+```
+
+## Couleurs et variables CSS
+
+### Variables disponibles
+```yaml
+# Variables pour les lumières
+- color: var(--button-card-light-color)              # Couleur de lumière actuelle
+- color: var(--button-card-light-color-no-temperature) # Sans température
+
+# Variables Home Assistant
+- color: var(--primary-color)                        # Couleur principale
+- color: var(--primary-background-color)             # Fond principal
+- color: var(--secondary-background-color)           # Fond secondaire
+- color: var(--paper-item-icon-color)               # Couleur icône inactive
+- color: var(--paper-item-icon-active-color)        # Couleur icône active
+- color: var(--primary-text-color)                  # Couleur texte principale
+- color: var(--secondary-text-color)                # Couleur texte secondaire
+- color: var(--disabled-text-color)                 # Couleur texte désactivé
+```
+
+### Formats de couleurs
+```yaml
+- color: red                              # Nom de couleur
+- color: '#FF0000'                        # Hexadécimal
+- color: 'rgb(255, 0, 0)'                # RGB
+- color: 'rgba(255, 0, 0, 0.5)'          # RGBA avec transparence
+- color: 'hsl(0, 100%, 50%)'             # HSL
+```
+
+## Animations
+
+### Animations prédéfinies
+```yaml
+- animation: blink 2s infinite            # Clignotement
+- animation: spin 2s linear infinite      # Rotation
+- animation: pulse 1s ease-in-out infinite # Pulsation
+```
+
+### Définir des animations personnalisées
+```yaml
+extra_styles: |
+  @keyframes ma_animation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+styles:
+  card:
+    - animation: ma_animation 2s infinite
+```
+
+## Filtres CSS
+```yaml
+- filter: brightness(120%)                # Luminosité
+- filter: contrast(110%)                  # Contraste
+- filter: hue-rotate(90deg)               # Rotation teinte
+- filter: saturate(150%)                  # Saturation
+- filter: blur(2px)                       # Flou
+- filter: grayscale(100%)                 # Noir et blanc
+- filter: opacity(50%)                    # Opacité
+- filter: sepia(100%)                     # Sépia
+```
+
+## Transformations
+```yaml
+- transform: rotate(45deg)                # Rotation
+- transform: scale(1.2)                   # Mise à l'échelle
+- transform: translateX(10px)             # Translation horizontale
+- transform: translateY(-5px)             # Translation verticale
+- transform: skew(15deg, 5deg)            # Inclinaison
+```
+
+## Templates dans les styles
+```yaml
+styles:
+  card:
+    - background: |
+        [[[
+          if (entity.state === 'on') return 'green';
+          return 'red';
+        ]]]
+  icon:
+    - color: |
+        [[[
+          const temp = parseFloat(entity.state);
+          if (temp > 25) return 'red';
+          if (temp > 15) return 'orange';
+          return 'blue';
+        ]]]
+```
+
+## Responsive et aspect ratio
+```yaml
+aspect_ratio: 1/1                         # Carré
+aspect_ratio: 2/1                         # Rectangle horizontal
+aspect_ratio: 1/1.5                       # Rectangle vertical
+```
+
+## Exemples pratiques
+
+### Carte avec notification
+```yaml
+styles:
+  grid:
+    - position: relative
+  custom_fields:
+    notification:
+      - position: absolute
+      - top: 10%
+      - right: 10%
+      - background: red
+      - border-radius: 50%
+      - width: 20px
+      - height: 20px
+      - font-size: 8px
+      - color: white
+      - display: flex
+      - align-items: center
+      - justify-content: center
+```
+
+### Carte avec effet de hover
+```yaml
+styles:
+  card:
+    - transition: all 0.3s ease
+    - cursor: pointer
+  card:hover:
+    - transform: scale(1.05)
+    - box-shadow: 0 5px 15px rgba(0,0,0,0.3)
+```
