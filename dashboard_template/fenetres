@@ -1,0 +1,302 @@
+type: custom:button-card
+entity: binary_sensor.ouvfenetsal_contact
+name: Salon
+show_name: true
+show_state: true  
+show_icon: true
+show_label: false
+layout: icon_name_state2nd
+
+# État affiché (équivalent du secondary de mushroom)
+state_display: |
+  [[[
+    return entity.state === 'on' ? 'Ouverte' : 'Fermée';
+  ]]]
+
+# Icône conditionnelle
+icon: |
+  [[[
+    return entity.state === 'on' ? 'mdi:window-open-variant' : 'mdi:window-closed-variant';
+  ]]]
+
+# Couleur de l'icône
+color: |
+  [[[
+    return entity.state === 'on' ? 'seagreen' : 'grey';
+  ]]]
+
+tap_action:
+  action: more-info
+
+styles:
+  card:
+    # Style de base - équivalent du style mushroom
+    - background: transparent
+    - border: 1px solid rgba(255, 255, 255, 0.2)
+    - border-radius: 25px
+    - box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3)
+    - padding: 12px 16px
+    - backdrop-filter: none
+    - min-height: 60px
+    
+  # Style du nom (primary)
+  name:
+    - font-size: 16px
+    - font-weight: 500
+    - color: |
+        [[[
+          return entity.state === 'on' ? 'seagreen' : 'var(--primary-text-color)';
+        ]]]
+    - text-align: left
+    - justify-self: start
+    - align-self: center
+    
+  # Style de l'état (secondary)  
+  state:
+    - font-size: 14px
+    - color: |
+        [[[
+          return entity.state === 'on' ? 'seagreen' : 'var(--secondary-text-color)';
+        ]]]
+    - text-align: left
+    - justify-self: start
+    - align-self: center
+    - margin-top: 2px
+    
+  # Style de l'icône
+  icon:
+    - width: 24px
+    - height: 24px
+    - color: |
+        [[[
+          return entity.state === 'on' ? 'seagreen' : 'grey';
+        ]]]
+    
+  # Configuration de la grille pour layout horizontal
+  grid:
+    - grid-template-areas: '"i n" "i s"'
+    - grid-template-columns: auto 1fr
+    - grid-template-rows: auto auto
+    - grid-gap: 8px
+    - align-items: center
+
+# Champ personnalisé pour le badge batterie
+custom_fields:
+  battery_badge:
+    card:
+      type: custom:button-card
+      entity: sensor.ouvfenetsal_battery
+      show_name: false
+      show_state: false
+      show_icon: true
+      icon: mdi:battery
+      color: |
+        [[[
+          const battery = parseInt(entity.state);
+          if (battery >= 100) return 'seagreen';
+          if (battery >= 30) return 'seagreen'; 
+          if (battery >= 20) return 'orange';
+          return 'red';
+        ]]]
+      styles:
+        card:
+          - position: absolute
+          - top: 8px
+          - right: 8px
+          - width: 20px
+          - height: 20px
+          - border-radius: 50%
+          - background: |
+              [[[
+                const battery = parseInt(entity.state);
+                if (battery >= 100) return 'seagreen';
+                if (battery >= 30) return 'seagreen';
+                if (battery >= 20) return 'orange'; 
+                return 'red';
+              ]]]
+          - box-shadow: none
+          - padding: 0
+          - border: none
+        icon:
+          - width: 12px
+          - height: 12px
+          - color: white
+
+# Ajustement de la grille pour inclure le badge
+styles:
+  grid:
+    - position: relative  # Nécessaire pour le positionnement absolu du badge
+
+# =============================================================================
+# VERSION TEMPLATE POUR RÉUTILISATION
+# =============================================================================
+
+# Si vous voulez créer un template pour ce type de carte :
+# À ajouter dans button_card_templates:
+
+window_sensor_card:
+  variables:
+    room_name: "Pièce"
+    contact_entity: "binary_sensor.default_contact"
+    battery_entity: "sensor.default_battery" 
+  
+  entity: "[[[ return variables.contact_entity; ]]]"
+  name: "[[[ return variables.room_name; ]]]"
+  show_name: true
+  show_state: true
+  show_icon: true
+  show_label: false
+  layout: icon_name_state2nd
+  
+  state_display: |
+    [[[
+      return entity.state === 'on' ? 'Ouverte' : 'Fermée';
+    ]]]
+  
+  icon: |
+    [[[
+      return entity.state === 'on' ? 'mdi:window-open-variant' : 'mdi:window-closed-variant';
+    ]]]
+  
+  color: |
+    [[[
+      return entity.state === 'on' ? 'seagreen' : 'grey';
+    ]]]
+  
+  tap_action:
+    action: more-info
+  
+  styles:
+    card:
+      - background: transparent
+      - border: 1px solid rgba(255, 255, 255, 0.2)
+      - border-radius: 25px
+      - box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3)
+      - padding: 12px 16px
+      - backdrop-filter: none
+      - min-height: 60px
+      - position: relative
+      
+    name:
+      - font-size: 16px
+      - font-weight: 500
+      - color: |
+          [[[
+            return entity.state === 'on' ? 'seagreen' : 'var(--primary-text-color)';
+          ]]]
+      - text-align: left
+      - justify-self: start
+      - align-self: center
+      
+    state:
+      - font-size: 14px
+      - color: |
+          [[[
+            return entity.state === 'on' ? 'seagreen' : 'var(--secondary-text-color)';
+          ]]]
+      - text-align: left
+      - justify-self: start
+      - align-self: center
+      - margin-top: 2px
+      
+    icon:
+      - width: 24px
+      - height: 24px
+      - color: |
+          [[[
+            return entity.state === 'on' ? 'seagreen' : 'grey';
+          ]]]
+      
+    grid:
+      - grid-template-areas: '"i n" "i s"'
+      - grid-template-columns: auto 1fr
+      - grid-template-rows: auto auto
+      - grid-gap: 8px
+      - align-items: center
+  
+  custom_fields:
+    battery_badge:
+      card:
+        type: custom:button-card
+        entity: "[[[ return variables.battery_entity; ]]]"
+        show_name: false
+        show_state: false
+        show_icon: true
+        icon: mdi:battery
+        color: |
+          [[[
+            const battery = parseInt(entity.state);
+            if (battery >= 100) return 'seagreen';
+            if (battery >= 30) return 'seagreen';
+            if (battery >= 20) return 'orange';
+            return 'red';
+          ]]]
+        styles:
+          card:
+            - position: absolute
+            - top: 8px
+            - right: 8px
+            - width: 20px
+            - height: 20px
+            - border-radius: 50%
+            - background: |
+                [[[
+                  const battery = parseInt(entity.state);
+                  if (battery >= 100) return 'seagreen';
+                  if (battery >= 30) return 'seagreen';
+                  if (battery >= 20) return 'orange';
+                  return 'red';
+                ]]]
+            - box-shadow: none
+            - padding: 0
+            - border: none
+          icon:
+            - width: 12px
+            - height: 12px
+            - color: white
+
+# =============================================================================
+# UTILISATION DU TEMPLATE
+# =============================================================================
+
+# Carte Salon (celle d'origine)
+- type: custom:button-card
+  template: window_sensor_card
+  variables:
+    room_name: "Salon"
+    contact_entity: "binary_sensor.ouvfenetsal_contact"
+    battery_entity: "sensor.ouvfenetsal_battery"
+
+# Carte Cuisine
+- type: custom:button-card
+  template: window_sensor_card
+  variables:
+    room_name: "Cuisine"
+    contact_entity: "binary_sensor.ouvfenetcuisine_contact"
+    battery_entity: "sensor.ouvfenetcuisine_battery"
+
+# Carte Chambre
+- type: custom:button-card
+  template: window_sensor_card
+  variables:
+    room_name: "Chambre"
+    contact_entity: "binary_sensor.ouvfenetchambre_contact"
+    battery_entity: "sensor.ouvfenetchambre_battery"
+
+# =============================================================================
+# CORRESPONDANCES MUSHROOM → BUTTON CARD
+# =============================================================================
+
+# Mushroom                  → Button Card
+# --------                    -----------
+# primary                   → name
+# secondary                 → state_display
+# icon                      → icon (avec template)
+# icon_color                → color (avec template)
+# badge_icon + badge_color  → custom_fields avec button-card imbriqué
+# entity                    → entity
+# layout: horizontal        → layout: icon_name_state2nd + grid config
+# tap_action                → tap_action
+# card_mod style            → styles: card/name/state/icon
+# fill_container            → pas d'équivalent direct (géré par les styles)
+# multiline_secondary       → géré par white-space dans les styles
