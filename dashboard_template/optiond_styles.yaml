@@ -1,0 +1,559 @@
+# Guide complet des styles button-card - Toutes les valeurs possibles
+
+## **POSITIONNEMENT ET ALIGNEMENT**
+
+### **display**
+```yaml
+- display: block           # Élément de bloc (par défaut)
+- display: inline          # Élément en ligne
+- display: inline-block    # Bloc en ligne
+- display: flex            # Flexbox
+- display: grid            # Grille CSS
+- display: none            # Masqué
+- display: contents        # Contenu uniquement
+- display: table           # Tableau
+- display: table-cell      # Cellule de tableau
+```
+
+### **position**
+```yaml
+- position: static         # Position normale (par défaut)
+- position: relative       # Relative à sa position normale
+- position: absolute       # Absolue par rapport au parent positionné
+- position: fixed          # Fixe par rapport à la fenêtre
+- position: sticky         # Collante lors du défilement
+```
+
+### **justify-content** (alignement horizontal en flexbox)
+```yaml
+- justify-content: flex-start    # Début (par défaut)
+- justify-content: flex-end      # Fin
+- justify-content: center        # Centre
+- justify-content: space-between # Espace entre les éléments
+- justify-content: space-around  # Espace autour des éléments
+- justify-content: space-evenly  # Espace égal partout
+- justify-content: stretch       # Étirement
+```
+
+### **align-items** (alignement vertical en flexbox)
+```yaml
+- align-items: stretch        # Étirement (par défaut)
+- align-items: flex-start     # Début
+- align-items: flex-end       # Fin
+- align-items: center         # Centre
+- align-items: baseline       # Ligne de base
+```
+
+### **align-self** (alignement individuel)
+```yaml
+- align-self: auto           # Automatique (par défaut)
+- align-self: flex-start     # Début
+- align-self: flex-end       # Fin
+- align-self: center         # Centre
+- align-self: baseline       # Ligne de base
+- align-self: stretch        # Étirement
+```
+
+### **justify-self** (alignement individuel en grille)
+```yaml
+- justify-self: auto         # Automatique
+- justify-self: start        # Début
+- justify-self: end          # Fin
+- justify-self: center       # Centre
+- justify-self: stretch      # Étirement
+```
+
+## **DIMENSIONS**
+
+### **width / height**
+```yaml
+- width: auto               # Automatique
+- width: 100px              # Pixels
+- width: 50%                # Pourcentage
+- width: 10em               # Em (relatif à la police)
+- width: 5rem               # Rem (relatif à la racine)
+- width: 100vh              # Viewport height
+- width: 100vw              # Viewport width
+- width: fit-content        # S'adapte au contenu
+- width: max-content        # Contenu maximum
+- width: min-content        # Contenu minimum
+```
+
+### **box-sizing**
+```yaml
+- box-sizing: content-box   # Taille = contenu uniquement
+- box-sizing: border-box    # Taille = contenu + padding + bordure
+```
+
+## **ESPACEMENT**
+
+### **margin / padding**
+```yaml
+# Valeurs individuelles
+- margin-top: 10px
+- margin-right: 5px
+- margin-bottom: 10px
+- margin-left: 5px
+
+# Raccourcis
+- margin: 10px                    # Tous les côtés
+- margin: 10px 5px               # Vertical | Horizontal
+- margin: 10px 5px 15px          # Haut | Horizontal | Bas
+- margin: 10px 5px 15px 20px     # Haut | Droite | Bas | Gauche
+
+# Valeurs spéciales
+- margin: auto                    # Centrage automatique
+- margin: -5px                    # Marges négatives
+```
+
+## **TEXTE**
+
+### **text-align**
+```yaml
+- text-align: left          # Gauche
+- text-align: right         # Droite
+- text-align: center        # Centre
+- text-align: justify       # Justifié
+- text-align: start         # Début (selon la direction)
+- text-align: end           # Fin (selon la direction)
+```
+
+### **font-weight**
+```yaml
+- font-weight: normal       # Normal (400)
+- font-weight: bold         # Gras (700)
+- font-weight: bolder       # Plus gras que le parent
+- font-weight: lighter      # Plus léger que le parent
+- font-weight: 100          # Très fin
+- font-weight: 200          # Fin
+- font-weight: 300          # Léger
+- font-weight: 400          # Normal
+- font-weight: 500          # Moyen
+- font-weight: 600          # Semi-gras
+- font-weight: 700          # Gras
+- font-weight: 800          # Extra-gras
+- font-weight: 900          # Ultra-gras
+```
+
+### **font-style**
+```yaml
+- font-style: normal        # Normal
+- font-style: italic        # Italique
+- font-style: oblique       # Oblique
+```
+
+### **text-transform**
+```yaml
+- text-transform: none         # Aucune transformation
+- text-transform: capitalize   # Première lettre en majuscule
+- text-transform: uppercase    # Tout en majuscules
+- text-transform: lowercase    # Tout en minuscules
+```
+
+### **text-decoration**
+```yaml
+- text-decoration: none         # Aucune décoration
+- text-decoration: underline    # Souligné
+- text-decoration: overline     # Ligne au-dessus
+- text-decoration: line-through # Barré
+```
+
+### **white-space**
+```yaml
+- white-space: normal       # Normal (retours à la ligne)
+- white-space: nowrap       # Pas de retour à la ligne
+- white-space: pre          # Conserve espaces et retours
+- white-space: pre-wrap     # Conserve espaces, retours autorisés
+- white-space: pre-line     # Retours conservés, espaces normaux
+```
+
+### **overflow**
+```yaml
+- overflow: visible         # Visible (par défaut)
+- overflow: hidden          # Masqué
+- overflow: scroll          # Barres de défilement
+- overflow: auto            # Barres si nécessaire
+```
+
+### **text-overflow**
+```yaml
+- text-overflow: clip       # Coupé net
+- text-overflow: ellipsis   # Points de suspension (...)
+```
+
+## **COULEURS ET ARRIÈRE-PLANS**
+
+### **background**
+```yaml
+# Couleurs
+- background: red
+- background: '#FF0000'
+- background: 'rgb(255, 0, 0)'
+- background: 'rgba(255, 0, 0, 0.5)'
+- background: 'hsl(0, 100%, 50%)'
+
+# Images
+- background: url('/local/image.jpg')
+- background: linear-gradient(45deg, red, blue)
+- background: radial-gradient(circle, red, blue)
+
+# Propriétés d'arrière-plan
+- background-size: cover        # Couvre tout
+- background-size: contain      # Contient l'image
+- background-size: 100% 100%    # Étirement
+- background-position: center   # Position
+- background-repeat: no-repeat  # Pas de répétition
+- background-repeat: repeat     # Répétition
+- background-attachment: fixed  # Fixe lors du scroll
+```
+
+## **BORDURES**
+
+### **border**
+```yaml
+# Style de bordure
+- border: 1px solid red
+- border-style: solid       # Pleine
+- border-style: dashed      # Tirets
+- border-style: dotted      # Points
+- border-style: double      # Double
+- border-style: groove      # Rainure
+- border-style: ridge       # Crête
+- border-style: inset       # Enfoncé
+- border-style: outset      # Saillant
+- border-style: none        # Aucune
+
+# Coins arrondis
+- border-radius: 10px       # Tous les coins
+- border-radius: 50%        # Cercle
+- border-radius: 10px 20px  # Coins opposés
+- border-radius: 5px 10px 15px 20px  # Chaque coin
+```
+
+## **OMBRES ET EFFETS**
+
+### **box-shadow**
+```yaml
+- box-shadow: none                                    # Aucune ombre
+- box-shadow: 2px 2px 4px rgba(0,0,0,0.3)           # Ombre simple
+- box-shadow: 0 0 10px red                           # Ombre colorée
+- box-shadow: inset 0 0 10px rgba(0,0,0,0.5)        # Ombre intérieure
+- box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.1)  # Multiples
+```
+
+### **text-shadow**
+```yaml
+- text-shadow: none                     # Aucune ombre
+- text-shadow: 1px 1px 2px black       # Ombre simple
+- text-shadow: 0 0 5px red             # Ombre fluorescente
+- text-shadow: 2px 2px 0 white, 4px 4px 0 black  # Ombres multiples
+```
+
+## **TRANSFORMATIONS**
+
+### **transform**
+```yaml
+- transform: none                      # Aucune transformation
+- transform: rotate(45deg)             # Rotation
+- transform: scale(1.2)                # Mise à l'échelle
+- transform: scaleX(1.5)               # Échelle horizontale
+- transform: scaleY(0.8)               # Échelle verticale
+- transform: translate(10px, 5px)      # Translation
+- transform: translateX(10px)          # Translation horizontale
+- transform: translateY(-5px)          # Translation verticale
+- transform: skew(15deg, 5deg)         # Inclinaison
+- transform: matrix(1, 0, 0, 1, 0, 0)  # Matrice de transformation
+```
+
+### **transform-origin**
+```yaml
+- transform-origin: center          # Centre (par défaut)
+- transform-origin: top left        # Coin supérieur gauche
+- transform-origin: bottom right    # Coin inférieur droit
+- transform-origin: 50% 50%         # Pourcentages
+```
+
+## **ANIMATIONS ET TRANSITIONS**
+
+### **animation**
+```yaml
+- animation: none                           # Aucune animation
+- animation: blink 2s infinite              # Clignotement infini
+- animation: spin 1s linear infinite        # Rotation infinie
+- animation: pulse 1.5s ease-in-out infinite # Pulsation
+- animation: bounce 1s ease infinite        # Rebond
+- animation: shake 0.5s ease-in-out         # Secousse
+```
+
+### **animation-timing-function**
+```yaml
+- animation-timing-function: ease           # Lent-rapide-lent
+- animation-timing-function: ease-in        # Lent au début
+- animation-timing-function: ease-out       # Lent à la fin
+- animation-timing-function: ease-in-out    # Lent aux extrémités
+- animation-timing-function: linear         # Vitesse constante
+- animation-timing-function: steps(4)       # Par étapes
+- animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1)  # Courbe personnalisée
+```
+
+### **transition**
+```yaml
+- transition: none                          # Aucune transition
+- transition: all 0.3s ease                # Toutes propriétés
+- transition: color 0.2s, background 0.5s  # Propriétés spécifiques
+- transition-delay: 0.1s                   # Délai
+```
+
+## **FILTRES**
+
+### **filter**
+```yaml
+- filter: none                     # Aucun filtre
+- filter: brightness(120%)         # Luminosité (100% = normal)
+- filter: contrast(150%)           # Contraste (100% = normal)
+- filter: hue-rotate(90deg)        # Rotation de teinte
+- filter: saturate(200%)           # Saturation (100% = normal)
+- filter: blur(5px)                # Flou
+- filter: grayscale(100%)          # Noir et blanc (0-100%)
+- filter: sepia(50%)               # Sépia (0-100%)
+- filter: invert(100%)             # Inversion des couleurs
+- filter: opacity(70%)             # Opacité (0-100%)
+- filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5))  # Ombre portée
+```
+
+## **FLEXBOX**
+
+### **flex-direction**
+```yaml
+- flex-direction: row              # Horizontale (par défaut)
+- flex-direction: row-reverse      # Horizontale inversée
+- flex-direction: column           # Verticale
+- flex-direction: column-reverse   # Verticale inversée
+```
+
+### **flex-wrap**
+```yaml
+- flex-wrap: nowrap               # Pas d'emballage (par défaut)
+- flex-wrap: wrap                 # Emballage
+- flex-wrap: wrap-reverse         # Emballage inversé
+```
+
+### **align-content** (lignes multiples en flexbox)
+```yaml
+- align-content: stretch          # Étirement (par défaut)
+- align-content: flex-start       # Début
+- align-content: flex-end         # Fin
+- align-content: center           # Centre
+- align-content: space-between    # Espace entre
+- align-content: space-around     # Espace autour
+```
+
+## **GRILLE CSS**
+
+### **grid-template-columns / grid-template-rows**
+```yaml
+- grid-template-columns: 1fr 2fr 1fr      # Fractions flexibles
+- grid-template-columns: 100px auto 50px  # Tailles mixtes
+- grid-template-columns: repeat(3, 1fr)   # Répétition
+- grid-template-columns: minmax(100px, 1fr) # Min-max
+- grid-template-columns: min-content      # Contenu minimum
+- grid-template-columns: max-content      # Contenu maximum
+- grid-template-columns: fit-content(200px) # Ajustement avec limite
+```
+
+### **grid-gap / gap**
+```yaml
+- gap: 10px                    # Espacement uniforme
+- gap: 10px 20px              # Vertical | Horizontal
+- row-gap: 10px               # Espacement des lignes
+- column-gap: 15px            # Espacement des colonnes
+```
+
+### **grid-auto-flow**
+```yaml
+- grid-auto-flow: row         # Par lignes (par défaut)
+- grid-auto-flow: column      # Par colonnes
+- grid-auto-flow: row dense   # Par lignes, dense
+- grid-auto-flow: column dense # Par colonnes, dense
+```
+
+## **DÉBORDEMENT**
+
+### **overflow**
+```yaml
+- overflow: visible           # Visible (par défaut)
+- overflow: hidden            # Masqué
+- overflow: scroll            # Barres de défilement toujours
+- overflow: auto              # Barres si nécessaire
+- overflow: clip              # Coupé net
+```
+
+### **overflow-x / overflow-y**
+```yaml
+- overflow-x: visible/hidden/scroll/auto
+- overflow-y: visible/hidden/scroll/auto
+```
+
+## **CURSEUR**
+
+### **cursor**
+```yaml
+- cursor: auto               # Automatique
+- cursor: pointer            # Main pointant
+- cursor: default            # Flèche par défaut
+- cursor: text               # Curseur de texte
+- cursor: wait               # Sablier
+- cursor: help               # Point d'interrogation
+- cursor: not-allowed        # Interdit
+- cursor: grab               # Main ouverte
+- cursor: grabbing           # Main fermée
+- cursor: move               # Déplacement
+- cursor: resize             # Redimensionnement
+- cursor: crosshair          # Réticule
+- cursor: none               # Invisible
+```
+
+## **VISIBILITÉ**
+
+### **visibility**
+```yaml
+- visibility: visible        # Visible (par défaut)
+- visibility: hidden         # Invisible mais occupe l'espace
+- visibility: collapse       # Masqué (pour tableaux)
+```
+
+### **opacity**
+```yaml
+- opacity: 1                # Opaque (par défaut)
+- opacity: 0.5              # Semi-transparent
+- opacity: 0                # Transparent
+```
+
+## **BORDURES AVANCÉES**
+
+### **border-style**
+```yaml
+- border-style: none         # Aucune bordure
+- border-style: solid        # Pleine
+- border-style: dashed       # Tirets
+- border-style: dotted       # Points
+- border-style: double       # Double ligne
+- border-style: groove       # Rainure 3D
+- border-style: ridge        # Crête 3D
+- border-style: inset        # Enfoncé 3D
+- border-style: outset       # Saillant 3D
+```
+
+## **ÉCRITURE ET DIRECTION**
+
+### **writing-mode**
+```yaml
+- writing-mode: horizontal-tb    # Horizontal haut-bas (par défaut)
+- writing-mode: vertical-rl      # Vertical droite-gauche
+- writing-mode: vertical-lr      # Vertical gauche-droite
+```
+
+### **text-orientation**
+```yaml
+- text-orientation: mixed        # Mixte (par défaut)
+- text-orientation: upright      # Droit
+- text-orientation: sideways     # Sur le côté
+```
+
+### **direction**
+```yaml
+- direction: ltr             # Gauche à droite (par défaut)
+- direction: rtl             # Droite à gauche
+```
+
+## **Z-INDEX ET SUPERPOSITION**
+
+### **z-index**
+```yaml
+- z-index: auto              # Automatique
+- z-index: 0                 # Niveau 0
+- z-index: 1                 # Premier plan
+- z-index: -1                # Arrière-plan
+- z-index: 999               # Très en avant
+```
+
+## **RESPONSIVE ET VIEWPORT**
+
+### **object-fit** (pour images)
+```yaml
+- object-fit: fill           # Remplit (déformation possible)
+- object-fit: contain        # Contient sans déformation
+- object-fit: cover          # Couvre sans déformation
+- object-fit: scale-down     # Réduit si nécessaire
+- object-fit: none           # Taille originale
+```
+
+## **VARIABLES CSS SPÉCIALES BUTTON-CARD**
+
+### **Variables de couleur des lumières**
+```yaml
+- color: var(--button-card-light-color)              # Couleur lumière avec température
+- color: var(--button-card-light-color-no-temperature) # Couleur lumière sans température
+```
+
+### **Variables Home Assistant**
+```yaml
+- color: var(--primary-color)                # Couleur primaire du thème
+- color: var(--accent-color)                 # Couleur d'accent
+- color: var(--primary-background-color)     # Fond primaire
+- color: var(--secondary-background-color)   # Fond secondaire
+- color: var(--divider-color)                # Couleur des séparateurs
+- color: var(--primary-text-color)          # Texte primaire
+- color: var(--secondary-text-color)        # Texte secondaire
+- color: var(--disabled-text-color)         # Texte désactivé
+- color: var(--paper-item-icon-color)       # Icône inactive
+- color: var(--paper-item-icon-active-color) # Icône active
+```
+
+### **Variables de ripple effect**
+```yaml
+- --mdc-ripple-color: blue               # Couleur de l'effet de clic
+- --mdc-ripple-press-opacity: 0.5        # Opacité lors du clic
+```
+
+## **EXEMPLES PRATIQUES**
+
+### Carte compacte avec espacement minimal
+```yaml
+styles:
+  card:
+    - padding: 2px 6px
+    - width: fit-content
+    - display: flex
+    - align-items: center
+  icon:
+    - margin-right: 2px
+  state:
+    - margin-left: -4px
+    - white-space: nowrap
+```
+
+### Carte avec effet de survol
+```yaml
+styles:
+  card:
+    - transition: all 0.3s ease
+    - cursor: pointer
+    - transform: scale(1)
+  card:hover:
+    - transform: scale(1.05)
+    - box-shadow: 0 4px 12px rgba(0,0,0,0.3)
+```
+
+### Positionnement absolu d'un élément
+```yaml
+styles:
+  grid:
+    - position: relative
+  custom_fields:
+    notification:
+      - position: absolute
+      - top: 10%
+      - right: 10%
+      - z-index: 10
+```
