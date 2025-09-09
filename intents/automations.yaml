@@ -1,0 +1,26 @@
+# Contrôle des automatisations
+TriggerAutomation:
+  speech:
+    text:
+      # Café vocal
+      - "lance le café"
+      - "prépare le café"
+      - "café vocal"
+      - "j'ai besoin de caféine"
+      - "active la machine à café"
+      - "café s'il te plaît"
+      # Je suis réveillé
+      - "je suis réveillé"
+      - "je me lève"
+      - "bonjour maison"
+      - "réveil"
+      - "routine matinale"
+      # Mode dodo
+      - "mode dodo"
+      - "bonne nuit"
+      - "je vais me coucher"
+      - "extinction nocturne"
+      - "routine de nuit"
+      - "au dodo"
+  response:
+    text: []
