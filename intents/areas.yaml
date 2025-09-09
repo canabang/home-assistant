@@ -1,4 +1,4 @@
-# Définition des areas pour reconnaissance vocale
+# Définition des areas pour reconnaissance vocale - Version améliorée
 # Normalisation : clé sans article
 # Alias : toutes les variantes avec article, équivalents FR/EN et "dans le/la"
 
@@ -8,9 +8,11 @@ salon:
     - "salon"
     - "le salon"
     - "dans le salon"
+    - "au salon"
     - "séjour"
     - "le séjour"
     - "dans le séjour"
+    - "au séjour"
     - "living"
     - "le living"
     - "dans le living"
@@ -24,6 +26,8 @@ cuisine:
     - "cuisine"
     - "la cuisine"
     - "dans la cuisine"
+    - "à la cuisine"
+    - "kitchenette"
 
 # Chambre
 chambre:
@@ -31,8 +35,12 @@ chambre:
     - "chambre"
     - "la chambre"
     - "dans la chambre"
+    - "à la chambre"
     - "chambre à coucher"
     - "la chambre à coucher"
+    - "dans la chambre à coucher"
+    - "bedroom"
+    - "dortoir"
 
 # Salle à manger
 salle_a_manger:
@@ -40,6 +48,9 @@ salle_a_manger:
     - "salle à manger"
     - "la salle à manger"
     - "dans la salle à manger"
+    - "à la salle à manger"
+    - "sam"
+    - "dining room"
 
 # Salle de bain
 salle_de_bain:
@@ -47,12 +58,28 @@ salle_de_bain:
     - "salle de bain"
     - "la salle de bain"
     - "dans la salle de bain"
+    - "à la salle de bain"
     - "salle de bains"
     - "la salle de bains"
     - "dans la salle de bains"
+    - "sdb"
     - "toilettes"
     - "les toilettes"
     - "dans les toilettes"
+    - "aux toilettes"
     - "wc"
     - "les wc"
     - "dans les wc"
+    - "aux wc"
+    - "bathroom"
+    - "petit coin"
+
+# Partout (pour les commandes globales)
+partout:
+  aliases:
+    - "partout"
+    - "dans toute la maison"
+    - "tout l'appartement"
+    - "toutes les pièces"
+    - "globalement"
+    - "everywhere"
