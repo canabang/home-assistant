@@ -1,0 +1,39 @@
+# Contrôle de l'aspirateur Suckbot
+StartVacuum:
+  speech:
+    text:
+      - "lance suckbot"
+      - "démarre suckbot"
+      - "suckbot au travail"
+      - "lance l'aspirateur"
+      - "aspire"
+      - "nettoie"
+      - "passe l'aspirateur"
+      - "ménage"
+      - "suck-bote en action"
+      - "nettoyage"
+  response:
+    text: []
+
+StopVacuum:
+  speech:
+    text:
+      - "arrête suckbot"
+      - "stop suckbot"
+      - "suckbot pause"
+      - "arrête l'aspirateur"
+      - "stop aspirateur"
+      - "arrête le nettoyage"
+  response:
+    text: []
+
+ReturnVacuum:
+  speech:
+    text:
+      - "suckbot rentre à la base"
+      - "retour à la base"
+      - "suckbot au dock"
+      - "aspirateur à la base"
+      - "rentre suckbot"
+  response:
+    text: []
