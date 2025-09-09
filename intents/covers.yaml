@@ -1,0 +1,85 @@
+# Contrôle des volets
+CloseCover:
+  speech:
+    text:
+      - "ferme {cover_name:name}"
+      - "ferme le {cover_name:name}"
+      - "baisse {cover_name:name}"
+      - "baisse le {cover_name:name}"
+      - "descends {cover_name:name}"
+      - "descends le {cover_name:name}"
+      - "tire {cover_name:name}"
+      # Sans précision de pièce
+      - "ferme le volet"
+      - "baisse le volet"
+      - "descends le volet"
+      - "tire le volet"
+      - "j'ai besoin d'ombre"
+      - "il fait trop clair"
+  response:
+    text: []
+
+OpenCover:
+  speech:
+    text:
+      - "ouvre {cover_name:name}"
+      - "ouvre le {cover_name:name}"
+      - "lève {cover_name:name}"
+      - "lève le {cover_name:name}"
+      - "monte {cover_name:name}"
+      - "monte le {cover_name:name}"
+      - "remonte {cover_name:name}"
+      # Sans précision de pièce
+      - "ouvre le volet"
+      - "lève le volet"
+      - "monte le volet"
+      - "remonte le volet"
+      - "de la lumière naturelle"
+      - "j'ai besoin de jour"
+  response:
+    text: []
+
+CloseAllCovers:
+  speech:
+    text:
+      - "ferme tous les volets"
+      - "ferme partout"
+      - "baisse tous les volets"
+      - "descends tous les volets"
+      - "mode bunker"
+      - "fermeture générale"
+      - "intimité totale"
+  response:
+    text: []
+
+OpenAllCovers:
+  speech:
+    text:
+      - "ouvre tous les volets"
+      - "ouvre partout"
+      - "lève tous les volets"
+      - "monte tous les volets"
+      - "ouverture générale"
+      - "réveil matinal"
+  response:
+    text: []
+
+OpenCoverInArea:
+  speech:
+    text:
+      - "ouvre {area}"
+      - "lève {area}"
+      - "monte {area}"
+      - "remonte {area}"
+  response:
+    text: []
+
+CloseCoverInArea:
+  speech:
+    text:
+      - "ferme {area}"
+      - "baisse {area}"
+      - "descends {area}"
+      - "tire {area}"
+  response:
+    text: []
