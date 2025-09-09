@@ -1,0 +1,37 @@
+# Contrôle des scènes d'éclairage
+ActivateScene:
+  speech:
+    text:
+      - "active la scène {scene_name:name}"
+      - "lance la scène {scene_name:name}"
+      - "mets l'ambiance {scene_name:name}"
+      - "scène {scene_name:name}"
+      # Scènes génériques
+      - "ambiance attenuée"
+      - "lumière atténuée"
+      - "tamise"
+      - "lumière douce"
+      - "éclairage lumineux"
+      - "éclaire bien"
+      - "pleine puissance"
+      - "ambiance stimulation"
+      - "boost"
+      - "réveille-moi"
+      - "mode veilleuse"
+      - "lumière de nuit"
+      - "éclairage minimal"
+  response:
+    text: []
+
+ActivateSceneInArea:
+  speech:
+    text:
+      - "active {scene_name:name} {area}"
+      - "lance {scene_name:name} {area}"
+      - "mets l'ambiance {scene_name:name} {area}"
+      - "ambiance {scene_name:name} {area}"
+      - "tamise {area}"
+      - "éclaire bien {area}"
+      - "veilleuse {area}"
+  response:
+    text: []
