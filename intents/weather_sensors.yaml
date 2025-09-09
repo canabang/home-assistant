@@ -1,0 +1,69 @@
+# Informations météo et capteurs
+GetWeather:
+  speech:
+    text:
+      - "quel temps fait-il"
+      - "météo"
+      - "prévisions météo"
+      - "il va pleuvoir"
+      - "température extérieure"
+      - "temps qu'il fait"
+      - "météo Pompey"
+      - "prévisions"
+      - "il fait beau"
+      - "temps dehors"
+  response:
+    text: []
+
+GetTemperature:
+  speech:
+    text:
+      - "température"
+      - "quelle température"
+      - "il fait combien"
+      - "température intérieure"
+      - "température maison"
+      - "température appartement"
+      - "combien de degrés"
+  response:
+    text: []
+
+GetTemperatureInArea:
+  speech:
+    text:
+      - "température {area}"
+      - "quelle température {area}"
+      - "il fait combien {area}"
+      - "combien de degrés {area}"
+      - "température dans {area}"
+  response:
+    text: []
+
+GetFridgeTemperature:
+  speech:
+    text:
+      - "température frigo"
+      - "température du frigo"
+      - "température réfrigérateur"
+      - "combien dans le frigo"
+      - "température congélateur"
+      - "température du congel"
+      - "frigo combien"
+  response:
+    text: []
+
+GetDoorWindowStatus:
+  speech:
+    text:
+      - "état des portes"
+      - "portes ouvertes"
+      - "état des fenêtres"
+      - "fenêtres ouvertes"
+      - "qu'est-ce qui est ouvert"
+      - "vérification sécurité"
+      - "contrôle des ouvertures"
+      - "tout est fermé"
+      - "vérification"
+      - "sécurisation"
+  response:
+    text: []
