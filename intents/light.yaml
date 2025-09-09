@@ -1,0 +1,113 @@
+# Contrôle des lumières avec synonymes et contexte de pièce
+
+TurnOnLight:
+  speech:
+    text:
+      # Formulations générales avec nom explicite
+      - "allume {light_name:name}"
+      - "allume la {light_name:name}"
+      - "allume l'éclairage {light_name:name}"
+      - "mets la {light_name:name}"
+      - "mets l'éclairage {light_name:name}"
+      - "éclaire {light_name:name}"
+      - "rallume la {light_name:name}"
+      # Sans précision de pièce (contexte automatique)
+      - "allume la lumière"
+      - "allume l'éclairage"
+      - "allume"
+      - "mets en marche la lumière"
+      - "éclaire"
+      - "de la lumière"
+      - "j'ai besoin de lumière"
+      - "il fait sombre"
+      - "lumos"
+      - "illumination"
+      - "et la lumière fût"
+  response:
+    text: []
+
+TurnOffLight:
+  speech:
+    text:
+      - "éteins {light_name:name}"
+      - "éteins la {light_name:name}"
+      - "éteins l'éclairage {light_name:name}"
+      # Sans précision de pièce
+      - "éteins la lumière"
+      - "éteins l'éclairage"
+      - "éteins"
+      - "coupe la lumière"
+      - "plus de lumière"
+      - "dans le noir"
+      - "extinction"
+  response:
+    text: []
+
+TurnOnLightInArea:
+  speech:
+    text:
+      - "allume la lumière {area}"
+      - "mets la lumière {area}"
+      - "éclaire {area}"
+      - "active l'éclairage {area}"
+      - "j’ai besoin de lumière {area}"
+      - "allume {area}"
+  response:
+    text: []
+
+TurnOffLightInArea:
+  speech:
+    text:
+      - "éteins la lumière {area}"
+      - "coupe la lumière {area}"
+      - "stoppe l’éclairage {area}"
+      - "désactive l’éclairage {area}"
+      - "plonge {area} dans le noir"
+      - "arrête la lumière {area}"
+  response:
+    text: []
+
+TurnOnAllLights:
+  speech:
+    text:
+      - "allume toutes les lumières"
+      - "mets tout l’éclairage"
+      - "allume partout"
+      - "illumination générale"
+      - "tout allumer"
+      - "c'est versaille"
+  response:
+    text: []
+
+TurnOffAllLights:
+  speech:
+    text:
+      - "éteins toutes les lumières"
+      - "éteins tout l'éclairage"
+      - "éteins partout"
+      - "plus de lumière nulle part"
+      - "extinction générale"
+      - "tout éteint"
+      - "il va faire tout noir"
+  response:
+    text: []
+
+TurnOnAllLightsInArea:
+  speech:
+    text:
+      - "allume toutes les lumières {area}"
+      - "mets tout l’éclairage {area}"
+      - "éclaire complètement {area}"
+      - "illumination totale {area}"
+  response:
+    text: []
+
+TurnOffAllLightsInArea:
+  speech:
+    text:
+      - "éteins toutes les lumières {area}"
+      - "éteins tout l’éclairage {area}"
+      - "plonge {area} dans le noir complet"
+      - "extinction totale {area}"
+  response:
+    text: []
