@@ -1,0 +1,62 @@
+# Contrôle du chauffage
+SetTemperature:
+  speech:
+    text:
+      - "mets le chauffage à {temperature} degrés"
+      - "règle la température à {temperature}"
+      - "chauffe à {temperature} degrés"
+      - "température {temperature}"
+      - "{temperature} degrés"
+  response:
+    text: []
+
+SetTemperatureInArea:
+  speech:
+    text:
+      - "mets le chauffage à {temperature} degrés {area}"
+      - "règle la température à {temperature} {area}"
+      - "chauffe à {temperature} degrés {area}"
+      - "température {temperature} {area}"
+  response:
+    text: []
+
+TurnOnHeating:
+  speech:
+    text:
+      - "allume le chauffage"
+      - "démarre le chauffage"
+      - "active le thermostat"
+      - "j'ai froid"
+      - "il fait froid"
+      - "chauffe"
+  response:
+    text: []
+
+TurnOffHeating:
+  speech:
+    text:
+      - "éteins le chauffage"
+      - "arrête le chauffage"
+      - "coupe le thermostat"
+      - "j'ai chaud"
+      - "il fait trop chaud"
+  response:
+    text: []
+
+TurnOnHeatingInArea:
+  speech:
+    text:
+      - "allume le chauffage {area}"
+      - "chauffe {area}"
+      - "active le thermostat {area}"
+  response:
+    text: []
+
+TurnOffHeatingInArea:
+  speech:
+    text:
+      - "éteins le chauffage {area}"
+      - "arrête le chauffage {area}"
+      - "coupe le thermostat {area}"
+  response:
+    text: []
