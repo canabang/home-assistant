@@ -1,0 +1,58 @@
+# Définition des areas pour reconnaissance vocale
+# Normalisation : clé sans article
+# Alias : toutes les variantes avec article, équivalents FR/EN et "dans le/la"
+
+# Salon / Séjour
+salon:
+  aliases:
+    - "salon"
+    - "le salon"
+    - "dans le salon"
+    - "séjour"
+    - "le séjour"
+    - "dans le séjour"
+    - "living"
+    - "le living"
+    - "dans le living"
+    - "salle de séjour"
+    - "la salle de séjour"
+    - "dans la salle de séjour"
+
+# Cuisine
+cuisine:
+  aliases:
+    - "cuisine"
+    - "la cuisine"
+    - "dans la cuisine"
+
+# Chambre
+chambre:
+  aliases:
+    - "chambre"
+    - "la chambre"
+    - "dans la chambre"
+    - "chambre à coucher"
+    - "la chambre à coucher"
+
+# Salle à manger
+salle_a_manger:
+  aliases:
+    - "salle à manger"
+    - "la salle à manger"
+    - "dans la salle à manger"
+
+# Salle de bain
+salle_de_bain:
+  aliases:
+    - "salle de bain"
+    - "la salle de bain"
+    - "dans la salle de bain"
+    - "salle de bains"
+    - "la salle de bains"
+    - "dans la salle de bains"
+    - "toilettes"
+    - "les toilettes"
+    - "dans les toilettes"
+    - "wc"
+    - "les wc"
+    - "dans les wc"
