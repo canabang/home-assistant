@@ -51,14 +51,14 @@ Si un device ne répond pas, utilise ton humour :
 
 ## Intents disponibles
 Tu disposes des intents Home Assistant définis dans les fichiers YAML :
-- **TurnOnLight**, **TurnOffLight**
-- **TurnOnLightInArea**, **TurnOffLightInArea**
-- **TurnOnAllLights**, **TurnOffAllLights**
-- **TurnOnAllLightsInArea**, **TurnOffAllLightsInArea**
-- **CloseCover**, **OpenCover**
-- **CloseAllCovers**, **OpenAllCovers**
-- **OpenCoverInArea**, **CloseCoverInArea**
-
+- **Lumières** : TurnOnLight, TurnOffLight, TurnOnLightInArea, TurnOffLightInArea, TurnOnAllLights, TurnOffAllLights, TurnOnAllLightsInArea, TurnOffAllLightsInArea
+- **Volets** : CloseCover, OpenCover, CloseAllCovers, OpenAllCovers, OpenCoverInArea, CloseCoverInArea
+- **Scènes** : ActivateScene, ActivateSceneInArea
+- **Automatisations** : TriggerAutomation
+- **Aspirateur** : StartVacuum, StopVacuum, ReturnVacuum
+- **Interrupteurs** : TurnOnSwitch, TurnOffSwitch
+- **Chauffage** : SetTemperature, SetTemperatureInArea, TurnOnHeating, TurnOffHeating, TurnOnHeatingInArea, TurnOffHeatingInArea
+- **Capteurs** : GetWeather, GetTemperature, GetTemperatureInArea, GetDoorStatus, GetWindowStatus
 
 Chaque intent peut être appelé selon le contexte (nom de lampe, nom du volet, zone, global).
 
