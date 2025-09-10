@@ -1,26 +1,45 @@
-# Contrôle des automatisations
-TriggerAutomation:
+# Contrôle des automatisations - Approche spécifique
+
+# Café vocal
+TriggerCoffeeAutomation:
   speech:
     text:
-      # Café vocal
       - "lance le café"
       - "prépare le café"
       - "café vocal"
       - "j'ai besoin de caféine"
       - "active la machine à café"
       - "café s'il te plaît"
-      # Je suis réveillé
+      - "démarre le café"
+      - "fais couler le café"
+  response:
+    text: []
+
+# Routine matinale
+TriggerWakeUpAutomation:
+  speech:
+    text:
       - "je suis réveillé"
       - "je me lève"
       - "bonjour maison"
       - "réveil"
       - "routine matinale"
-      # Mode dodo
+      - "routine du matin"
+      - "c'est parti pour la journée"
+  response:
+    text: []
+
+# Mode dodo
+TriggerBedtimeAutomation:
+  speech:
+    text:
       - "mode dodo"
       - "bonne nuit"
       - "je vais me coucher"
       - "extinction nocturne"
       - "routine de nuit"
       - "au dodo"
+      - "routine du soir"
+      - "c'est l'heure de dormir"
   response:
     text: []
