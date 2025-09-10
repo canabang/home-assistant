@@ -10,7 +10,6 @@ Cette configuration transforme votre Home Assistant en assistant vocal avec la p
 ```
 config/
 ├── configuration.yaml          # Fichier principal avec includes
-├── intent_script.yaml         # Actions à exécuter pour chaque intent
 └── intents/                   # Dossier des intents modulaires
     ├── areas.yaml            # Définition des zones/pièces
     ├── automations.yaml      # Déclenchement d'automatisations
@@ -33,8 +32,7 @@ Ajoutez ces lignes dans votre fichier principal :
 
 ```yaml
 # Voice Assistant Configuration
-conversation:
-  intents: !include_dir_merge_named intents/
+intents: !include_dir_merge_named intents/
 
 intent_script: !include intents/intent_scripts.yaml
 ```
