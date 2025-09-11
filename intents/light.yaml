@@ -1,5 +1,5 @@
 # Phrases personnalisées pour le contrôle des lumières
-# speech to phrase addon  /share/speech-to-phrase/custom_sentences/<language>/sentences.yaml
+# speech to phrase addon  /share/speech-to-phrase/custom_sentences/<language>/light.yaml
 language: "fr"
 
 intents:
