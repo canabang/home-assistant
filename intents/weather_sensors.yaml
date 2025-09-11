@@ -1,69 +1,118 @@
-# Informations météo et capteurs
-GetWeather:
-  speech:
-    text:
-      - "quel temps fait-il"
-      - "météo"
-      - "prévisions météo"
-      - "il va pleuvoir"
-      - "température extérieure"
-      - "temps qu'il fait"
-      - "météo Pompey"
-      - "prévisions"
-      - "il fait beau"
-      - "temps dehors"
-  response:
-    text: []
+# Phrases personnalisées pour météo, températures et capteurs
+# speech to phrase addon  /share/speech-to-phrase/custom_sentences/<language>/wheather_sensors.yaml
+language: "fr"
 
-GetTemperature:
-  speech:
-    text:
-      - "température"
-      - "quelle température"
-      - "il fait combien"
-      - "température intérieure"
-      - "température maison"
-      - "température appartement"
-      - "combien de degrés"
-  response:
-    text: []
+intents:
+  HassGetWeather:  # Pour les informations météo
+    data:
+      # Questions météo générales
+      - sentences:
+          - "quel temps fait-il"
+          - "météo"
+          - "prévisions météo"
+          - "il va pleuvoir"
+          - "température extérieure"
+          - "temps qu'il fait"
+          - "prévisions"
+          - "il fait beau"
+          - "temps dehors"
+          - "météo du jour"
+          - "temps aujourd'hui"
+          - "prévisions aujourd'hui"
 
-GetTemperatureInArea:
-  speech:
-    text:
-      - "température {area}"
-      - "quelle température {area}"
-      - "il fait combien {area}"
-      - "combien de degrés {area}"
-      - "température dans {area}"
-  response:
-    text: []
+      # Questions météo avec localisation
+      - sentences:
+          - "météo {name}"
+          - "temps {name}"
+          - "prévisions {name}"
+          - "il va pleuvoir {name}"
+          - "température {name}"
 
-GetFridgeTemperature:
-  speech:
-    text:
-      - "température frigo"
-      - "température du frigo"
-      - "température réfrigérateur"
-      - "combien dans le frigo"
-      - "température congélateur"
-      - "température du congel"
-      - "frigo combien"
-  response:
-    text: []
+  HassClimateGetTemperature:  # Pour les températures
+    data:
+      # Température générale/intérieure
+      - sentences:
+          - "température"
+          - "quelle température"
+          - "il fait combien"
+          - "température intérieure"
+          - "température maison"
+          - "température appartement"
+          - "combien de degrés"
+          - "température ici"
+          - "il fait chaud"
+          - "il fait froid"
 
-GetDoorWindowStatus:
-  speech:
-    text:
-      - "état des portes"
-      - "portes ouvertes"
-      - "état des fenêtres"
-      - "fenêtres ouvertes"
-      - "qu'est-ce qui est ouvert"
-      - "vérification sécurité"
-      - "contrôle des ouvertures"
-      - "tout est fermé"
-      - "vérification"
-      - "sécurisation"
-  response:
-    text: []
+      # Température d'un capteur spécifique
+      - sentences:
+          - "température {name}"
+          - "quelle température {name}"
+          - "il fait combien {name}"
+          - "combien de degrés {name}"
+          - "température du {name}"
+          - "température de {name}"
+
+      # Température par zone
+      - sentences:
+          - "température {area}"
+          - "quelle température {area}"
+          - "il fait combien {area}"
+          - "combien de degrés {area}"
+          - "température dans {area}"
+          - "il fait chaud {area}"
+          - "il fait froid {area}"
+
+      # Températures spécifiques (frigo, etc.)
+      - sentences:
+          - "température frigo"
+          - "température du frigo"
+          - "température réfrigérateur"
+          - "combien dans le frigo"
+          - "température congélateur"
+          - "température du congel"
+          - "frigo combien"
+
+  HassGetState:  # Pour l'état des portes et fenêtres
+    data:
+      # État des portes et fenêtres générales
+      - sentences:
+          - "état des portes"
+          - "portes ouvertes"
+          - "état des fenêtres"
+          - "fenêtres ouvertes"
+          - "qu'est-ce qui est ouvert"
+          - "vérification sécurité"
+          - "contrôle des ouvertures"
+          - "tout est fermé"
+          - "vérification"
+          - "sécurisation"
+          - "état général"
+
+      # État d'une porte/fenêtre spécifique
+      - sentences:
+          - "état de {name}"
+          - "{name} est ouverte"
+          - "{name} est fermée"
+          - "la {name} est ouverte"
+          - "la {name} est fermée"
+          - "vérification {name}"
+
+      # État par zone
+      - sentences:
+          - "état des portes {area}"
+          - "état des fenêtres {area}"
+          - "portes ouvertes {area}"
+          - "fenêtres ouvertes {area}"
+          - "qu'est-ce qui est ouvert {area}"
+          - "tout est fermé {area}"
+          - "sécurité {area}"
+
+      # États spécifiques avec domaines
+      - sentences:
+          - "toutes les portes sont fermées"
+          - "toutes les fenêtres sont fermées"
+          - "vérification complète"
+          - "contrôle global"
+        slots:
+          name: "all"
+          domain: "binary_sensor"
