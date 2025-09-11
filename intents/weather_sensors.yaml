@@ -1,5 +1,5 @@
 # Phrases personnalisées pour météo, températures et capteurs
-# speech to phrase addon  /share/speech-to-phrase/custom_sentences/<language>/wheather_sensors.yaml
+# speech to phrase addon  /share/speech-to-phrase/custom_sentences/<language>/weather_sensors.yaml
 language: "fr"
 
 intents:
@@ -74,12 +74,32 @@ intents:
 
   HassGetState:  # Pour l'état des portes et fenêtres
     data:
-      # État des portes et fenêtres générales
+      # État des portes spécifiquement
       - sentences:
           - "état des portes"
           - "portes ouvertes"
+          - "contrôle des portes"
+          - "vérification des portes"
+          - "toutes les portes sont fermées"
+          - "sécurité portes"
+        slots:
+          domain: "binary_sensor"
+          device_class: "door"
+
+      # État des fenêtres spécifiquement  
+      - sentences:
           - "état des fenêtres"
           - "fenêtres ouvertes"
+          - "contrôle des fenêtres"
+          - "vérification des fenêtres"
+          - "toutes les fenêtres sont fermées"
+          - "sécurité fenêtres"
+        slots:
+          domain: "binary_sensor"
+          device_class: "window"
+
+      # État général (portes ET fenêtres)
+      - sentences:
           - "qu'est-ce qui est ouvert"
           - "vérification sécurité"
           - "contrôle des ouvertures"
@@ -87,6 +107,10 @@ intents:
           - "vérification"
           - "sécurisation"
           - "état général"
+          - "vérification complète"
+          - "contrôle global"
+        slots:
+          domain: "binary_sensor"
 
       # État d'une porte/fenêtre spécifique
       - sentences:
@@ -97,22 +121,30 @@ intents:
           - "la {name} est fermée"
           - "vérification {name}"
 
-      # État par zone
+      # État des portes par zone
       - sentences:
           - "état des portes {area}"
-          - "état des fenêtres {area}"
           - "portes ouvertes {area}"
+          - "toutes les portes sont fermées {area}"
+          - "sécurité portes {area}"
+        slots:
+          domain: "binary_sensor"
+          device_class: "door"
+
+      # État des fenêtres par zone
+      - sentences:
+          - "état des fenêtres {area}"
           - "fenêtres ouvertes {area}"
+          - "toutes les fenêtres sont fermées {area}"
+          - "sécurité fenêtres {area}"
+        slots:
+          domain: "binary_sensor"
+          device_class: "window"
+
+      # État général par zone
+      - sentences:
           - "qu'est-ce qui est ouvert {area}"
           - "tout est fermé {area}"
           - "sécurité {area}"
-
-      # États spécifiques avec domaines
-      - sentences:
-          - "toutes les portes sont fermées"
-          - "toutes les fenêtres sont fermées"
-          - "vérification complète"
-          - "contrôle global"
         slots:
-          name: "all"
           domain: "binary_sensor"
