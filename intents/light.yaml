@@ -1,5 +1,5 @@
 # Phrases personnalisées pour le contrôle des lumières
-# speech to phrase addon  /share/speech-to-phrase/custom_sentences/<language>/light.yaml
+# speech to phrase addon  /share/speech-to-phrase/custom_sentences/<language>/sentences.yaml
 language: "fr"
 
 intents:
@@ -12,6 +12,8 @@ intents:
           - "mets {name}"
           - "éclaire {name}"
           - "rallume {name}"
+        slots:
+          domain: "light"
 
       # Phrases générales sans entité (contexte automatique)
       - sentences:
@@ -26,6 +28,8 @@ intents:
           - "lumos"
           - "illumination"
           - "et la lumière fût"
+        slots:
+          domain: "light"
 
       # Phrases pour les zones avec prépositions
       - sentences:
@@ -58,6 +62,8 @@ intents:
           - "éteins {name}"
           - "éteins l'éclairage {name}"
           - "coupe {name}"
+        slots:
+          domain: "light"
 
       # Phrases générales sans entité
       - sentences:
@@ -69,6 +75,8 @@ intents:
           - "dans le noir"
           - "extinction"
           - "nox"
+        slots:
+          domain: "light"
 
       # Phrases pour les zones avec prépositions
       - sentences:
@@ -92,3 +100,173 @@ intents:
         slots:
           name: "all"
           domain: "light"
+
+  HassLightSet:  # Pour régler luminosité, température de couleur, etc.
+    data:
+      # Luminosité avec entité spécifique
+      - sentences:
+          - "règle {name} à {brightness} [pour cent]"
+          - "mets {name} à {brightness} [pour cent]"
+          - "luminosité {name} à {brightness} [pour cent]"
+          - "intensité {name} à {brightness} [pour cent]"
+          - "{name} à {brightness} [pour cent]"
+        requires_context:
+          domain: light
+        response: "brightness"
+
+      # Luminosité sans entité spécifique
+      - sentences:
+          - "règle la lumière à {brightness} [pour cent]"
+          - "mets la lumière à {brightness} [pour cent]"
+          - "luminosité à {brightness} [pour cent]"
+          - "intensité à {brightness} [pour cent]"
+          - "lumière à {brightness} [pour cent]"
+        requires_context:
+          domain: light
+        response: "brightness"
+
+      # Luminosité par zone
+      - sentences:
+          - "règle [toutes] [les] [lumières] {area} à {brightness} [pour cent]"
+          - "mets [toutes] [les] [lumières] {area} à {brightness} [pour cent]"
+          - "luminosité {area} à {brightness} [pour cent]"
+          - "{area} à {brightness} [pour cent]"
+        requires_context:
+          domain: light
+        response: "brightness"
+
+      # Luminosité prédéfinie avec entité
+      - sentences:
+          - "règle {name} au minimum"
+          - "{name} très faible"
+          - "luminosité minimale {name}"
+        slots:
+          brightness: 3
+          domain: "light"
+        response: "brightness"
+
+      - sentences:
+          - "règle {name} faible"
+          - "{name} peu lumineux"
+          - "faible luminosité {name}"
+        slots:
+          brightness: 64
+          domain: "light"
+        response: "brightness"
+
+      - sentences:
+          - "règle {name} à moitié"
+          - "{name} moyen"
+          - "luminosité moyenne {name}"
+        slots:
+          brightness: 128
+          domain: "light"
+        response: "brightness"
+
+      - sentences:
+          - "règle {name} fort"
+          - "{name} lumineux"
+          - "forte luminosité {name}"
+        slots:
+          brightness: 191
+          domain: "light"
+        response: "brightness"
+
+      - sentences:
+          - "règle {name} au maximum"
+          - "{name} à fond"
+          - "luminosité maximale {name}"
+        slots:
+          brightness: 255
+          domain: "light"
+        response: "brightness"
+
+      # Luminosité prédéfinie par zone
+      - sentences:
+          - "règle {area} au minimum"
+          - "{area} très faible"
+          - "luminosité minimale {area}"
+        slots:
+          name: "all"
+          brightness: 3
+          domain: "light"
+        response: "brightness"
+
+      - sentences:
+          - "règle {area} à moitié"
+          - "{area} moyen"
+          - "luminosité moyenne {area}"
+        slots:
+          name: "all"
+          brightness: 128
+          domain: "light"
+        response: "brightness"
+
+      - sentences:
+          - "règle {area} au maximum"
+          - "{area} à fond"
+          - "luminosité maximale {area}"
+        slots:
+          name: "all"
+          brightness: 255
+          domain: "light"
+        response: "brightness"
+
+      # Température de couleur avec entité
+      - sentences:
+          - "règle {name} température à {color_temp}"
+          - "mets {name} température couleur à {color_temp}"
+          - "température {name} à {color_temp}"
+          - "{name} température {color_temp}"
+        requires_context:
+          domain: light
+        response: "color_temp"
+
+      # Température de couleur prédéfinie
+      - sentences:
+          - "règle {name} chaud"
+          - "{name} lumière chaude"
+          - "{name} température chaude"
+        slots:
+          color_temp: 455
+          domain: "light"
+        response: "color_temp"
+
+      - sentences:
+          - "règle {name} froid"
+          - "{name} lumière froide"
+          - "{name} température froide"
+        slots:
+          color_temp: 150
+          domain: "light"
+        response: "color_temp"
+
+      - sentences:
+          - "règle {name} neutre"
+          - "{name} lumière neutre"
+          - "{name} température neutre"
+        slots:
+          color_temp: 300
+          domain: "light"
+        response: "color_temp"
+
+      # Température par zone
+      - sentences:
+          - "règle {area} chaud"
+          - "{area} lumière chaude"
+          - "température chaude {area}"
+        slots:
+          name: "all"
+          color_temp: 455
+          domain: "light"
+        response: "color_temp"
+
+      - sentences:
+          - "règle {area} froid"
+          - "{area} lumière froide"
+          - "température froide {area}"
+        slots:
+          name: "all"
+          color_temp: 150
+          domain: "light"
+        response: "color_temp"
