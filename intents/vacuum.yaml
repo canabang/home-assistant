@@ -1,39 +1,85 @@
-# Contrôle de l'aspirateur Suckbot
-StartVacuum:
-  speech:
-    text:
-      - "lance suckbot"
-      - "démarre suckbot"
-      - "suckbot au travail"
-      - "lance l'aspirateur"
-      - "aspire"
-      - "nettoie"
-      - "passe l'aspirateur"
-      - "ménage"
-      - "suck-bote en action"
-      - "nettoyage"
-  response:
-    text: []
+# Phrases personnalisées pour le contrôle de l'aspirateur
+# speech to phrase addon  /share/speech-to-phrase/custom_sentences/<language>/vacuum.yaml
+language: "fr"
 
-StopVacuum:
-  speech:
-    text:
-      - "arrête suckbot"
-      - "stop suckbot"
-      - "suckbot pause"
-      - "arrête l'aspirateur"
-      - "stop aspirateur"
-      - "arrête le nettoyage"
-  response:
-    text: []
+intents:
+  HassVacuumStart:  # Pour démarrer l'aspirateur
+    data:
+      # Commandes spécifiques à Suckbot
+      - sentences:
+          - "lance suckbot"
+          - "démarre suckbot"
+          - "suckbot au travail"
+          - "suck-bote en action"
+          - "active suckbot"
+        requires_context:
+          domain: vacuum
 
-ReturnVacuum:
-  speech:
-    text:
-      - "suckbot rentre à la base"
-      - "retour à la base"
-      - "suckbot au dock"
-      - "aspirateur à la base"
-      - "rentre suckbot"
-  response:
-    text: []
+      # Commandes générales sans nom
+      - sentences:
+          - "lance l'aspirateur"
+          - "démarre l'aspirateur"
+          - "aspire"
+          - "nettoie"
+          - "passe l'aspirateur"
+          - "ménage"
+          - "nettoyage"
+          - "commence le nettoyage"
+        requires_context:
+          domain: vacuum
+
+      # Tout nettoyer
+      - sentences:
+          - "aspire partout"
+          - "nettoie partout"
+          - "nettoyage complet"
+          - "ménage général"
+          - "aspire toute la maison"
+        requires_context:
+          domain: vacuum
+
+  HassVacuumStop:  # Pour arrêter l'aspirateur
+    data:
+      # Commandes spécifiques à Suckbot
+      - sentences:
+          - "arrête suckbot"
+          - "stop suckbot"
+          - "suckbot pause"
+          - "met en pause suckbot"
+        requires_context:
+          domain: vacuum
+
+      # Commandes d'arrêt générales
+      - sentences:
+          - "arrête l'aspirateur"
+          - "stop aspirateur"
+          - "arrête le nettoyage"
+          - "pause aspirateur"
+          - "stop le ménage"
+          - "arrête de nettoyer"
+        requires_context:
+          domain: vacuum      
+
+  HassVacuumReturnToBase:  # Pour retourner à la base
+    data:
+      # Commandes spécifiques à Suckbot
+      - sentences:
+          - "suckbot rentre à la base"
+          - "retour à la base"
+          - "suckbot au dock"
+          - "rentre suckbot"
+          - "suckbot retour base"
+        requires_context:
+          domain: vacuum
+
+      # Commandes générales
+      - sentences:
+          - "aspirateur à la base"
+          - "retour au dock"
+          - "rentre l'aspirateur"
+          - "dock aspirateur"
+          - "base aspirateur"
+        requires_context:
+          domain: vacuum
+
+      
