@@ -1,0 +1,161 @@
+# Script central de gestion de l'éclairage intelligent
+script:
+  gerer_eclairage:
+    alias: "Gérer Éclairage"
+    description: "Script central pour gérer l'éclairage selon les conditions et sources"
+    fields:
+      piece:
+        description: "Nom de la pièce (chambre, cuisine, salon, sam, sdb)"
+        example: "chambre"
+        required: true
+        selector:
+          text:
+      source:
+        description: "Source du déclenchement"
+        example: "vocal_onoff"
+        required: true
+        selector:
+          select:
+            options:
+              - "vocal_onoff"      # Commandes vocales on/off via custom_intents
+              - "presence"         # Détection présence
+              - "absence"          # Détection absence
+      action:
+        description: "Action spécifique (on, off, toggle)"
+        example: "on"
+        required: false
+        selector:
+          text:
+    sequence:
+      # Vérification condition préalable : présence à la maison
+      - condition: template
+        value_template: "{{ states('sensor.etat_canabang_et_device_tracker') == 'home' }}"
+        alias: "Vérifier présence à la maison"
+      
+      # Variables pour la suite
+      - variables:
+          light_entity: "light.hue_{{ piece }}"
+          is_light_on: "{{ is_state('light.hue_' + piece, 'on') }}"
+          mode_nuit: "{{ is_state('input_text.jour_nuit', 'nuit') }}"
+          soleil_visible: "{{ state_attr('sun.sun', 'elevation') > 0 }}"
+          is_vocal: "{{ source == 'vocal_onoff' }}"
+      
+      # Gestion selon la source
+      - choose:
+          # ===== COMMANDES VOCALES ON/OFF =====
+          - conditions:
+              - condition: template
+                value_template: "{{ source == 'vocal_onoff' }}"
+            sequence:
+              - choose:
+                  # Action OFF explicite ou toggle sur lumière allumée
+                  - conditions:
+                      - condition: or
+                        conditions:
+                          - condition: template
+                            value_template: "{{ action == 'off' }}"
+                          - condition: and
+                            conditions:
+                              - condition: template
+                                value_template: "{{ action in ['toggle', none] }}"
+                              - condition: template
+                                value_template: "{{ is_light_on }}"
+                    sequence:
+                      - service: light.turn_off
+                        target:
+                          entity_id: "{{ light_entity }}"
+                  
+                  # Action ON ou toggle sur lumière éteinte
+                  - conditions:
+                      - condition: or
+                        conditions:
+                          - condition: template
+                            value_template: "{{ action == 'on' }}"
+                          - condition: and
+                            conditions:
+                              - condition: template
+                                value_template: "{{ action in ['toggle', none] }}"
+                              - condition: template
+                                value_template: "{{ not is_light_on }}"
+                    sequence:
+                      # Le vocal a priorité absolue, il active même en conditions normalement bloquantes
+                      # Déterminer la scène selon les conditions
+                      - variables:
+                          scene_a_activer: >
+                            {% if mode_nuit %}
+                              scene.hue_{{ piece }}_1_veilleuse
+                            {% elif soleil_visible %}
+                              scene.hue_{{ piece }}_2_stimulation
+                            {% else %}
+                              scene.hue_{{ piece }}_3_attenue
+                            {% endif %}
+                      - service: scene.turn_on
+                        target:
+                          entity_id: "{{ scene_a_activer }}"
+          
+          # ===== DÉTECTION PRÉSENCE =====
+          - conditions:
+              - condition: template
+                value_template: "{{ source == 'presence' }}"
+            sequence:
+              # Vérifications spécifiques pour ne PAS activer (sauf vocal qui a priorité)
+              - choose:
+                  # Chambre : pas d'activation si mode nuit OU lit occupé
+                  - conditions:
+                      - condition: template
+                        value_template: "{{ piece == 'chambre' }}"
+                      - condition: or
+                        conditions:
+                          - condition: template
+                            value_template: "{{ mode_nuit }}"
+                          - condition: state
+                            entity_id: binary_sensor.esp_bed_occupation_master_bed_occupied
+                            state: 'on'
+                    sequence:
+                      - stop: "Chambre : pas d'activation sur présence (nuit ou lit occupé)"
+                  
+                  # SDB : pas d'activation si prismal ON OU luminosité > 2 lux
+                  - conditions:
+                      - condition: template
+                        value_template: "{{ piece == 'sdb' }}"
+                      - condition: or
+                        conditions:
+                          - condition: state
+                            entity_id: switch.prismal
+                            state: 'on'
+                          - condition: numeric_state
+                            entity_id: sensor.lux_sdb
+                            above: 2
+                    sequence:
+                      - stop: "SDB : pas d'activation sur présence (prismal ON ou luminosité > 2 lux)"
+                  
+                  # Lumière déjà allumée : pas d'activation
+                  - conditions:
+                      - condition: template
+                        value_template: "{{ is_light_on }}"
+                    sequence:
+                      - stop: "Lumière déjà allumée : pas d'activation sur présence"
+              
+              # Si on arrive ici, on peut activer
+              # Déterminer la scène selon les conditions
+              - variables:
+                  scene_a_activer: >
+                    {% if mode_nuit %}
+                      scene.hue_{{ piece }}_1_veilleuse
+                    {% elif soleil_visible %}
+                      scene.hue_{{ piece }}_2_stimulation
+                    {% else %}
+                      scene.hue_{{ piece }}_3_attenue
+                    {% endif %}
+              - service: scene.turn_on
+                target:
+                  entity_id: "{{ scene_a_activer }}"
+          
+          # ===== DÉTECTION ABSENCE =====
+          - conditions:
+              - condition: template
+                value_template: "{{ source == 'absence' }}"
+            sequence:
+              - service: light.turn_off
+                target:
+                  entity_id: "{{ light_entity }}"
