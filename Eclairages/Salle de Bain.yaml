@@ -1,48 +1,33 @@
-alias: Salle de Bain - Éclairage automatique présence
-description: >-
-  Allume/éteint la lumière de la salle de bain selon la présence détectée par
-  LD2410
+alias: Éclairage SDB - Présence/Absence
+description: Gère l'éclairage de la salle de bain selon la détection de présence
 triggers:
   - entity_id: binary_sensor.esp_sdb_presence
+    from: "off"
+    to: "on"
+    id: presence
     trigger: state
-    id: sdb
+  - entity_id: binary_sensor.esp_sdb_presence
+    from: "on"
+    to: "off"
+    id: absence
+    trigger: state
 conditions: []
 actions:
   - choose:
       - conditions:
-          - condition: state
-            entity_id: binary_sensor.esp_sdb_presence
-            state: "on"
-          - condition: numeric_state
-            entity_id: sensor.esp_sdb_lux
-            below: 1
-          - condition: template
-            value_template: |
-              {{ states('cover.volsdb') not in ['opening', 'closing'] }}
-            alias: volet != opening closing
-          - condition: not
-            conditions:
-              - condition: and
-                conditions:
-                  - condition: state
-                    entity_id: switch.prismal
-                    state: "on"
-                  - condition: numeric_state
-                    entity_id: sensor.prismal_power
-                    above: 5
-                alias: Si Mal on et > 5
-            alias: si != mal "on" et > 5
+          - condition: trigger
+            id: presence
         sequence:
-          - action: script.eclairage_intelligent_multi_pieces
-            data:
-              piece: " {{ trigger.id }}"
+          - data:
+              piece: sdb
+              source: presence
+            action: script.gerer_eclairage
       - conditions:
-          - condition: state
-            entity_id: binary_sensor.esp_sdb_presence
-            state: "off"
+          - condition: trigger
+            id: absence
         sequence:
-          - target:
-              entity_id: light.hue_sdb
-            action: light.turn_off
-            data: {}
+          - data:
+              piece: sdb
+              source: absence
+            action: script.gerer_eclairage
 mode: single
