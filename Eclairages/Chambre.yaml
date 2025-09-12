@@ -1,52 +1,33 @@
-alias: Chambre - Éclairage automatique présence
-description: Allume/éteint la lumière de la chambre selon la présence détectée par LD2410
+alias: Éclairage Chambre - Présence/Absence
+description: Gère l'éclairage de la chambre selon la détection de présence
 triggers:
-  - entity_id:
-      - binary_sensor.esp_chambre_presence
+  - entity_id: binary_sensor.esp_chambre_presence
+    from: "off"
+    to: "on"
+    id: presence
     trigger: state
-    from: null
-    to: null
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 3
-    id: chambre
-conditions:
-  - condition: not
-    conditions:
-      - condition: state
-        entity_id: input_text.jour_nuit
-        state: nuit
-  - condition: template
-    value_template: >
-      {% set scene_dodo = states.scene.hue_chambre_5_dodo %} {% if
-      scene_dodo.last_changed %}
-        {% set minutes_ago = (now() - scene_dodo.last_changed).total_seconds() / 60 %}
-        {{ minutes_ago > 10 }}
-      {% else %}
-        true
-      {% endif %}
-    alias: Scène dodo pas activée dans les 10 dernières minutes
+  - entity_id: binary_sensor.esp_chambre_presence
+    from: "on"
+    to: "off"
+    id: absence
+    trigger: state
+conditions: []
 actions:
   - choose:
       - conditions:
-          - condition: state
-            entity_id: binary_sensor.esp_chambre_presence
-            state: "on"
-          - condition: numeric_state
-            entity_id: sensor.esp_chambre_lux
-            below: 1
+          - condition: trigger
+            id: presence
         sequence:
-          - action: script.eclairage_intelligent_multi_pieces
-            data:
-              piece: "{{ trigger.id }}"
+          - data:
+              piece: chambre
+              source: presence
+            action: script.gerer_eclairage
       - conditions:
-          - condition: state
-            entity_id: binary_sensor.esp_chambre_presence
-            state: "off"
+          - condition: trigger
+            id: absence
         sequence:
-          - target:
-              entity_id: light.hue_chambre
-            action: light.turn_off
-            data: {}
+          - data:
+              piece: chambre
+              source: absence
+            action: script.gerer_eclairage
 mode: single
