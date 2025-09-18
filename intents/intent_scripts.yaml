@@ -1,0 +1,12 @@
+### intent_script: !include intent_script.yaml dans configuration.yaml
+###
+
+intent_script:
+  GererLumiereSalon:
+    action:
+      - action: script.gerer_eclairage
+        data:
+          piece: "salon" # Valeur fixe pour ce script/intention spécifique
+          source: "vocal_onoff" # Indique que la source est une commande vocale
+          action: "{{ slots.action }}" # Passe l'action capturée par la phrase (on/off/toggle)
+        # Pas de 'speech:' ici car vous gérez le TTS via votre assistant vocal
