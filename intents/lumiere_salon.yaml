@@ -1,0 +1,22 @@
+##### dans /config/custom_sentences/fr/lumiere_salon.yaml
+
+language: "fr" # Remplacez par votre code de langue si différent
+intents:
+  GererLumiereSalon:
+    data:
+      - sentences:
+          - "[peux-tu] allumer [la lumière du] salon"
+          - "épluches une banane"
+          - "lumos"
+          - "banane qui roule"
+        slots:
+          action: "on"
+      - sentences:
+          - "[peux-tu] éteindre [la lumière du] salon"
+          - "il va faire tout noirs"
+          - "darkness"
+        slots:
+          action: "off"
+# Les mots entre crochets [] sont optionnels.
+# Les mots entre parenthèses (mot1|mot2) sont des alternatives.
+# Les slots définissent les valeurs passées au script.
