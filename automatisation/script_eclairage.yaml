@@ -1,0 +1,203 @@
+alias: Gérer Éclairage
+description: >-
+  Script central pour gérer l'éclairage selon les conditions (présence, vocal,
+  absence). Priorité vocale absolue. Transition douce après passage en mode
+  jour.
+fields:
+  piece:
+    description: Nom de la pièce (chambre, cuisine, salon, sam, sdb)
+    example: chambre
+    required: true
+    selector:
+      text: null
+  source:
+    description: Source du déclenchement
+    example: vocal_onoff
+    required: true
+    selector:
+      select:
+        options:
+          - vocal_onoff
+          - presence
+          - absence
+  action:
+    description: Action spécifique (on, off, toggle). Doit être fourni pour vocal_onoff.
+    example: "on"
+    required: false
+    selector:
+      text: null
+sequence:
+  - condition: template
+    value_template: "{{ states('sensor.etat_canabang_et_device_tracker') == 'home' }}"
+  - variables:
+      light_entity: light.hue_{{ piece }}
+      is_light_on: "{{ is_state('light.hue_' + piece, 'on') }}"
+      mode_nuit: "{{ is_state('input_text.jour_nuit', 'nuit') }}"
+      soleil_visible: "{{ state_attr('sun.sun', 'elevation') > 0 }}"
+      scene_a_activer: >
+        {% set dernier_changement_str = states('input_datetime.dernier_changement_jour_nuit') | default('1970-01-01 00:00:00') %}
+        {% set maintenant_ts = as_timestamp(now()) %}
+        {% if dernier_changement_str != 'unknown' and dernier_changement_str != 'unavailable' %}
+          {% set dernier_changement_ts = as_timestamp(strptime(dernier_changement_str, '%Y-%m-%d %H:%M:%S')) %}
+          {% set delta_minutes = ((maintenant_ts - dernier_changement_ts) / 60) | int %}
+        {% else %}
+          {% set delta_minutes = 99999 %}
+        {% endif %}
+        {% if mode_nuit %}
+          scene.hue_{{ piece }}_1_veilleuse
+        {% elif not soleil_visible %}
+          scene.hue_{{ piece }}_3_attenue
+        {% elif soleil_visible and delta_minutes < 15 %}
+          scene.hue_{{ piece }}_1_veilleuse
+        {% else %}
+          scene.hue_{{ piece }}_2_stimulation
+        {% endif %}
+      # Nouvelle variable : scène actuellement active
+      scene_actuelle: >
+        {% if is_state('light.hue_' + piece, 'on') %}
+          {% set brightness = state_attr('light.hue_' + piece, 'brightness') | default(0) %}
+          {% if brightness <= 50 %}
+            scene.hue_{{ piece }}_1_veilleuse
+          {% elif brightness <= 150 %}
+            scene.hue_{{ piece }}_3_attenue  
+          {% else %}
+            scene.hue_{{ piece }}_2_stimulation
+          {% endif %}
+        {% else %}
+          none
+        {% endif %}
+      # Protection contre l'écrasement de scènes d'automatisation  
+      # Basée sur le temps depuis le dernier changement
+      changement_recent: >
+        {% set dernier_changement = states.light['hue_' + piece].last_changed %}
+        {% set maintenant = now() %}
+        {% set delta_minutes = ((as_timestamp(maintenant) - as_timestamp(dernier_changement)) / 60) | int %}
+        {{ delta_minutes < 30 }}
+      # Vérifier si la scène actuelle est "non-standard" (probablement d'une automatisation)
+      scene_non_standard: >
+        {% if is_state('light.hue_' + piece, 'on') %}
+          {% set brightness = state_attr('light.hue_' + piece, 'brightness') | default(0) %}
+          {% set color_temp = state_attr('light.hue_' + piece, 'color_temp') | default(0) %}
+          {% set rgb = state_attr('light.hue_' + piece, 'rgb_color') | default([255,255,255]) %}
+          {# Si la lumière a des couleurs ou des paramètres très spécifiques, c'est probablement une scène spéciale #}
+          {% if rgb != [255,255,255] or (color_temp > 0 and color_temp not in [153, 250, 454]) %}
+            true
+          {% else %}
+            false
+          {% endif %}
+        {% else %}
+          false
+        {% endif %}
+  - choose:
+      # === GESTION VOCALE (inchangée) ===
+      - conditions:
+          - condition: template
+            value_template: "{{ source == 'vocal_onoff' }}"
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: or
+                    conditions:
+                      - condition: template
+                        value_template: "{{ action == 'off' }}"
+                      - condition: and
+                        conditions:
+                          - condition: template
+                            value_template: "{{ action in ['toggle'] }}"
+                          - condition: template
+                            value_template: "{{ is_light_on }}"
+                sequence:
+                  - target:
+                      entity_id: "{{ light_entity }}"
+                    action: light.turn_off
+              - conditions:
+                  - condition: or
+                    conditions:
+                      - condition: template
+                        value_template: "{{ action == 'on' }}"
+                      - condition: and
+                        conditions:
+                          - condition: template
+                            value_template: "{{ action in ['toggle'] }}"
+                          - condition: template
+                            value_template: "{{ not is_light_on }}"
+                sequence:
+                  - target:
+                      entity_id: "{{ scene_a_activer }}"
+                    action: scene.turn_on
+      
+      # === GESTION PRÉSENCE (corrigée) ===
+      - conditions:
+          - condition: template
+            value_template: "{{ source == 'presence' }}"
+        sequence:
+          # Blocages spécifiques par pièce
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ piece == 'chambre' }}"
+                  - condition: or
+                    conditions:
+                      - condition: template
+                        value_template: "{{ mode_nuit }}"
+                      - condition: state
+                        entity_id: binary_sensor.esp_bed_occupation_master_bed_occupied
+                        state: "on"
+                sequence:
+                  - stop: "Chambre : activation bloquée (mode nuit ou lit occupé)"
+              - conditions:
+                  - condition: template
+                    value_template: "{{ piece == 'sdb' }}"
+                  - condition: or
+                    conditions:
+                      - condition: state
+                        entity_id: switch.prismal
+                        state: "on"
+                      - condition: numeric_state
+                        entity_id: sensor.lux_sdb
+                        above: 2
+                sequence:
+                  - stop: "SDB : activation bloquée (prismal ON ou lux > 2)"
+          
+          # Logique d'activation/ajustement corrigée
+          - choose:
+              # Si lumière éteinte → l'allumer
+              - conditions:
+                  - condition: template
+                    value_template: "{{ not is_light_on }}"
+                sequence:
+                  - target:
+                      entity_id: "{{ scene_a_activer }}"
+                    action: scene.turn_on
+              # Si scène récente et non-standard (automatisation) → ne pas toucher
+              - conditions:
+                  - condition: template
+                    value_template: "{{ is_light_on and changement_recent and scene_non_standard }}"
+                sequence:
+                  - stop: "Scène spéciale détectée : respecter l'automatisation récente"
+              # Si lumière allumée mais mauvaise scène → l'ajuster
+              - conditions:
+                  - condition: template
+                    value_template: "{{ is_light_on and scene_actuelle != scene_a_activer }}"
+                sequence:
+                  - target:
+                      entity_id: "{{ scene_a_activer }}"
+                    action: scene.turn_on
+            # Si lumière allumée avec la bonne scène → ne rien faire (implicite)
+      
+      # === GESTION ABSENCE (corrigée) ===
+      - conditions:
+          - condition: template
+            value_template: "{{ source == 'absence' }}"
+        sequence:
+          # Vérifier si quelqu'un d'autre est présent ou si conditions spéciales
+          - choose:
+              # Éteindre seulement si pas de conditions de maintien
+              - conditions:
+                  - condition: template
+                    value_template: "{{ is_light_on }}"
+                  # Ajouter ici d'autres conditions si nécessaire (ex: autre présence)
+                sequence:
+                  - target:
+                      entity_id: "{{ light_entity }}"
+                    action: light.turn_off
