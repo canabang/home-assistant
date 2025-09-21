@@ -1,0 +1,202 @@
+alias: Switch 4 boutons - Éclairage (Optimisé)
+description: Gestion complète de l'éclairage via switch 4 boutons avec code optimisé
+triggers:
+  # Bouton 1 - Salon
+  - domain: mqtt
+    device_id: a06cc44ae6695bc2c31d3ed2a876f117
+    type: action
+    subtype: 1_single
+    trigger: device
+    id: single_salon
+  - domain: mqtt
+    device_id: a06cc44ae6695bc2c31d3ed2a876f117
+    type: action
+    subtype: 1_double
+    trigger: device
+    id: double_salon
+  - domain: mqtt
+    device_id: a06cc44ae6695bc2c31d3ed2a876f117
+    type: action
+    subtype: 1_hold
+    trigger: device
+    id: hold_salon
+  # Bouton 2 - SAM
+  - domain: mqtt
+    device_id: a06cc44ae6695bc2c31d3ed2a876f117
+    type: action
+    subtype: 2_single
+    trigger: device
+    id: single_sam
+  - domain: mqtt
+    device_id: a06cc44ae6695bc2c31d3ed2a876f117
+    type: action
+    subtype: 2_double
+    trigger: device
+    id: double_sam
+  - domain: mqtt
+    device_id: a06cc44ae6695bc2c31d3ed2a876f117
+    type: action
+    subtype: 2_hold
+    trigger: device
+    id: hold_sam
+  # Bouton 4 - Cuisine
+  - domain: mqtt
+    device_id: a06cc44ae6695bc2c31d3ed2a876f117
+    type: action
+    subtype: 4_single
+    trigger: device
+    id: single_cuisine
+  - domain: mqtt
+    device_id: a06cc44ae6695bc2c31d3ed2a876f117
+    type: action
+    subtype: 4_double
+    trigger: device
+    id: double_cuisine
+  - domain: mqtt
+    device_id: a06cc44ae6695bc2c31d3ed2a876f117
+    type: action
+    subtype: 4_hold
+    trigger: device
+    id: hold_cuisine
+
+conditions: []
+
+variables:
+  # Extraction de la pièce et de l'action depuis l'ID du trigger
+  action_type: "{{ trigger.id.split('_')[0] }}"
+  piece: "{{ trigger.id.split('_')[1] }}"
+  
+  # Configuration des scènes avec ordre de cycle
+  scenes_config:
+    cycle_normal: ["1_veilleuse", "3_attenue", "4_lumineux", "2_stimulation"]
+    cycle_inverse: ["2_stimulation", "4_lumineux", "3_attenue", "1_veilleuse"]
+    defaut_allumage: "1_veilleuse"
+    defaut_hold: "2_stimulation"
+
+actions:
+  - choose:
+      # Action SINGLE - Toggle simple
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'single' }}"
+        sequence:
+          - action: script.gerer_eclairage_2
+            data:
+              source: vocal_onoff
+              action: toggle
+              piece: "{{ piece }}"
+        alias: "Toggle {{ piece }}"
+
+      # Action DOUBLE - Cycle normal des scènes
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'double' }}"
+        sequence:
+          - variables:
+              # Récupération des timestamps de toutes les scènes
+              scene_timestamps: >
+                {%- set scenes = ["1_veilleuse", "3_attenue", "4_lumineux", "2_stimulation"] -%}
+                {%- set ns = namespace(result={}) -%}
+                {%- for scene in scenes -%}
+                  {%- set ts = as_timestamp(states['scene']['hue_' + piece + '_' + scene].last_changed) | default(0) -%}
+                  {%- set ns.result = dict(ns.result, **{scene: ts}) -%}
+                {%- endfor -%}
+                {{ ns.result }}
+              
+              # Détermination de la dernière scène activée
+              derniere_scene: >
+                {% set ts_dict = scene_timestamps %}
+                {% set max_ts = ts_dict.values() | list | max %}
+                {% for scene, ts in ts_dict.items() %}
+                  {% if ts == max_ts %}
+                    {{ scene }}
+                  {% endif %}
+                {% endfor %}
+              
+              # Calcul de la prochaine scène dans le cycle
+              prochaine_scene: >
+                {% set cycle = ["1_veilleuse", "3_attenue", "4_lumineux", "2_stimulation"] %}
+                {% set current = derniere_scene %}
+                {% if current == "1_veilleuse" %}
+                  3_attenue
+                {% elif current == "3_attenue" %}
+                  4_lumineux
+                {% elif current == "4_lumineux" %}
+                  2_stimulation
+                {% elif current == "2_stimulation" %}
+                  1_veilleuse
+                {% else %}
+                  1_veilleuse
+                {% endif %}
+          
+          - if:
+              # Si les lumières sont éteintes, allumer avec la scène par défaut
+              - condition: template
+                value_template: "{{ not is_state('light.hue_' + piece, 'on') }}"
+            then:
+              - action: scene.turn_on
+                target:
+                  entity_id: "scene.hue_{{ piece }}_{{ scenes_config.defaut_allumage }}"
+            else:
+              # Sinon, passer à la scène suivante dans le cycle
+              - action: scene.turn_on
+                target:
+                  entity_id: "scene.hue_{{ piece }}_{{ prochaine_scene }}"
+        alias: "Cycle normal {{ piece }}"
+
+      # Action HOLD - Cycle inverse des scènes
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'hold' }}"
+        sequence:
+          - if:
+              # Si les lumières sont éteintes, allumer avec la scène stimulation
+              - condition: template
+                value_template: "{{ not is_state('light.hue_' + piece, 'on') }}"
+            then:
+              - action: scene.turn_on
+                target:
+                  entity_id: "scene.hue_{{ piece }}_{{ scenes_config.defaut_hold }}"
+            else:
+              - variables:
+                  # Récupération des timestamps de toutes les scènes
+                  scene_timestamps: >
+                    {%- set scenes = ["1_veilleuse", "3_attenue", "4_lumineux", "2_stimulation"] -%}
+                    {%- set ns = namespace(result={}) -%}
+                    {%- for scene in scenes -%}
+                      {%- set ts = as_timestamp(states['scene']['hue_' + piece + '_' + scene].last_changed) | default(0) -%}
+                      {%- set ns.result = dict(ns.result, **{scene: ts}) -%}
+                    {%- endfor -%}
+                    {{ ns.result }}
+                  
+                  # Détermination de la dernière scène activée
+                  derniere_scene: >
+                    {% set ts_dict = scene_timestamps %}
+                    {% set max_ts = ts_dict.values() | list | max %}
+                    {% for scene, ts in ts_dict.items() %}
+                      {% if ts == max_ts %}
+                        {{ scene }}
+                      {% endif %}
+                    {% endfor %}
+                  
+                  # Calcul de la prochaine scène dans le cycle inverse
+                  prochaine_scene: >
+                    {% set current = derniere_scene %}
+                    {% if current == "2_stimulation" %}
+                      4_lumineux
+                    {% elif current == "4_lumineux" %}
+                      3_attenue
+                    {% elif current == "3_attenue" %}
+                      1_veilleuse
+                    {% elif current == "1_veilleuse" %}
+                      2_stimulation
+                    {% else %}
+                      1_veilleuse
+                    {% endif %}
+              
+              - action: scene.turn_on
+                target:
+                  entity_id: "scene.hue_{{ piece }}_{{ prochaine_scene }}"
+        alias: "Cycle inverse {{ piece }}"
+
+mode: single
