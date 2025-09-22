@@ -80,7 +80,7 @@ actions:
           - condition: template
             value_template: "{{ action_type == 'single' }}"
         sequence:
-          - action: script.gerer_eclairage_2
+          - action: script.gerer_eclairage
             data:
               source: vocal_onoff
               action: toggle
