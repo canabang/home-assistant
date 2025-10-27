@@ -1,39 +1,72 @@
+# ==========================================
+# SCRIPT HOME ASSISTANT - NOTIFICATION DISCORD
+# ==========================================
+# Envoie des notifications enrichies (embed) vers Discord via webhook
+
 sequence:
-  - action: notify.bot_ha
+  # Action d'envoi via le service notify configuré
+  - action: notify.bot_ha           # Service de notification Discord configuré dans HA
     metadata: {}
     data:
+      # ID du channel Discord cible (anonymisé)
       target:
-        - "897186717214310420"
+        - "DISCORD_CHANNEL_ID"      # Remplacer par l'ID de votre channel Discord
+      
+      # Message vide (le contenu est dans l'embed)
       message: " "
+      
+      # Configuration de l'embed Discord (message enrichi)
       data:
         embed:
+          # En-tête de l'embed avec le nom (personne/objet détecté)
           author:
-            name: "{{nom}}"
+            name: "{{nom}}"         # Variable : nom de l'entité détectée
+          
+          # Titre de la notification
           title: Notification Home Assistant
-          description: "{{description}}"
+          
+          # Corps du message (description de l'événement)
+          description: "{{description}}"  # Variable : texte descriptif
+          
+          # Image intégrée (snapshot de la caméra)
           image:
-            url: "{{image_url}}"
+            url: "{{image_url}}"    # Variable : URL du snapshot
+          
+          # Pied de page avec horodatage
           footer:
-            text: le {{ now().strftime('%d/%m/%y %Hh%M') }}
-            icon_url: https://i.ibb.co/pRvFCBy/home-assistant.png
+            text: le {{ now().strftime('%d/%m/%y %Hh%M') }}  # Format français JJ/MM/AA HHhMM
+            icon_url: https://YOUR_IMAGE_HOST/home-assistant-icon.png  # Logo Home Assistant (anonymisé)
+
+# ==========================================
+# MÉTADONNÉES DU SCRIPT
+# ==========================================
 alias: Notification Discord
 description: ""
+
+# ==========================================
+# CHAMPS D'ENTRÉE (paramètres du script)
+# ==========================================
 fields:
+  # Champ 1 : Nom de l'entité détectée
   nom:
     selector:
-      text: null
+      text: null                    # Sélecteur texte simple
     name: nom
-    required: true
-    default: à remplacer
+    required: true                  # Obligatoire
+    default: à remplacer            # Valeur par défaut si non fournie
+  
+  # Champ 2 : Description détaillée de l'événement
   description:
     selector:
-      text: null
+      text: null                    # Sélecteur texte simple
     name: description
-    required: true
-    default: test de notif embed
+    required: true                  # Obligatoire
+    default: test de notif embed    # Valeur par défaut pour tests
+  
+  # Champ 3 : URL de l'image à afficher
   image_url:
     selector:
-      text: null
-    required: false
-    default: https://i.ibb.co/pRvFCBy/home-assistant.png
+      text: null                    # Sélecteur texte simple
+    required: false                 # Optionnel
+    default: https://YOUR_IMAGE_HOST/home-assistant-icon.png  # Logo HA par défaut (anonymisé)
     name: image_url
