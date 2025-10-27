@@ -1,0 +1,67 @@
+alias: 🤖 Frigate → Discord + HA
+description: Détections Frigate avec GenAI, identification auto et horodatage
+triggers:
+  - topic: frigate/tracked_object_update
+    trigger: mqtt
+conditions:
+  - condition: template
+    value_template: |-
+      {{ trigger.payload_json.type is defined and 
+         trigger.payload_json.type == 'description' }}
+actions:
+  - action: script.notification_discord
+    data:
+      nom: "{{ identity }}"
+      description: |
+        📷 **Caméra:** {{ camera }}
+        ⏰ **Détection:** {{ timestamp }}
+
+        **🤖 Description IA:**
+        {{ description }}
+
+        [📹 Voir la vidéo]({{ clip_url }}) • [📊 Détails]({{ details_url }})
+      image_url: "{{ snapshot_url }}"
+      images: "{{ snapshot_url }}"
+  - action: persistent_notification.create
+    data:
+      notification_id: frigate_{{ event_id }}
+      title: "{{ identity }} - {{ camera }}"
+      message: >
+        ⏰ **{{ timestamp }}**
+
+
+        **🤖 Description IA:**
+
+        {{ description }}
+
+
+        **Event ID:** {{ event_id }}
+
+
+        **Liens:**
+
+        [📸 Snapshot]({{ snapshot_url }}) • [📹 Vidéo]({{ clip_url }}) • [📊
+        Détails]({{ details_url }})
+mode: queued
+max: 10
+variables:
+  event_id: "{{ trigger.payload_json.id }}"
+  camera: "{{ trigger.payload_json.camera }}"
+  description: "{{ trigger.payload_json.description }}"
+  identity: >
+    {% if 'Gaël' in description %}
+      🏠 Gaël
+    {% elif 'Personne non identifiée' in description or 'Personne inconnue' in
+    description %}
+      ⚠️ Personne inconnue
+    {% elif 'Chat' in description or 'chat' in description %}
+      🐱 Chat
+    {% else %}
+      🔍 Détection
+    {% endif %}
+  timestamp: "{{ now().strftime('%d/%m/%y à %Hh%M') }}"
+  snapshot_url: https://frigate.canagalactica.ovh/api/events/{{ event_id }}/snapshot.jpg
+  clip_url: https://frigate.canagalactica.ovh/api/events/{{ event_id }}/clip.mp4
+  details_url: >-
+    https://frigate.canagalactica.ovh/events?camera={{ camera }}&id={{ event_id
+    }}
