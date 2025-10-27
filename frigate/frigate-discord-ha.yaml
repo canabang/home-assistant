@@ -1,17 +1,37 @@
+# ==========================================
+# AUTOMATISATION HOME ASSISTANT
+# ==========================================
+# Envoie les détections Frigate vers Discord avec descriptions IA
+
 alias: 🤖 Frigate → Discord + HA
 description: Détections Frigate avec GenAI, identification auto et horodatage
+
+# ==========================================
+# DÉCLENCHEUR
+# ==========================================
+# Se déclenche à chaque mise à jour d'objet tracké par Frigate
 triggers:
-  - topic: frigate/tracked_object_update
+  - topic: frigate/tracked_object_update  # Topic MQTT surveillé
     trigger: mqtt
+
+# ==========================================
+# CONDITION
+# ==========================================
+# N'exécute l'action que si le payload contient une description IA
 conditions:
   - condition: template
     value_template: |-
       {{ trigger.payload_json.type is defined and 
          trigger.payload_json.type == 'description' }}
+
+# ==========================================
+# ACTIONS
+# ==========================================
 actions:
+  # ACTION 1 : Envoi notification Discord
   - action: script.notification_discord
     data:
-      nom: "{{ identity }}"
+      nom: "{{ identity }}"      # Nom identifié (Gaël, Chat, Inconnu)
       description: |
         📷 **Caméra:** {{ camera }}
         ⏰ **Détection:** {{ timestamp }}
@@ -20,11 +40,13 @@ actions:
         {{ description }}
 
         [📹 Voir la vidéo]({{ clip_url }}) • [📊 Détails]({{ details_url }})
-      image_url: "{{ snapshot_url }}"
+      image_url: "{{ snapshot_url }}"   # URL du snapshot
       images: "{{ snapshot_url }}"
+  
+  # ACTION 2 : Notification persistante dans Home Assistant
   - action: persistent_notification.create
     data:
-      notification_id: frigate_{{ event_id }}
+      notification_id: frigate_{{ event_id }}  # ID unique pour chaque événement
       title: "{{ identity }} - {{ camera }}"
       message: >
         ⏰ **{{ timestamp }}**
@@ -42,26 +64,41 @@ actions:
 
         [📸 Snapshot]({{ snapshot_url }}) • [📹 Vidéo]({{ clip_url }}) • [📊
         Détails]({{ details_url }})
-mode: queued
-max: 10
+
+# ==========================================
+# CONFIGURATION EXÉCUTION
+# ==========================================
+mode: queued                    # File d'attente : exécute les déclenchements successifs
+max: 10                         # Maximum 10 notifications en attente
+
+# ==========================================
+# VARIABLES
+# ==========================================
+# Traitement des données de l'événement Frigate
 variables:
+  # Récupération des données brutes depuis MQTT
   event_id: "{{ trigger.payload_json.id }}"
   camera: "{{ trigger.payload_json.camera }}"
   description: "{{ trigger.payload_json.description }}"
+  
+  # Identification automatique basée sur le contenu de la description IA
   identity: >
     {% if 'Gaël' in description %}
-      🏠 Gaël
+      🏠 Gaël                    # Personne identifiée (reconnaissance faciale)
     {% elif 'Personne non identifiée' in description or 'Personne inconnue' in
     description %}
-      ⚠️ Personne inconnue
+      ⚠️ Personne inconnue       # Personne détectée mais non reconnue
     {% elif 'Chat' in description or 'chat' in description %}
-      🐱 Chat
+      🐱 Chat                    # Animal détecté
     {% else %}
-      🔍 Détection
+      🔍 Détection               # Détection générique
     {% endif %}
+  
+  # Horodatage français (JJ/MM/AA à HHhMM)
   timestamp: "{{ now().strftime('%d/%m/%y à %Hh%M') }}"
-  snapshot_url: https://frigate.canagalactica.ovh/api/events/{{ event_id }}/snapshot.jpg
-  clip_url: https://frigate.canagalactica.ovh/api/events/{{ event_id }}/clip.mp4
+  
+  # URLs des médias (via nom de domaine public Frigate)
+  snapshot_url: https://frigate.DOMAIN.TLD/api/events/{{ event_id }}/snapshot.jpg  # Image capture (anonymisée)
+  clip_url: https://frigate.DOMAIN.TLD/api/events/{{ event_id }}/clip.mp4          # Vidéo courte (anonymisée)
   details_url: >-
-    https://frigate.canagalactica.ovh/events?camera={{ camera }}&id={{ event_id
-    }}
+    https://frigate.DOMAIN.TLD/events?camera={{ camera }}&id={{ event_id }}       # Détails complets (anonymisé)
