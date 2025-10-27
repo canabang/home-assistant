@@ -1,237 +1,303 @@
+# ==========================================
+# CONFIGURATION MQTT
+# ==========================================
+# Permet la communication avec Home Assistant via le protocole MQTT
 mqtt:
   enabled: true
-  host: 192.168.1.161
-  port: 1883
-  topic_prefix: frigate
-  client_id: frigate
-  user: canabang
-  password: canaW33d
+  host: 192.168.X.XXX          # IP du broker MQTT (anonymisée)
+  port: 1883                   # Port MQTT standard
+  topic_prefix: frigate        # Préfixe des topics MQTT
+  client_id: frigate           # Identifiant client MQTT
+  user: MQTT_USERNAME          # Nom d'utilisateur MQTT (anonymisé)
+  password: MQTT_PASSWORD      # Mot de passe MQTT (anonymisé)
 
+# ==========================================
+# CONFIGURATION FFMPEG
+# ==========================================
+# Accélération matérielle pour le traitement vidéo
 ffmpeg:
-  hwaccel_args: preset-vaapi
+  hwaccel_args: preset-vaapi   # Utilise VAAPI (Video Acceleration API) pour GPU Intel/AMD
 
+# ==========================================
+# DÉTECTEURS D'OBJETS
+# ==========================================
+# Configuration du moteur de détection (OpenVINO sur CPU)
 detectors:
   ov:
-    type: openvino
-    device: CPU
-    num_threads: 2
+    type: openvino             # Utilise OpenVINO (optimisé Intel)
+    device: CPU                # Détection sur CPU
+    num_threads: 2             # Nombre de threads alloués
 
+# ==========================================
+# MODÈLE DE DÉTECTION
+# ==========================================
+# Configuration du modèle neural utilisé pour la détection
 model:
-  width: 300
-  height: 300
-  input_tensor: nhwc
-  input_pixel_format: bgr
-  path: /openvino-model/ssdlite_mobilenet_v2.xml
-  labelmap_path: /openvino-model/coco_91cl_bkgr.txt
+  width: 300                   # Largeur d'entrée du modèle
+  height: 300                  # Hauteur d'entrée du modèle
+  input_tensor: nhwc           # Format tenseur (N=batch, H=height, W=width, C=channels)
+  input_pixel_format: bgr      # Format pixel BGR (OpenCV standard)
+  path: /openvino-model/ssdlite_mobilenet_v2.xml        # Chemin du modèle
+  labelmap_path: /openvino-model/coco_91cl_bkgr.txt     # Labels COCO (91 classes)
 
-# Configuration audio optimisée
+# ==========================================
+# CONFIGURATION AUDIO
+# ==========================================
+# Détection de sons ambiants (sécurité + animaux)
 audio:
   enabled: true
-  max_not_heard: 30
-  min_volume: 700
+  max_not_heard: 30            # Timeout si son non détecté (secondes)
+  min_volume: 700              # Volume minimum pour déclenchement
   listen:
     # Sons de sécurité prioritaires
-    - glass
-    - knock
-    - door_bell
-    - speech
-    - scream
-    # Sons chat
-    - cat
-    - meow
-    - purr
+    - glass                    # Bris de verre
+    - knock                    # Coups à la porte
+    - door_bell                # Sonnette
+    - speech                   # Parole
+    - scream                   # Cri
+    # Sons animaux
+    - cat                      # Miaulement
+    - meow                     # Miaulement
+    - purr                     # Ronronnement
 
-# go2rtc : WebRTC avec audio bidirectionnel
+# ==========================================
+# GO2RTC - STREAMING WEBRTC
+# ==========================================
+# Gestion des flux vidéo/audio temps réel avec WebRTC
 go2rtc:
   streams:
-    # Stream principal avec audio AAC + Opus pour WebRTC
+    # Stream principal : vidéo HD + audio pour détection
     oeil-de-sauron:
-      - rtsp://admin:canaW33d@192.168.1.167:554/h264Preview_01_main  # Source
-      #- "ffmpeg:oeil-de-sauron#audio=opus"  # Transcodage pour WebRTC
+      - rtsp://admin:CAM_PASSWORD@192.168.X.XXX:554/h264Preview_01_main  # Source caméra (anonymisée)
           
-    # Stream secondaire pour enregistrement léger
+    # Stream secondaire : qualité réduite pour enregistrement
     oeil-de-sauron-sub:
-      - rtsp://admin:canaW33d@192.168.1.167:554/h265Preview_01_sub
+      - rtsp://admin:CAM_PASSWORD@192.168.X.XXX:554/h265Preview_01_sub   # Flux secondaire (anonymisé)
     
-    # ✅ Configuration backchannel comme destination (pas source)
+    # Configuration backchannel : permet l'audio bidirectionnel (parler vers la caméra)
     oeil-de-sauron-backchannel:
-      - "publish:"  # Accepte uniquement les flux entrants
+      - "publish:"               # N'accepte que les flux entrants (depuis HA vers caméra)
   
-  # ✅ Configurer le routing vers la caméra
+  # Routage du flux audio sortant vers la caméra via ONVIF
   publish:
     oeil-de-sauron-backchannel:
       outputs:
-        - onvif://admin:canaW33d@192.168.1.167:8000#backchannel=1
+        - onvif://admin:CAM_PASSWORD@192.168.X.XXX:8000#backchannel=1  # Destination audio (anonymisée)
   
-  # Configuration WebRTC pour latence ultra-basse
+  # Configuration WebRTC pour streaming ultra-rapide
   webrtc:
     candidates:
-      - 192.168.1.184:8555  # IP locale de votre Home Assistant
-      - stun:8555           # Pour traversée NAT si accès externe
-    
-    # Port d'écoute pour connexions WebRTC (default: 8555)
-    listen: ":8555"
+      - 192.168.X.XXX:8555       # IP Home Assistant (anonymisée)
+      - stun:8555                # STUN pour traversée NAT
+    listen: ":8555"              # Port d'écoute WebRTC
   
-  # API go2rtc (optionnel mais utile pour debug)
+  # API interne go2rtc (debug et monitoring)
   api:
     listen: ":1984"
   
-  # ✅ Activer les logs détaillés
+  # Logs détaillés pour débogage
   log:
     level: debug
 
+# ==========================================
+# CONFIGURATION CAMÉRAS
+# ==========================================
 cameras:
   oeil-de-sauron:
-    # Audio bidirectionnel activé
+    # Audio bidirectionnel activé (écoute + parle)
     audio:
       enabled: true
-      # Optionnel : augmenter le volume du micro si faible
-      # volume: 1.5
     
-    # GenAI avec contexte audio
+    # GenAI : descriptions automatiques des événements
     genai:
-      use_snapshot: true
+      use_snapshot: true         # Utilise l'image pour l'analyse IA
+      # Prompt système pour contextualiser l'IA
       prompt: "Tu es un système de sécurité. Analyse l'image de la caméra {camera} située à l'entrée principale. La personne détectée est identifiée comme : {sub_label}. Utilise TOUJOURS ce nom dans ta réponse."
+      
+      # Prompts spécifiques par type d'objet détecté
       object_prompts:
+        # Prompt pour détection de personnes
         person: "IDENTITÉ : {sub_label}. Si ce champ contient un nom comme 'Gaël', commence ta réponse par '[NOM] est...' (exemple : 'Gaël est visible à l'entrée' ou 'Gaël sort de l'appartement'). Si ce champ est vide ou contient 'unknown', écris 'Personne non identifiée'. ACTIONS : Décris ce que la personne fait (entrer, sortir, porter des objets, se déplacer dans la pièce). Si elle transporte ou manipule des objets visibles, décris-les brièvement. Ne mentionne AUCUN comportement suspect sauf si clairement justifié par des actions inhabituelles."
+        
+        # Prompt pour détection de chats
         cat: "IDENTITÉ : Chat détecté. ACTIONS : Décris ses mouvements et comportement (errer, chasser, se reposer, jouer). Si le chat interagit avec des objets spécifiques (pots de fleurs, meubles, portes), mentionne-le. Reste factuel et évite les interprétations excessives."
+      
+      # Objets à analyser avec GenAI
       objects:
         - person
         - cat
     
     enabled: true
     
-    # Configuration dual-stream avec WebRTC prioritaire
+    # Configuration dual-stream : qualité HD pour détection + légère pour enregistrement
     ffmpeg:
       inputs:
-        # Stream PRINCIPAL via go2rtc : détection + audio
+        # Stream principal via go2rtc : détection temps réel + audio
         - path: rtsp://127.0.0.1:8554/oeil-de-sauron
           roles:
-            - detect
-            - audio
+            - detect               # Utilisé pour la détection d'objets
+            - audio                # Capture l'audio
         
-        # Stream SECONDAIRE : enregistrement continu léger
+        # Stream secondaire : enregistrement continu basse qualité
         - path: rtsp://127.0.0.1:8554/oeil-de-sauron-sub
           roles:
-            - record
+            - record               # Utilisé pour l'enregistrement
       
-      input_args: preset-rtsp-restream  # Optimisé pour go2rtc
+      input_args: preset-rtsp-restream      # Optimisé pour go2rtc
       
-      # Configuration audio retour (two-way)
+      # Configuration audio sortant (two-way audio)
       output_args:
-        record: preset-record-generic-audio-copy  # Conserve audio AAC natif
+        record: preset-record-generic-audio-copy  # Conserve l'audio AAC natif sans réencodage
     
+    # Paramètres de détection
     detect:
       enabled: true
-      width: 1920
+      width: 1920                # Résolution de détection
       height: 1080
-      fps: 5
+      fps: 5                     # 5 images/seconde (économise CPU)
     
+    # Zones de surveillance définies par coordonnées polygonales
     zones:
-      entree:
+      entree:                    # Zone "entrée"
         coordinates: 0.443,0.253,0.456,0.999,0.897,0.957,0.837,0.174
-        loitering_time: 0
-        inertia: 3
-      appart:
+        loitering_time: 0        # Pas de délai de stationnement
+        inertia: 3               # Stabilité de détection (évite faux positifs)
+      
+      appart:                    # Zone "appartement"
         coordinates: 0.005,0.19,0.011,0.977,0.993,0.975,0.99,0.033
         loitering_time: 0
         inertia: 3
     
+    # Filtres de détection par objet
     objects:
       filters:
         person:
-          min_score: 0.75
-          threshold: 0.75
-          min_area: 3000
-          max_area: 500000
+          min_score: 0.75        # Score minimum de confiance (75%)
+          threshold: 0.75        # Seuil de détection
+          min_area: 3000         # Surface minimum (pixels) pour valider
+          max_area: 500000       # Surface maximum
         cat:
-          min_score: 0.70
+          min_score: 0.70        # Score minimum pour chats (70%)
           threshold: 0.70
           min_area: 1000
+      
+      # Masque pour ignorer une zone spécifique (coordonnées)
       mask: 0.821,0.445,0.824,0.672,0.895,0.672,0.892,0.45
     
+    # Configuration ONVIF : contrôle PTZ (Pan/Tilt/Zoom) de la caméra
     onvif:
-      host: 192.168.1.167
+      host: 192.168.X.XXX        # IP caméra (anonymisée)
       port: 8000
-      user: admin
-      password: canaW33d
+      user: admin                # Login caméra
+      password: CAM_PASSWORD     # Mot de passe (anonymisé)
+      
+      # Autotracking : la caméra suit automatiquement les objets détectés
       autotracking:
         enabled: true
         calibrate_on_startup: false
-        zooming: disabled
+        zooming: disabled        # Zoom désactivé
         zoom_factor: 0.3
-        track:
+        track:                   # Objets à suivre
           - person
           - cat
-        required_zones:
+        required_zones:          # Ne suit que dans ces zones
           - appart
-        return_preset: base
-        timeout: 15
+        return_preset: base      # Position par défaut après tracking
+        timeout: 15              # Retour position après 15s d'inactivité
     
-    # Configuration live pour WebRTC dans l'interface
+    # Configuration affichage live dans l'interface Frigate
     live:
       streams:
-        Main Stream: oeil-de-sauron
-        Sub Stream: oeil-de-sauron-sub
-      # Qualité maximale pour WebRTC
-      quality: 8
+        Main Stream: oeil-de-sauron      # Flux principal
+        Sub Stream: oeil-de-sauron-sub   # Flux secondaire
+      quality: 8                 # Qualité maximale (1-8)
 
+# ==========================================
+# DÉTECTION GLOBALE
+# ==========================================
 detect:
   enabled: true
 
+# Version de Frigate
 version: 0.16-1
 
+# ==========================================
+# RECHERCHE SÉMANTIQUE
+# ==========================================
+# Permet de chercher des événements par description textuelle
 semantic_search:
   enabled: true
-  model_size: small
+  model_size: small            # Modèle léger
 
+# ==========================================
+# RECONNAISSANCE FACIALE
+# ==========================================
+# Identifie automatiquement les personnes connues
 face_recognition:
   enabled: true
-  unknown_score: 0.7
-  detection_threshold: 0.65
-  recognition_threshold: 0.85
-  min_area: 500
-  min_faces: 3
-  save_attempts: 150
-  blur_confidence_filter: true
+  unknown_score: 0.7           # Seuil pour "inconnu"
+  detection_threshold: 0.65    # Seuil de détection de visage
+  recognition_threshold: 0.85  # Seuil d'identification
+  min_area: 500                # Taille minimum du visage
+  min_faces: 3                 # Nombre d'images nécessaires pour apprentissage
+  save_attempts: 150           # Tentatives de sauvegarde
+  blur_confidence_filter: true # Filtre les images floues
   model_size: small
 
+# ==========================================
+# DÉTECTION DE PLAQUES (DÉSACTIVÉE)
+# ==========================================
 lpr:
   enabled: false
 
+# ==========================================
+# CLASSIFICATION SPÉCIALISÉE (DÉSACTIVÉE)
+# ==========================================
 classification:
   bird:
     enabled: false
 
+# ==========================================
+# OBJETS À TRACKER
+# ==========================================
 objects:
   track:
     - person
     - cat
 
+# ==========================================
+# SNAPSHOTS (CAPTURES D'ÉCRAN)
+# ==========================================
 snapshots:
   enabled: true
-  timestamp: true
-  bounding_box: true
-  crop: false
-  required_zones: []
+  timestamp: true              # Horodatage sur image
+  bounding_box: true           # Cadre autour des objets
+  crop: false                  # Pas de recadrage
+  required_zones: []           # Snapshots dans toutes les zones
   retain:
-    default: 10
+    default: 10                # Conservation 10 jours par défaut
     objects:
-      person: 14
-      cat: 14
+      person: 14               # 14 jours pour personnes
+      cat: 14                  # 14 jours pour chats
 
-# Enregistrement optimisé avec audio
+# ==========================================
+# ENREGISTREMENT VIDÉO
+# ==========================================
 record:
   enabled: true
   retain:
-    days: 2
-    mode: motion
+    days: 2                    # Conservation 2 jours (enregistrement continu)
+    mode: motion               # Enregistre seulement si mouvement
+  
+  # Configuration enregistrements "alertes"
   alerts:
-    pre_capture: 5
-    post_capture: 5
+    pre_capture: 5             # 5s avant l'événement
+    post_capture: 5            # 5s après l'événement
     retain:
-      days: 7
+      days: 7                  # Conservation 7 jours
       mode: motion
+  
+  # Configuration enregistrements "détections"
   detections:
     pre_capture: 5
     post_capture: 5
@@ -239,19 +305,29 @@ record:
       days: 7
       mode: motion
 
+# ==========================================
+# GENAI (INTELLIGENCE ARTIFICIELLE)
+# ==========================================
+# Configuration de l'IA générative pour descriptions automatiques
 genai:
   enabled: true
-  provider: gemini
-  api_key: AIzaSyB8Cv3O9SD949alEhyii4IhJVED4RWlX-M
-  model: gemini-2.5-flash
+  provider: gemini             # Utilise Google Gemini
+  api_key: GEMINI_API_KEY      # Clé API Gemini (anonymisée)
+  model: gemini-2.5-flash      # Modèle léger et rapide
 
+# ==========================================
+# NOTIFICATIONS
+# ==========================================
 notifications:
   enabled: true
 
+# ==========================================
+# INTERFACE UTILISATEUR
+# ==========================================
 ui:
-  timezone: Europe/Paris
-  time_format: 24hour
-  date_style: short
-  time_style: medium
-  strftime_fmt: "%d/%m/%Y %H:%M"
-  unit_system: metric
+  timezone: Europe/Paris       # Fuseau horaire
+  time_format: 24hour          # Format 24h
+  date_style: short            # Style de date court
+  time_style: medium           # Style d'heure moyen
+  strftime_fmt: "%d/%m/%Y %H:%M"  # Format d'affichage personnalisé
+  unit_system: metric          # Système métrique (°C, km, etc.)
