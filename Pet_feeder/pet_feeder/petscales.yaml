@@ -1,6 +1,7 @@
 # Configuration ESPHome pour deux balances HX711 sur un même ESP32
 # - Une balance pour l'eau
 # - Une balance pour les croquettes
+# VERSION HARMONISÉE - Les deux balances utilisent la même logique
 
 # ========================= CONFIGURATION ESPHOME =========================
 esphome:
@@ -13,131 +14,145 @@ esphome:
 #   ssid: !secret wifi_ssid
 #   password: !secret wifi_password
 
-# ========================= VARIABLES GLOBALES POUR BALANCE EAU =========================
-globals:
-  # Valeurs de calibration pour la balance d'eau
-  - id: water_tare_offset  # Valeur brute à vide
-    type: float
-    restore_value: true
-    initial_value: "186585.0"  # Valeur brute actuelle pour 0 kg
-  
-  - id: water_full_scale_raw  # Valeur brute à plein
-    type: float
-    restore_value: true
-    initial_value: "229548.0"  # Valeur brute actuelle pour 1.715 kg
-    
-  - id: water_full_scale_weight  # Poids de référence pour le plein
-    type: float
-    restore_value: true
-    initial_value: "1.715"  # Poids correspondant à full_scale_raw
-  
-  - id: water_scale_factor  # Facteur calculé automatiquement
-    type: float
-    restore_value: true 
-    initial_value: "25.051"  # Sera recalculé lors de la calibration
+# ========================= VARIABLES GLOBALES =========================
 
-  # Valeurs de calibration pour la balance de croquettes
-  - id: food_tare_offset  # Valeur brute à vide
+# --------- VARIABLES BALANCE EAU ---------
+globals:
+  # Valeur brute à vide (gamelle vide sur la balance)
+  - id: water_tare_offset
     type: float
     restore_value: true
-    initial_value: "64095.0"  # Valeur brute actuelle pour 0 kg
+    initial_value: "186585.0"
   
-  - id: food_full_scale_raw  # Valeur brute à plein
+  # Valeur brute à plein (gamelle avec poids de référence connu)
+  - id: water_full_scale_raw
     type: float
     restore_value: true
-    initial_value: "88380.0"  # Valeur brute actuelle pour 1 kg
+    initial_value: "229548.0"
     
-  - id: food_full_scale_weight  # Poids de référence pour le plein
+  # Poids de référence utilisé lors de la calibration plein
+  - id: water_full_scale_weight
     type: float
     restore_value: true
-    initial_value: "1.000"  # Poids correspondant à full_scale_raw
+    initial_value: "1.715"
   
-  - id: food_scale_factor  # Facteur calculé automatiquement
+  # Facteur de conversion calculé automatiquement
+  # (différence valeurs brutes) / (poids de référence)
+  - id: water_scale_factor
     type: float
     restore_value: true 
-    initial_value: "38202.0"  # Sera recalculé lors de la calibration
-    
-  - id: food_zero_kg  # Tare appliquée pour calcul du poids net
+    initial_value: "25.051"
+
+  # --------- VARIABLES BALANCE CROQUETTES ---------
+  # Valeur brute à vide (gamelle vide sur la balance)
+  - id: food_tare_offset
     type: float
     restore_value: true
-    initial_value: "0.0"
+    initial_value: "64095.0"
+  
+  # Valeur brute à plein (gamelle avec poids de référence connu)
+  - id: food_full_scale_raw
+    type: float
+    restore_value: true
+    initial_value: "88380.0"
+    
+  # Poids de référence utilisé lors de la calibration plein
+  - id: food_full_scale_weight
+    type: float
+    restore_value: true
+    initial_value: "1.000"
+  
+  # Facteur de conversion calculé automatiquement
+  # (différence valeurs brutes) / (poids de référence)
+  - id: food_scale_factor
+    type: float
+    restore_value: true 
+    initial_value: "24285.0"
 
 # ========================= CAPTEURS =========================
 sensor:
-  # --------- CAPTEURS BALANCE EAU ---------
-  # Capteur HX711 principal pour l'eau
+  # ========================================
+  # BALANCE EAU
+  # ========================================
+  
+  # Capteur HX711 brut pour l'eau
   - platform: hx711
     name: "Eau Raw Value"
     id: water_scale_raw
-    dout_pin: 16  # Utilisez des broches différentes pour chaque balance
+    dout_pin: 16
     clk_pin: 4
     gain: 128
-    update_interval: 30s
+    update_interval: 30s  # Mise à jour toutes les 30 secondes
     unit_of_measurement: "raw"
     accuracy_decimals: 0
     icon: mdi:scale
-    internal: false  # Ne pas exposer directement à Home Assistant
+    internal: false
     
-  # Capteur de poids calculé pour l'eau
+  # Poids calculé pour l'eau (avec filtres de stabilisation)
   - platform: template
     name: "Eau Poids Gamelle"
     id: water_scale_value
     unit_of_measurement: "kg"
     accuracy_decimals: 3
     icon: mdi:scale-balance
-    update_interval: 30s
+    update_interval: 30s  # Synchronisé avec le capteur brut
     lambda: |-
-      // Calcul du facteur d'échelle dynamique basé sur les points de calibration
+      // Calcul du facteur d'échelle dynamique
+      // Formule: (valeur_brute_plein - valeur_brute_vide) / poids_référence
       float current_scale_factor = (id(water_full_scale_raw) - id(water_tare_offset)) / id(water_full_scale_weight);
       
-      // Vérifier si le facteur d'échelle est valide
+      // Vérification de validité du facteur
       if (current_scale_factor <= 0) {
         ESP_LOGW("water_scale", "Facteur d'échelle invalide: %f", current_scale_factor);
-        return {}; // Retourne NaN pour éviter les calculs erronés
-      }
-      
-      // Utiliser ce facteur pour convertir la valeur brute en poids
-      float raw_value = id(water_scale_raw).state;
-      float raw_weight = (raw_value - id(water_tare_offset)) / current_scale_factor;
-      
-      // Journalisation des valeurs pour le débogage
-      ESP_LOGD("water_scale", "Valeur brute: %f, Tare: %f, Facteur: %f, Poids: %f", 
-               raw_value, id(water_tare_offset), current_scale_factor, raw_weight);
-      
-      // Premier niveau de sécurité - gamme de valeurs acceptables
-      if (raw_weight < -0.1 || raw_weight > id(water_full_scale_weight) * 1.2) {
-        ESP_LOGW("water_scale", "Valeur hors limites détectée: %f, ignorée", raw_weight);
         return {};  // Retourne NaN pour ignorer cette mesure
       }
       
-      // Mise à jour du facteur d'échelle global pour les autres capteurs
+      // Conversion de la valeur brute en poids
+      // Formule: (valeur_brute - tare) / facteur_échelle
+      float raw_value = id(water_scale_raw).state;
+      float raw_weight = (raw_value - id(water_tare_offset)) / current_scale_factor;
+      
+      // Logs de débogage
+      ESP_LOGD("water_scale", "Valeur brute: %f, Tare: %f, Facteur: %f, Poids: %f", 
+               raw_value, id(water_tare_offset), current_scale_factor, raw_weight);
+      
+      // Vérification des limites (avec 20% de marge au-dessus du poids max)
+      if (raw_weight < -0.1 || raw_weight > id(water_full_scale_weight) * 1.2) {
+        ESP_LOGW("water_scale", "Valeur hors limites détectée: %f kg, ignorée", raw_weight);
+        return {};
+      }
+      
+      // Mise à jour du facteur global pour les autres capteurs
       id(water_scale_factor) = current_scale_factor;
       
       return raw_weight;
     filters:
-      # Filtre de médiane pour éliminer les valeurs aberrantes
+      # Filtre 1: Médiane sur 7 valeurs pour éliminer les pics aberrants
       - median:
           window_size: 7
-          send_first_at: 4
-          send_every: 5
-      # Suppression des fluctuations minimes
+          send_first_at: 4  # Envoie après 4 valeurs reçues
+          send_every: 5     # Puis envoie toutes les 5 valeurs
+      
+      # Filtre 2: Suppression du bruit sous 10 grammes
       - lambda: |-
           if (x < 0.010) {
-            return 0.000; // Ignorer les variations inférieures à 10g
+            return 0.000;
           } else {
             return x;
           }
-      # Moyennage supplémentaire pour stabiliser davantage
+      
+      # Filtre 3: Moyenne mobile pour lisser les fluctuations
       - sliding_window_moving_average:
           window_size: 5
           send_every: 5
-      # Filtrage final pour garantir des valeurs dans la plage acceptable
+      
+      # Filtre 4: Protection finale contre les valeurs aberrantes
       - lambda: |-
-          if (x > 2.000) return 0.000; // Si > 2kg, probablement une erreur, retourner 0
-          if (x < 0.000) return 0.000; // Valeurs négatives ramenées à 0
+          if (x > 2.000) return 0.000;  // Au-dessus de 2 kg = erreur
+          if (x < 0.000) return 0.000;  // Valeurs négatives = 0
           return x;
 
-  # Pourcentage du niveau d'eau
+  # Niveau d'eau en pourcentage
   - platform: template
     name: "Eau %"
     id: water_scale_percentage
@@ -146,136 +161,153 @@ sensor:
     icon: mdi:water-percent
     update_interval: 60s
     lambda: |-
-      // Vérifier si la mesure de poids est valide
+      // Vérification de validité de la mesure
       if (isnan(id(water_scale_value).state) || id(water_scale_value).state < 0) {
-        return {}; // Retourne NaN si la mesure n'est pas valide
+        return {};
       }
       
-      // Calcul du poids maximum basé sur le poids de référence
       float max_weight = id(water_full_scale_weight);
       
-      // Conversion en pourcentage avec saturation
+      // Conversion en pourcentage avec zones de saturation
       if (id(water_scale_value).state <= 0.01) {
-        return 0.0; // En dessous de 10g, considéré comme vide
+        return 0.0;  // Moins de 10g = vide
       } else if (id(water_scale_value).state >= max_weight * 0.95) {
-        return 100.0; // Au dessus de 95% du poids max, considéré comme plein
+        return 100.0;  // Plus de 95% du max = plein
       } else {
         return (id(water_scale_value).state / max_weight) * 100.0;
       }
     filters:
-      # Arrondi à l'entier le plus proche
+      # Arrondi à l'entier
       - lambda: return round(x);
-      # Protection contre les valeurs aberrantes
+      # Limitation 0-100%
       - lambda: |-
-          if (x > 100.0) return 100.0;  // Limiter à 100% maximum
-          if (x < 0.0) return 0.0;      // Limiter à 0% minimum
+          if (x > 100.0) return 100.0;
+          if (x < 0.0) return 0.0;
           return x;
 
-  # --------- CAPTEURS BALANCE CROQUETTES ---------
-  # Capteur HX711 principal pour les croquettes
+  # ========================================
+  # BALANCE CROQUETTES (HARMONISÉE)
+  # ========================================
+  
+  # Capteur HX711 brut pour les croquettes
   - platform: hx711
     name: "Croquette Raw Value"
     id: food_scale_raw
-    dout_pin: 5  # Utilisez des broches différentes de celles pour l'eau
+    dout_pin: 5
     clk_pin: 18
     gain: 128
-    update_interval: 5s
+    update_interval: 30s  # HARMONISÉ: même intervalle que l'eau
     unit_of_measurement: "raw"
     accuracy_decimals: 0
     icon: mdi:scale
-    internal: False
+    internal: false
     
-  # Capteur de poids calculé pour les croquettes
+  # Poids calculé pour les croquettes (avec filtres de stabilisation)
   - platform: template
     name: "Croquettes Poids"
     id: food_scale_value
     unit_of_measurement: "kg"
-    accuracy_decimals: 2
+    accuracy_decimals: 3  # HARMONISÉ: même précision que l'eau
     icon: mdi:scale-balance
-    update_interval: 5s
+    update_interval: 30s  # HARMONISÉ: synchronisé avec le capteur brut
     lambda: |-
-      // Calcul du facteur d'échelle dynamique basé sur les points de calibration
+      // Calcul du facteur d'échelle dynamique
+      // Formule: (valeur_brute_plein - valeur_brute_vide) / poids_référence
       float current_scale_factor = (id(food_full_scale_raw) - id(food_tare_offset)) / id(food_full_scale_weight);
       
-      // Vérifier si le facteur d'échelle est valide
+      // Vérification de validité du facteur
       if (current_scale_factor <= 0) {
         ESP_LOGW("food_scale", "Facteur d'échelle invalide: %f", current_scale_factor);
-        return NAN;
+        return {};  // HARMONISÉ: retourne {} au lieu de NAN
       }
       
-      // Utiliser ce facteur pour convertir la valeur brute en poids
+      // Conversion de la valeur brute en poids
+      // Formule: (valeur_brute - tare) / facteur_échelle
       float raw_value = id(food_scale_raw).state;
       float raw_weight = (raw_value - id(food_tare_offset)) / current_scale_factor;
       
-      // Journalisation des valeurs pour le débogage
-      ESP_LOGD("food_scale", "Valeur brute: %f, Tare: %f, Facteur: %f, Poids calculé: %f", 
+      // Logs de débogage
+      ESP_LOGD("food_scale", "Valeur brute: %f, Tare: %f, Facteur: %f, Poids: %f", 
                raw_value, id(food_tare_offset), current_scale_factor, raw_weight);
       
-      // Premier niveau de sécurité - gamme de valeurs acceptables
-      if (raw_weight < -0.2 || raw_weight > id(food_full_scale_weight) * 2.0) {
-        ESP_LOGW("food_scale", "Valeur hors limites détectée: %f, ignorée", raw_weight);
-        return NAN;
+      // Vérification des limites (avec 20% de marge au-dessus du poids max)
+      if (raw_weight < -0.1 || raw_weight > id(food_full_scale_weight) * 1.2) {
+        ESP_LOGW("food_scale", "Valeur hors limites détectée: %f kg, ignorée", raw_weight);
+        return {};  // HARMONISÉ: retourne {} au lieu de NAN
       }
       
-      // Mise à jour du facteur d'échelle global pour les autres capteurs
+      // Mise à jour du facteur global pour les autres capteurs
       id(food_scale_factor) = current_scale_factor;
       
-      // Application de la tare pour obtenir le poids net
-      float poids_net;
-      if (std::isnan(id(food_zero_kg))) {
-        poids_net = raw_weight;  // Si la tare est NaN, utiliser le poids brut
-        ESP_LOGW("food_scale", "La valeur de tare est NaN, utilisation du poids brut");
-      } else {
-        poids_net = raw_weight - id(food_zero_kg);
-      }
+      return raw_weight;
+    filters:
+      # HARMONISÉ: Mêmes filtres que la balance eau
       
-      // Éviter les valeurs négatives
-      if (poids_net < 0.0) poids_net = 0.0;
+      # Filtre 1: Médiane sur 7 valeurs pour éliminer les pics aberrants
+      - median:
+          window_size: 7
+          send_first_at: 4
+          send_every: 5
       
-      ESP_LOGI("food_scale", "Poids net calculé: %f", poids_net);
+      # Filtre 2: Suppression du bruit sous 10 grammes
+      - lambda: |-
+          if (x < 0.010) {
+            return 0.000;
+          } else {
+            return x;
+          }
       
-      return poids_net;
+      # Filtre 3: Moyenne mobile pour lisser les fluctuations
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 5
+      
+      # Filtre 4: Protection finale contre les valeurs aberrantes
+      # Limite adaptée pour les croquettes (max 1.5 kg au lieu de 2 kg)
+      - lambda: |-
+          if (x > 1.500) return 0.000;  // Au-dessus de 1.5 kg = erreur
+          if (x < 0.000) return 0.000;  // Valeurs négatives = 0
+          return x;
 
-  # Pourcentage du niveau de croquettes
+  # Niveau de croquettes en pourcentage
   - platform: template
     name: "Croquettes %"
     id: food_scale_percentage
     unit_of_measurement: "%"
-    accuracy_decimals: 1
+    accuracy_decimals: 0  # HARMONISÉ: arrondi à l'entier comme l'eau
     icon: mdi:food-variant
-    update_interval: 5s
+    update_interval: 60s  # HARMONISÉ: même intervalle que l'eau
     lambda: |-
-      // Récupérer la valeur du poids
-      float weight = id(food_scale_value).state;
-      
-      // Vérifier si la mesure est valide
-      if (std::isnan(weight)) {
-        // Si la valeur brute est disponible, essayer de calculer directement
-        if (!std::isnan(id(food_scale_raw).state)) {
-          float raw_val = id(food_scale_raw).state;
-          float calc_weight = (raw_val - id(food_tare_offset)) / id(food_scale_factor);
-          if (calc_weight >= 0) {
-            weight = calc_weight;
-            ESP_LOGW("food_scale", "Utilisation du calcul direct pour le pourcentage: %f", weight);
-          } else {
-            return 0.0;
-          }
-        } else {
-          return 0.0;
-        }
+      // Vérification de validité de la mesure
+      if (isnan(id(food_scale_value).state) || id(food_scale_value).state < 0) {
+        return {};  // HARMONISÉ: retourne {} si invalide
       }
       
-      // Conversion en pourcentage 
-      if (weight <= 0.005) {
-        return 0.0; // En dessous de 5g, considéré comme vide
-      } else if (weight >= 1.000) {
-        return 100.0; // Au-dessus de 1kg, considéré comme plein
+      float max_weight = id(food_full_scale_weight);
+      
+      // Conversion en pourcentage avec zones de saturation
+      if (id(food_scale_value).state <= 0.01) {
+        return 0.0;  // Moins de 10g = vide
+      } else if (id(food_scale_value).state >= max_weight * 0.95) {
+        return 100.0;  // Plus de 95% du max = plein
       } else {
-        return (weight / 1.000) * 100.0;
+        return (id(food_scale_value).state / max_weight) * 100.0;
       }
+    filters:
+      # HARMONISÉ: Mêmes filtres que l'eau
+      # Arrondi à l'entier
+      - lambda: return round(x);
+      # Limitation 0-100%
+      - lambda: |-
+          if (x > 100.0) return 100.0;
+          if (x < 0.0) return 0.0;
+          return x;
 
-  # --------- CAPTEURS DE DIAGNOSTIC ---------
-  # Valeurs brutes pour diagnostic
+  # ========================================
+  # CAPTEURS DE DIAGNOSTIC
+  # ========================================
+  
+  # Valeur brute eau (pour diagnostic)
   - platform: template
     name: "Eau Valeur Brute"
     unit_of_measurement: "raw"
@@ -286,17 +318,18 @@ sensor:
     lambda: |-
       return id(water_scale_raw).state;
 
+  # Valeur brute croquettes (pour diagnostic)
   - platform: template
     name: "Croquettes Valeur Brute"
     unit_of_measurement: "raw"
     accuracy_decimals: 0
-    update_interval: 30s
+    update_interval: 120s  # HARMONISÉ: même intervalle que l'eau
     entity_category: "diagnostic"
     icon: mdi:raw
     lambda: |-
       return id(food_scale_raw).state;
 
-  # État des capteurs
+  # Code d'état balance eau
   - platform: template
     name: "Eau État Capteur (code)"
     id: "water_scale_status_code"
@@ -306,38 +339,45 @@ sensor:
     update_interval: 120s
     lambda: |-
       float raw_value = id(water_scale_raw).state;
+      // Code 0: Erreur capteur (valeur trop faible)
       if (raw_value < 1000) {
-        return 0.0;  // Code d'erreur 0 - Erreur capteur
+        return 0.0;
       }
+      // Code 1: Hors calibration (trop d'écart avec la tare)
       float offset_diff = abs(raw_value - id(water_tare_offset));
       if (offset_diff > 100000) {
-        return 1.0;  // Code d'erreur 1 - Hors calibration
+        return 1.0;
       }
-      return 2.0;  // Code 2 - OK
+      // Code 2: OK
+      return 2.0;
 
+  # Code d'état balance croquettes
   - platform: template
     name: "Croquettes État Capteur (code)"
     id: "food_scale_status_code"
     unit_of_measurement: ""
     icon: mdi:information-outline
     entity_category: "diagnostic"
-    update_interval: 60s
+    update_interval: 120s  # HARMONISÉ: même intervalle que l'eau
     lambda: |-
       float raw_value = id(food_scale_raw).state;
+      // Code 0: Erreur capteur (valeur trop faible)
       if (raw_value < 1000) {
-        return 0.0;  // Code d'erreur 0 - Erreur capteur
+        return 0.0;
       }
+      // Code 1: Hors calibration (trop d'écart avec la tare)
       float offset_diff = abs(raw_value - id(food_tare_offset));
       if (offset_diff > 50000) {
-        return 1.0;  // Code d'erreur 1 - Hors calibration
+        return 1.0;
       }
-      return 2.0;  // Code 2 - OK
+      // Code 2: OK
+      return 2.0;
 
 # ========================= CAPTEURS TEXTE =========================
 text_sensor:
-  # État des balances en format texte
+  # État balance eau en texte
   - platform: template
-    name: "Eau État Capteur "
+    name: "Eau État Capteur"
     entity_category: "diagnostic"
     icon: mdi:information-outline
     update_interval: 120s
@@ -352,11 +392,12 @@ text_sensor:
       }
       return {"OK"};
 
+  # État balance croquettes en texte
   - platform: template
     name: "Croquettes État Capteur"
     entity_category: "diagnostic"
     icon: mdi:information-outline
-    update_interval: 60s
+    update_interval: 120s  # HARMONISÉ
     lambda: |-
       float raw_value = id(food_scale_raw).state;
       if (raw_value < 1000) {
@@ -368,7 +409,7 @@ text_sensor:
       }
       return {"OK"};
 
-  # Instructions de calibration
+  # Instructions de calibration eau
   - platform: template
     name: "Eau Instructions calibration"
     entity_category: "diagnostic"
@@ -378,6 +419,7 @@ text_sensor:
              "3) Remplissez avec un poids connu 4) Réglez le 'Poids de référence eau' "
              "5) Appuyez sur 'Calibrer Balance Eau (Plein)'"};
 
+  # Instructions de calibration croquettes
   - platform: template
     name: "Croquettes Instructions calibration"
     entity_category: "diagnostic"
@@ -387,70 +429,69 @@ text_sensor:
              "3) Remplissez avec un poids connu 4) Réglez le 'Poids de référence croquettes' "
              "5) Appuyez sur 'Calibrer Balance Croquettes (Plein)'"};
 
-# ========================= BOUTONS =========================
+# ========================= BOUTONS DE CALIBRATION =========================
 button:
-  # Boutons pour la balance d'eau
+  # --------- BOUTONS BALANCE EAU ---------
+  
+  # Définir la tare (gamelle vide)
   - platform: template
     name: "Eau Tare (Vide)"
     icon: mdi:scale-balance
     on_press:
       - lambda: |-
+          // Enregistre la valeur brute actuelle comme nouvelle tare
           id(water_tare_offset) = id(water_scale_raw).state;
+          // Recalcule le facteur d'échelle
           id(water_scale_factor) = (id(water_full_scale_raw) - id(water_tare_offset)) / id(water_full_scale_weight);
           ESP_LOGI("water_scale", "Nouvelle tare définie: %f, nouveau facteur: %f", 
                   id(water_tare_offset), id(water_scale_factor));
   
+  # Calibrer avec un poids de référence connu
   - platform: template
-    name: "Eau Tare (Plein)"
+    name: "Eau Calibrer (Plein)"
     icon: mdi:weight
     on_press:
       - lambda: |-
+          // Enregistre la valeur brute actuelle avec le poids de référence
           id(water_full_scale_raw) = id(water_scale_raw).state;
+          // Recalcule le facteur d'échelle
           id(water_scale_factor) = (id(water_full_scale_raw) - id(water_tare_offset)) / id(water_full_scale_weight);
           ESP_LOGI("water_scale", "Nouvelle valeur plein: %f, nouveau facteur: %f", 
                   id(water_full_scale_raw), id(water_scale_factor));
   
-  # Boutons pour la balance de croquettes
+  # --------- BOUTONS BALANCE CROQUETTES ---------
+  
+  # Définir la tare (gamelle vide)
   - platform: template
     name: "Croquettes Tare (Vide)"
     icon: mdi:scale-balance
     on_press:
       - lambda: |-
+          // Enregistre la valeur brute actuelle comme nouvelle tare
           id(food_tare_offset) = id(food_scale_raw).state;
+          // Recalcule le facteur d'échelle
           id(food_scale_factor) = (id(food_full_scale_raw) - id(food_tare_offset)) / id(food_full_scale_weight);
           ESP_LOGI("food_scale", "Nouvelle tare définie: %f, nouveau facteur: %f", 
                   id(food_tare_offset), id(food_scale_factor));
   
+  # Calibrer avec un poids de référence connu
   - platform: template
-    name: "Croquettes Tare (Plein)"
+    name: "Croquettes Calibrer (Plein)"
     icon: mdi:weight
     on_press:
       - lambda: |-
+          // Enregistre la valeur brute actuelle avec le poids de référence
           id(food_full_scale_raw) = id(food_scale_raw).state;
+          // Recalcule le facteur d'échelle
           id(food_scale_factor) = (id(food_full_scale_raw) - id(food_tare_offset)) / id(food_full_scale_weight);
           ESP_LOGI("food_scale", "Nouvelle valeur plein: %f, nouveau facteur: %f", 
                   id(food_full_scale_raw), id(food_scale_factor));
 
-  - platform: template
-    name: "Croquettes Réinitialiser Tare "
-    icon: mdi:restart-alert
-    on_press:
-      - lambda: |-
-          id(food_zero_kg) = 0.0;
-          ESP_LOGI("food_scale", "Tare réinitialisée");
-
-  - platform: template
-    name: "Croquettes Tare Poids Net "
-    icon: mdi:scale
-    on_press:
-      - lambda: |-
-          id(food_zero_kg) = id(food_scale_value).state;
-          ESP_LOGI("food_scale", "Nouvelle tare appliquée: %f", id(food_zero_kg));
-
-# ========================= CONTRÔLES NUMÉRIQUES =========================
+# ========================= CONTRÔLES DE POIDS DE RÉFÉRENCE =========================
 number:
+  # Poids de référence pour la balance eau
   - platform: template
-    name: "Eau Poids de référence "
+    name: "Eau Poids de référence"
     id: water_reference_weight_control
     icon: mdi:weight
     optimistic: true
@@ -462,11 +503,13 @@ number:
     unit_of_measurement: "kg"
     on_value:
       - lambda: |-
+          // Met à jour le poids de référence et recalcule le facteur
           id(water_full_scale_weight) = x;
           id(water_scale_factor) = (id(water_full_scale_raw) - id(water_tare_offset)) / id(water_full_scale_weight);
           ESP_LOGI("water_scale", "Nouveau poids de référence: %f, nouveau facteur: %f", 
                   id(water_full_scale_weight), id(water_scale_factor));
 
+  # Poids de référence pour la balance croquettes
   - platform: template
     name: "Croquettes Poids de référence"
     id: food_reference_weight_control
@@ -480,6 +523,7 @@ number:
     unit_of_measurement: "kg"
     on_value:
       - lambda: |-
+          // Met à jour le poids de référence et recalcule le facteur
           id(food_full_scale_weight) = x;
           id(food_scale_factor) = (id(food_full_scale_raw) - id(food_tare_offset)) / id(food_full_scale_weight);
           ESP_LOGI("food_scale", "Nouveau poids de référence: %f, nouveau facteur: %f", 
@@ -487,29 +531,33 @@ number:
 
 # ========================= VÉRIFICATIONS PÉRIODIQUES =========================
 interval:
-  # Vérifications pour la balance d'eau
+  # Vérification et auto-recalibration balance eau
   - interval: 12h
     then:
       - logger.log: "Vérification périodique de la balance d'eau"
       - if:
           condition:
+            # Si valeur > 1.9 kg ou < -0.05 kg, problème détecté
             lambda: 'return id(water_scale_value).state > 1.9 || id(water_scale_value).state < -0.05;'
           then:
             - lambda: |-
+                // Si proche de zéro, recalibre automatiquement la tare
                 if (id(water_scale_value).state < 0.05) {
                   id(water_tare_offset) = id(water_scale_raw).state;
                   ESP_LOGI("water_scale", "Recalibration auto: %f", id(water_tare_offset));
                 }
 
-  # Vérifications pour la balance de croquettes
+  # Vérification et auto-recalibration balance croquettes
   - interval: 12h
     then:
       - logger.log: "Vérification périodique de la balance de croquettes"
       - if:
           condition:
+            # HARMONISÉ: mêmes limites relatives adaptées au poids max
             lambda: 'return id(food_scale_value).state > 1.3 || id(food_scale_value).state < -0.05;'
           then:
             - lambda: |-
+                // Si proche de zéro, recalibre automatiquement la tare
                 if (id(food_scale_value).state < 0.05) {
                   id(food_tare_offset) = id(food_scale_raw).state;
                   ESP_LOGI("food_scale", "Recalibration auto: %f", id(food_tare_offset));
