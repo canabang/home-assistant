@@ -205,4 +205,96 @@
         capacite_ml: "1500ml"  # Ajustez selon votre fontaine
         fiabilite_capteur: "{{ states('sensor.esp_pet_scales_eau_etat_capteur') | default('N/A') }}"
 
-    
+    # ========================================
+    # ÉCART BALANCE VS ESTIMÉ (Principal diagnostic)
+    # ========================================
+    - name: "Écart Stock vs Balance"
+      unique_id: pet_feeder_stock_divergence
+      unit_of_measurement: "g"
+      icon: mdi:delta
+      state: >
+        {% set estime = states('input_number.pet_feeder_stock_estime') | float(0) %}
+        {% set balance = states('sensor.balance_croquettes_en_grammes') | float(0) %}
+        {{ (estime - balance) | abs | round(0) }}
+      attributes:
+        stock_estime: "{{ states('input_number.pet_feeder_stock_estime') | round(0) }}g"
+        balance_physique: "{{ states('sensor.balance_croquettes_en_grammes') | round(0) }}g"
+        difference: >
+          {% set estime = states('input_number.pet_feeder_stock_estime') | float(0) %}
+          {% set balance = states('sensor.balance_croquettes_en_grammes') | float(0) %}
+          {% set diff = estime - balance %}
+          {% if diff > 0 %}
+            Estimé +{{ diff | round(0) }}g
+          {% elif diff < 0 %}
+            Estimé {{ diff | round(0) }}g
+          {% else %}
+            Synchronisé
+          {% endif %}
+
+    # ========================================
+    # JOURS RESTANTS EAU (Estimation simple)
+    # ========================================
+    - name: "Jours Restants Eau"
+      unique_id: pet_water_days_remaining
+      unit_of_measurement: "jours"
+      icon: mdi:calendar-clock
+      state: >
+        {% set niveau_pourcent = states('sensor.esp_pet_scales_eau') | float(0) %}
+        {% set capacite_ml = 1500 %}
+        {% set volume_actuel = (niveau_pourcent / 100) * capacite_ml %}
+        {% set conso_estimee = 150 %}
+        {{ (volume_actuel / conso_estimee) | round(1) }}
+      attributes:
+        volume_actuel: >
+          {% set niveau = states('sensor.esp_pet_scales_eau') | float(0) %}
+          {{ ((niveau / 100) * 1500) | round(0) }}ml
+        niveau_pourcent: "{{ states('sensor.esp_pet_scales_eau') }}%"
+
+    # ========================================
+    # CONSOMMATION MOYENNE (Simple sur cycle actuel)
+    # ========================================
+    - name: "Consommation Quotidienne Moyenne"
+      unique_id: pet_feeder_avg_daily_consumption
+      unit_of_measurement: "g"
+      icon: mdi:chart-line
+      state: >
+        {% set cumul = states('input_number.pet_feeder_cumulative_distributed_since_refill') | float(0) %}
+        {% set refill_ts = states('input_number.pet_feeder_refill_date') | float(0) %}
+        
+        {% if refill_ts > 0 %}
+          {% set jours = ((now().timestamp() - refill_ts) / 86400) | round(1) %}
+          {% if jours > 0 %}
+            {{ (cumul / jours) | round(1) }}
+          {% else %}
+            0
+          {% endif %}
+        {% else %}
+          {{ states('input_number.pet_feeder_target_daily_weight') | float(85) }}
+        {% endif %}
+      attributes:
+        jours_mesures: >
+          {% set refill_ts = states('input_number.pet_feeder_refill_date') | float(0) %}
+          {% if refill_ts > 0 %}
+            {{ ((now().timestamp() - refill_ts) / 86400) | round(1) }}
+          {% else %}
+            0
+          {% endif %}
+
+    # ========================================
+    # POURCENTAGE OBJECTIF AUJOURD'HUI
+    # ========================================
+    - name: "Progression Quotidienne"
+      unique_id: pet_feeder_daily_progress
+      unit_of_measurement: "%"
+      icon: mdi:percent
+      state: >
+        {% set distribue = states('input_number.pet_feeder_daily_consumption_counter') | float(0) %}
+        {% set objectif = states('input_number.pet_feeder_target_daily_weight') | float(85) %}
+        {{ ((distribue / objectif) * 100) | round(0) }}
+      attributes:
+        distribue: "{{ states('input_number.pet_feeder_daily_consumption_counter') | round(0) }}g"
+        objectif: "{{ states('input_number.pet_feeder_target_daily_weight') | round(0) }}g"
+        reste: >
+          {% set d = states('input_number.pet_feeder_daily_consumption_counter') | float(0) %}
+          {% set o = states('input_number.pet_feeder_target_daily_weight') | float(85) %}
+          {{ [o - d, 0] | max | round(0) }}g   
