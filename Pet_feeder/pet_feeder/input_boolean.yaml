@@ -5,7 +5,3 @@ pet_feeder_manual_refill_trigger:
   name: "Déclencheur remplissage manuel"
   icon: mdi:warehouse-plus
   initial: false
-pet_feeder_force_sync_balance:
-  name: "Forcer sync avec balance"
-  icon: mdi:sync
-  initial: false
