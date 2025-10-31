@@ -135,6 +135,108 @@ decluttering_templates:
              color: [[color_closed]] !important;
            {% endif %}  
           }
+  mushroom_door_card:
+    default:
+      - icon_open: phu:panel-door-open
+      - icon_closed: phu:panel-door-close
+      - color_open: seagreen
+      - color_closed: grey
+      - battery_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: '{{ ''Ouverte'' if is_state(''[[entity]]'', ''on'') else ''Fermée'' }}'
+      icon: |-
+        {% if is_state('[[entity]]', 'on') %}
+          [[icon_open]]
+        {% else %}
+          [[icon_closed]]
+        {% endif %}
+      icon_color: |-
+        {% if is_state('[[entity]]', 'on') %}
+          [[color_open]]
+        {% else %}
+          [[color_closed]]
+        {% endif %}
+      entity: '[[entity]]'
+      badge_icon: mdi:battery
+      badge_color: |-
+        {% set battery = states('[[battery_entity]]') | int %}
+        {% if battery >= 100 %}
+          green
+        {% elif battery >= 30 %}
+          seagreen
+        {% elif battery >= 20 %}
+          orange
+        {% else %}
+          red
+        {% endif %}
+      fill_container: false
+      layout: horizontal
+      tap_action:
+        action: more-info
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            --card-primary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--primary-text-color) {% endif %};
+            --card-secondary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--secondary-text-color) {% endif %};
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
+          mushroom-badge {
+            --badge-color: {% set battery = states('[[battery_entity]]') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
+          }
+          ha-state-icon {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'on' %}
+             color: [[color_open]] !important;
+           {% else %}
+             color: [[color_closed]] !important;
+           {% endif %}  
+          }
+  mushroom_cover_card:
+    default:
+      - color_open: var(--green-color)
+      - color_closed: var(--primary-text-color)
+    card:
+      type: custom:mushroom-cover-card
+      entity: '[[entity]]'
+      name: '[[name]]'
+      show_position_control: true
+      fill_container: false
+      tap_action:
+        action: more-info
+      show_buttons_control: true
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            --card-primary-color: {% if is_state('[[entity]]', 'open') %} [[color_open]] {% else %} [[color_closed]] {% endif %};
+            --card-secondary-color: {% if is_state('[[entity]]', 'open') %} [[color_open]] {% else %} [[color_closed]] {% endif %};
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
+          ha-state-icon {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'open' %}
+             color: [[color_open]] !important;
+           {% else %}
+             color: [[color_closed]] !important;
+           {% endif %}  
+          }
+          mushroom-button {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'open' %}
+             --icon-color: [[color_open]] !important;
+           {% else %}
+             --icon-color: [[color_closed]] !important;
+           {% endif %}  
+          }
 views:
   - type: sections
     max_columns: 3
@@ -2075,55 +2177,12 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-template-card
-                primary: Entrée
-                secondary: >-
-                  {{ 'Ouverte' if is_state('binary_sensor.ouvportent_contact',
-                  'on') else 'Fermée' }}
-                icon: |-
-                  {% if is_state('binary_sensor.ouvportent_contact', 'on') %}
-                    phu:panel-door-open
-                  {% else %}
-                    phu:panel-door-close
-                  {% endif %}
-                icon_color: |-
-                  {% if is_state('binary_sensor.ouvportent_contact', 'on') %}
-                    green
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: binary_sensor.ouvportent_contact
-                badge_icon: mdi:battery
-                badge_color: |-
-                  {% set battery = states('sensor.ouvportent_battery') | int %}
-                  {% if battery >= 100 %}
-                    green
-                  {% elif battery >= 30 %}
-                    seagreen
-                  {% elif battery >= 20 %}
-                    orange
-                  {% else %}
-                    red
-                  {% endif %}
-                fill_container: false
-                layout: horizontal
-                tap_action:
-                  action: more-info
-                multiline_secondary: false
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('binary_sensor.ouvportent_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('binary_sensor.ouvportent_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: transparent !important;
-                      backdrop-filter: none !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    mushroom-badge {
-                      --badge-color: {% set battery = states('sensor.ouvportent_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}var(--orange-color){% else %}var(--red-color){% endif %} !important;
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_door_card
+                variables:
+                  - name: Entrée
+                  - entity: binary_sensor.ouvportent_contact
+                  - battery_entity: sensor.ouvportent_battery
             columns: 2
             title: Porte
           - square: false
@@ -2178,76 +2237,16 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-cover-card
-                entity: cover.volsal
-                name: Salon
-                show_position_control: true
-                fill_container: false
-                tap_action:
-                  action: more-info
-                show_buttons_control: true
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('cover.volsal', 'open') %} var(--green-color) {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('cover.volsal', 'open') %} var(--green-color) {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('cover.volsal') %}
-                     {% if state == 'open' %}
-                       color: var(--green-color) !important;
-                     {% else %}
-                       color: var(--primary-text-color) !important;
-                     {% endif %}  
-                    }
-                    mushroom-button {
-                     {% set state = states('cover.volsal') %}
-                     {% if state == 'open' %}
-                       --icon-color: var(--green-color) !important;
-                     {% else %}
-                       --icon-color: var(--primary-text-color) !important;
-                     {% endif %}  
-                    }
-              - type: custom:mushroom-cover-card
-                entity: cover.volsam
-                name: Salle à Manger
-                show_position_control: true
-                fill_container: false
-                tap_action:
-                  action: more-info
-                show_buttons_control: true
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('cover.volsam', 'open') %} var(--green-color) {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('cover.volsam', 'open') %} var(--green-color) {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('cover.volsam') %}
-                     {% if state == 'open' %}
-                       color: var(--green-color) !important;
-                     {% else %}
-                       color: var(--primary-text-color) !important;
-                     {% endif %}  
-                    }
-                    mushroom-button {
-                     {% set state = states('cover.volsam') %}
-                     {% if state == 'open' %}
-                       --icon-color: var(--green-color) !important;
-                     {% else %}
-                       --icon-color: var(--primary-text-color) !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_cover_card
+                variables:
+                  - name: Salon
+                  - entity: cover.volsal
+              - type: custom:decluttering-card
+                template: mushroom_cover_card
+                variables:
+                  - name: Salle à Manger
+                  - entity: cover.volsam
             columns: 2
             title: Volets
         columns: 2
@@ -3055,222 +3054,31 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-template-card
-                primary: Frigo
-                secondary: >-
-                  {{ 'Ouverte' if is_state('binary_sensor.ouvportfrig_contact',
-                  'on') else 'Fermée' }}
-                icon: mdi:fridge-industrial
-                icon_color: |-
-                  {% if is_state('binary_sensor.ouvportfrig_contact', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: binary_sensor.ouvportfrig_contact
-                badge_icon: mdi:battery
-                badge_color: |-
-                  {% set battery = states('sensor.ouvportfrig_battery') | int %}
-                  {% if battery >= 100 %}
-                    green
-                  {% elif battery >= 30 %}
-                    seagreen
-                  {% elif battery >= 20 %}
-                    orange
-                  {% else %}
-                    red
-                  {% endif %}
-                fill_container: false
-                layout: horizontal
-                tap_action:
-                  action: more-info
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('binary_sensor.ouvportfrig_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('binary_sensor.ouvportfrig_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    mushroom-badge {
-                      --badge-color: {% set battery = states('sensor.ouvportfrig_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('binary_sensor.ouvportfrig_contact') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
-              - type: custom:mushroom-template-card
-                primary: Congel
-                secondary: >-
-                  {{ 'Ouverte' if is_state('binary_sensor.ouvportcong_contact',
-                  'on') else 'Fermée' }}
-                icon: mdi:fridge-industrial
-                icon_color: |-
-                  {% if is_state('binary_sensor.ouvportcong_contact', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: binary_sensor.ouvportcong_contact
-                badge_icon: mdi:battery
-                badge_color: |-
-                  {% set battery = states('sensor.ouvportcong_battery') | int %}
-                  {% if battery >= 100 %}
-                    green
-                  {% elif battery >= 30 %}
-                    seagreen
-                  {% elif battery >= 20 %}
-                    orange
-                  {% else %}
-                    red
-                  {% endif %}
-                fill_container: false
-                layout: horizontal
-                tap_action:
-                  action: more-info
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('binary_sensor.ouvportcong_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('binary_sensor.ouvportcong_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    mushroom-badge {
-                      --badge-color: {% set battery = states('sensor.ouvportcong_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('binary_sensor.ouvportcong_contact') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
-              - type: custom:mushroom-template-card
-                primary: Petit congel
-                secondary: >-
-                  {{ 'Ouverte' if is_state('binary_sensor.ouvportcong2_contact',
-                  'on') else 'Fermée' }}
-                icon: mdi:fridge-industrial
-                icon_color: |-
-                  {% if is_state('binary_sensor.ouvportcong2_contact', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: binary_sensor.ouvportcong2_contact
-                badge_icon: mdi:battery
-                badge_color: >-
-                  {% set battery = states('sensor.ouvportcong2_battery') | int
-                  %}
-
-                  {% if battery >= 100 %}
-                    green
-                  {% elif battery >= 30 %}
-                    seagreen
-                  {% elif battery >= 20 %}
-                    orange
-                  {% else %}
-                    red
-                  {% endif %}
-                fill_container: false
-                layout: horizontal
-                tap_action:
-                  action: more-info
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('binary_sensor.ouvportcong2_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('binary_sensor.ouvportcong2_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    mushroom-badge {
-                      --badge-color: {% set battery = states('sensor.ouvportcong2_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('binary_sensor.ouvportcong2_contact') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_door_card
+                variables:
+                  - name: Frigo
+                  - entity: binary_sensor.ouvportfrig_contact
+                  - battery_entity: sensor.ouvportfrig_battery
+                  - icon_open: mdi:fridge-industrial
+                  - icon_closed: mdi:fridge-industrial
+              - type: custom:decluttering-card
+                template: mushroom_door_card
+                variables:
+                  - name: Congel
+                  - entity: binary_sensor.ouvportfrig_contact
+                  - battery_entity: sensor.ouvportfrig_battery
+                  - icon_open: mdi:fridge-industrial
+                  - icon_closed: mdi:fridge-industrial
+              - type: custom:decluttering-card
+                template: mushroom_door_card
+                variables:
+                  - name: Petit congel
+                  - entity: binary_sensor.ouvportfrig_contact
+                  - battery_entity: sensor.ouvportfrig_battery
+                  - icon_open: mdi:fridge-industrial
+                  - icon_closed: mdi:fridge-industrial
             title: Portes
-            columns: 2
-          - square: false
-            type: grid
-            cards:
-              - type: custom:mushroom-template-card
-                primary: Température Frigo
-                secondary: '{{ states(''sensor.capetalon_temperature'') }}°C'
-                icon: mdi:thermometer
-                icon_color: >-
-                  {% set temp = states('sensor.capetalon_temperature') | float
-                  %}
-
-                  {% if temp >= 9 %}
-                    red
-                  {% elif temp >= 2 %}
-                    seagreen
-                  {% else %}
-                    blue
-                  {% endif %}
-                entity: sensor.capetalon_temperature
-                badge_icon: mdi:battery
-                badge_color: |-
-                  {% set battery = states('sensor.capetalon_battery') | int %}
-                  {% if battery >= 100 %}
-                    seagreen
-                  {% elif battery >= 30 %}
-                    seagreen
-                  {% elif battery >= 20 %}
-                    orange
-                  {% else %}
-                    red
-                  {% endif %}
-                tap_action:
-                  action: navigate
-                  navigation_path: '#temperature'
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% set temp = states('sensor.capetalon_temperature') | float %}{% if temp >= 9 %}red{% elif temp >= 2 %}seagreen{% else %}blue{% endif %};
-                      --card-secondary-color: {% set temp = states('sensor.capetalon_temperature') | float %}{% if temp >= 9 %}red{% elif temp >= 2 %}seagreen{% else %}blue{% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    mushroom-badge {
-                      --badge-color: {% set battery = states('sensor.capetalon_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
-                    }
-                    ha-state-icon {
-                      {% set temp = states('sensor.capetalon_temperature') | float %}
-                      {% if temp >= 9 %}
-                        color: red !important;
-                      {% elif temp >= 2 %}
-                        color: seagreen !important;
-                      {% else %}
-                        color: blue !important;
-                      {% endif %}
-                    }
-            title: Autres
             columns: 2
         columns: 2
       - type: grid
@@ -3350,41 +3158,11 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-cover-card
-                entity: cover.volcui
-                name: Cuisine
-                show_position_control: true
-                fill_container: false
-                tap_action:
-                  action: more-info
-                show_buttons_control: true
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('cover.volcui', 'open') %} var(--green-color) {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('cover.volcui', 'open') %} var(--green-color) {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('cover.volcui') %}
-                     {% if state == 'open' %}
-                       color: var(--green-color) !important;
-                     {% else %}
-                       color: var(--primary-text-color) !important;
-                     {% endif %}  
-                    }
-                    mushroom-button {
-                     {% set state = states('cover.volcui') %}
-                     {% if state == 'open' %}
-                       --icon-color: var(--green-color) !important;
-                     {% else %}
-                       --icon-color: var(--primary-text-color) !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_cover_card
+                variables:
+                  - name: Cuisine
+                  - entity: cover.volcui
             title: Volets
             columns: 2
           - square: false
@@ -4059,62 +3837,12 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-template-card
-                primary: Salle de Bain
-                secondary: >-
-                  {{ 'Ouverte' if is_state('binary_sensor.ouvportsdb_contact',
-                  'on') else 'Fermée' }}
-                icon: |-
-                  {% if is_state('binary_sensor.ouvportsdb_contact', 'on') %}
-                    phu:panel-door-open
-                  {% else %}
-                    phu:panel-door-close
-                  {% endif %}
-                icon_color: |-
-                  {% if is_state('binary_sensor.ouvportsdb_contact', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: binary_sensor.ouvportsdb_contact
-                badge_icon: mdi:battery
-                badge_color: |-
-                  {% set battery = states('sensor.ouvportsdb_battery') | int %}
-                  {% if battery >= 100 %}
-                    green
-                  {% elif battery >= 30 %}
-                    seagreen
-                  {% elif battery >= 20 %}
-                    orange
-                  {% else %}
-                    red
-                  {% endif %}
-                fill_container: false
-                layout: horizontal
-                tap_action:
-                  action: more-info
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('binary_sensor.ouvportsdb_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('binary_sensor.ouvportsdb_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    mushroom-badge {
-                      --badge-color: {% set battery = states('sensor.ouvportsdb_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('binary_sensor.ouvportsdb_contact') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_door_card
+                variables:
+                  - name: Salle de Bain
+                  - entity: binary_sensor.ouvportsdb_contact
+                  - battery_entity: sensor.ouvportsdb_battery
             columns: 2
             title: Porte
           - square: false
@@ -4146,41 +3874,11 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-cover-card
-                entity: cover.volsdb
-                name: Salle de Bain
-                show_position_control: true
-                fill_container: false
-                tap_action:
-                  action: more-info
-                show_buttons_control: true
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('cover.volsdb', 'open') %} var(--green-color) {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('cover.volsdb', 'open') %} var(--green-color) {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('cover.volsdb') %}
-                     {% if state == 'open' %}
-                       color: var(--green-color) !important;
-                     {% else %}
-                       color: var(--primary-text-color) !important;
-                     {% endif %}  
-                    }
-                    mushroom-button {
-                     {% set state = states('cover.volsdb') %}
-                     {% if state == 'open' %}
-                       --icon-color: var(--green-color) !important;
-                     {% else %}
-                       --icon-color: var(--primary-text-color) !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_cover_card
+                variables:
+                  - name: SdB
+                  - entity: cover.volsdb
             columns: 2
             title: Volets
         columns: 2
