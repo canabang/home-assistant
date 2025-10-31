@@ -1949,7 +1949,7 @@ views:
           - state_on: 'on'
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
-          - navigation_path: /dashboard-salon/chambre
+          - navigation_path: /salon-mushroom/chambre
       - type: custom:decluttering-card
         template: mushroom_presence_badge
         variables:
@@ -1965,11 +1965,11 @@ views:
           - state_on: 'on'
           - icon_on: mdi:server
           - icon_off: mdi:server-off
-          - navigation_path: /dashboard-salon/baie-info
+          - navigation_path: /salon-mushroom/disques-dur
       - type: custom:decluttering-card
         template: mushroom_multimedia_badge
         variables:
-          - navigation_path: /dashboard-salon/multimedia
+          - navigation_path: /salon-mushroom/multimedia
       - type: custom:decluttering-card
         template: mushroom_litiere_badge
         variables:
@@ -2096,7 +2096,7 @@ views:
           - state_on: 'on'
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
-          - navigation_path: /dashboard-salon/chambre
+          - navigation_path: /salon-mushroom/chambre
       - type: custom:decluttering-card
         template: mushroom_presence_badge
         variables:
@@ -2104,7 +2104,7 @@ views:
           - state_on: 'on'
           - icon_on: hue:room-bathroom
           - icon_off: hue:room-bathroom-off
-          - navigation_path: /dashboard-salon/sdb
+          - navigation_path: /salon-mushroom/sdb
       - type: custom:mushroom-template-badge
         content: ''
         icon: |-
@@ -2124,7 +2124,7 @@ views:
         entity: update.home_assistant_core_update
         tap_action:
           action: navigate
-          navigation_path: /dashboard-salon/baie-info
+          navigation_path: /salon-mushroom/disques-dur
       - type: custom:mushroom-template-badge
         content: ''
         icon: >
@@ -2169,7 +2169,7 @@ views:
           {% endif %}
         tap_action:
           action: navigate
-          navigation_path: /dashboard-salon/multimedia
+          navigation_path: /salon-mushroom/multimedia
       - type: custom:mushroom-template-badge
         icon: mdi:cat
         color: >-
@@ -2907,7 +2907,7 @@ views:
           - state_on: 'on'
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
-          - navigation_path: /dashboard-salon/chambre
+          - navigation_path: /salon-mushroom/chambre
       - type: custom:decluttering-card
         template: mushroom_presence_badge
         variables:
@@ -2935,7 +2935,7 @@ views:
         entity: update.home_assistant_core_update
         tap_action:
           action: navigate
-          navigation_path: /dashboard-salon/baie-info
+          navigation_path: /salon-mushroom/disques-dur
       - type: custom:mushroom-template-badge
         content: ''
         icon: >
@@ -2978,7 +2978,7 @@ views:
           {% endif %}
         tap_action:
           action: navigate
-          navigation_path: /dashboard-salon/multimedia
+          navigation_path: /salon-mushroom/multimedia
       - type: custom:mushroom-template-badge
         icon: mdi:cat
         color: >-
@@ -3760,11 +3760,11 @@ views:
           - state_on: 'on'
           - icon_on: mdi:server
           - icon_off: mdi:server-off
-          - navigation_path: /dashboard-salon/baie-info
+          - navigation_path: /salon-mushroom/disques-dur
       - type: custom:decluttering-card
         template: mushroom_multimedia_badge
         variables:
-          - navigation_path: /dashboard-salon/multimedia
+          - navigation_path: /salon-mushroom/multimedia
       - type: custom:decluttering-card
         template: mushroom_litiere_badge
         variables:
@@ -5081,6 +5081,118 @@ views:
                   transform: translateY(-2px) !important;
                   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
                 }
+      - type: grid
+        cards:
+          - square: false
+            type: grid
+            cards:
+              - type: custom:bubble-card
+                card_type: separator
+                name: Samba backup
+              - square: false
+                type: grid
+                cards:
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: state
+                    entity: sensor.samba_backup
+                    name: Status
+                    scrolling_effect: false
+                    icon: ''
+                    columns: 1
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: state
+                    entity: sensor.samba_backup
+                    name: Local
+                    scrolling_effect: false
+                    icon: ''
+                    columns: 1
+                    show_state: false
+                    show_attribute: true
+                    attribute: backups_local
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: state
+                    entity: sensor.samba_backup
+                    name: Failed
+                    scrolling_effect: false
+                    icon: ''
+                    columns: 1
+                    show_state: false
+                    show_attribute: true
+                    attribute: total_backups_failed
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: state
+                    entity: sensor.samba_backup
+                    name: Remote
+                    scrolling_effect: false
+                    icon: ''
+                    columns: 1
+                    show_state: false
+                    show_attribute: true
+                    attribute: backups_remote
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: state
+                    entity: sensor.samba_backup
+                    name: Succeeded
+                    scrolling_effect: false
+                    icon: ''
+                    columns: 1
+                    show_state: false
+                    show_attribute: true
+                    attribute: total_backups_succeeded
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: state
+                    entity: sensor.samba_backup
+                    name: Last
+                    scrolling_effect: false
+                    icon: ''
+                    columns: 1
+                    show_state: false
+                    show_attribute: true
+                    attribute: last_backup
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: name
+                    name: Run backup
+                    scrolling_effect: false
+                    button_action:
+                      tap_action:
+                        action: call-service
+                        service: hassio.addon_stdin
+                        service_data:
+                          addon: 15d21743_samba_backup
+                          input: trigger
+                        target: {}
+                    icon: mdi:database
+                    tap_action:
+                      action: call-service
+                      target: {}
+                      service: hassio.addon_stdin
+                      service_data:
+                        addon: 15d21743_samba_backup
+                        input: trigger
+                  - type: custom:bubble-card
+                    card_type: button
+                    button_type: name
+                    name: Reset
+                    scrolling_effect: false
+                    button_action:
+                      tap_action:
+                        action: call-service
+                        target: {}
+                        service: hassio.addon_stdin
+                        service_data:
+                          addon: 15d21743_samba_backup
+                          input: reset-counter
+                    icon: mdi:database
+                    sub_button: []
+                columns: 2
+            columns: 1
     cards: []
     badges:
       - type: custom:mushroom-template-badge
@@ -5126,7 +5238,7 @@ views:
           - state_on: 'on'
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
-          - navigation_path: /dashboard-salon/chambre
+          - navigation_path: /salon-mushroom/chambre
       - type: custom:decluttering-card
         template: mushroom_presence_badge
         variables:
@@ -5808,7 +5920,7 @@ views:
           - state_on: 'on'
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
-          - navigation_path: /dashboard-salon/chambre
+          - navigation_path: /salon-mushroom/chambre
       - type: custom:decluttering-card
         template: mushroom_presence_badge
         variables:
