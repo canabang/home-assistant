@@ -237,6 +237,41 @@ decluttering_templates:
              --icon-color: [[color_closed]] !important;
            {% endif %}  
           }
+  mushroom_light_card:
+    default:
+      - show_color_control: true
+      - show_color_temp_control: true
+      - navigation_path: ''
+    card:
+      type: custom:mushroom-light-card
+      entity: '[[entity]]'
+      name: '[[name]]'
+      show_brightness_control: true
+      show_color_temp_control: '[[show_color_temp_control]]'
+      show_color_control: '[[show_color_control]]'
+      tap_action:
+        action: |-
+          {% if '[[navigation_path]]' != '' %}
+            navigate
+          {% else %}
+            toggle
+          {% endif %}
+        navigation_path: '[[navigation_path]]'
+      use_light_color: true
+      collapsible_controls: true
+      double_tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
 views:
   - type: sections
     max_columns: 3
@@ -2188,50 +2223,22 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-light-card
-                entity: light.hue_salon
-                name: Salon
-                show_brightness_control: true
-                show_color_temp_control: true
-                tap_action:
-                  action: toggle
-                use_light_color: true
-                collapsible_controls: true
-                double_tap_action:
-                  action: more-info
-                hold_action:
-                  action: navigate
-                  navigation_path: '#scene-salon'
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-              - type: custom:mushroom-light-card
-                entity: light.hue_sam
-                name: Salle à Manger
-                show_brightness_control: true
-                show_color_temp_control: true
-                tap_action:
-                  action: navigate
-                  navigation_path: '#scene-sam'
-                use_light_color: true
-                collapsible_controls: true
-                double_tap_action:
-                  action: toggle
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_light_card
+                variables:
+                  - entity: light.hue_salon
+                  - name: Salon
+                  - show_color_control: true
+                  - show_color_temp_control: true
+                  - navigation_path: '#scene-salon'
+              - type: custom:decluttering-card
+                template: mushroom_light_card
+                variables:
+                  - entity: light.hue_sam
+                  - name: Salle à Manger
+                  - show_color_control: true
+                  - show_color_temp_control: true
+                  - navigation_path: '#scene-sam'
             title: Lumières
             columns: 2
           - square: false
@@ -3114,45 +3121,20 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-light-card
-                entity: light.hue_cuisine
-                name: Cuisine
-                show_brightness_control: true
-                show_color_temp_control: true
-                tap_action:
-                  action: navigate
-                  navigation_path: '#scene-cuisine'
-                use_light_color: true
-                collapsible_controls: true
-                double_tap_action:
-                  action: toggle
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-              - type: custom:mushroom-light-card
-                entity: light.ledplancui_cct
-                name: Plan de travail
-                show_brightness_control: true
-                show_color_temp_control: true
-                use_light_color: true
-                collapsible_controls: true
-                double_tap_action:
-                  action: toggle
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_light_card
+                variables:
+                  - entity: light.hue_cuisine
+                  - name: Cuisine
+                  - show_color_control: true
+                  - show_color_temp_control: true
+                  - navigation_path: '#scene-cuisine'
+              - type: custom:decluttering-card
+                template: mushroom_light_card
+                variables:
+                  - entity: light.ledplancui_cct
+                  - name: Plan de Travail
+                  - show_color_control: false
             title: Lumières
             columns: 2
           - square: false
@@ -3848,27 +3830,14 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-light-card
-                entity: light.hue_sdb
-                name: Salle de Bain
-                show_brightness_control: true
-                show_color_temp_control: true
-                tap_action:
-                  action: navigate
-                  navigation_path: '#scene-sdb'
-                use_light_color: true
-                collapsible_controls: true
-                double_tap_action:
-                  action: toggle
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_light_card
+                variables:
+                  - entity: light.hue_sdb
+                  - name: Salle de Bain
+                  - show_color_control: true
+                  - show_color_temp_control: true
+                  - navigation_path: '#scene-sdb'
             title: Lumières
             columns: 2
           - square: false
