@@ -72,9 +72,69 @@ decluttering_templates:
       tap_action:
         action: navigate
         navigation_path: '[[navigation_path]]'
-
-
-  
+  mushroom_window_card:
+    default:
+      - icon_open: mdi:window-open-variant
+      - icon_closed: mdi:window-closed-variant
+      - color_open: seagreen
+      - color_closed: grey
+      - battery_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: '{{ ''Ouverte'' if is_state(''[[entity]]'', ''on'') else ''Fermée'' }}'
+      icon: |-
+        {% if is_state('[[entity]]', 'on') %}
+          [[icon_open]]
+        {% else %}
+          [[icon_closed]]
+        {% endif %}
+      icon_color: |-
+        {% if is_state('[[entity]]', 'on') %}
+          [[color_open]]
+        {% else %}
+          [[color_closed]]
+        {% endif %}
+      entity: '[[entity]]'
+      badge_icon: mdi:battery
+      badge_color: |-
+        {% set battery = states('[[battery_entity]]') | int %}
+        {% if battery >= 100 %}
+          green
+        {% elif battery >= 30 %}
+          seagreen
+        {% elif battery >= 20 %}
+          orange
+        {% else %}
+          red
+        {% endif %}
+      fill_container: false
+      layout: horizontal
+      tap_action:
+        action: more-info
+      multiline_secondary: false
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            --card-primary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--primary-text-color) {% endif %};
+            --card-secondary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--secondary-text-color) {% endif %};
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
+          mushroom-badge {
+            --badge-color: {% set battery = states('[[battery_entity]]') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
+          }
+          ha-state-icon {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'on' %}
+             color: [[color_open]] !important;
+           {% else %}
+             color: [[color_closed]] !important;
+           {% endif %}  
+          }
 views:
   - type: sections
     max_columns: 3
@@ -1737,7 +1797,7 @@ views:
           - state_on: 'on'
           - icon_on: hue:room-bathroom
           - icon_off: hue:room-bathroom-off
-          - navigation_path: /dashboard-salon/sdb
+          - navigation_path: /salon-mushroom/sdb
       - type: custom:decluttering-card
         template: mushroom_presence_badge
         variables:
@@ -1998,128 +2058,18 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-template-card
-                primary: Salon
-                secondary: >-
-                  {{ 'Ouverte' if is_state('binary_sensor.ouvfenetsal_contact',
-                  'on') else 'Fermée' }}
-                icon: |-
-                  {% if is_state('binary_sensor.ouvfenetsal_contact', 'on') %}
-                    mdi:window-open-variant
-                  {% else %}
-                    mdi:window-closed-variant
-                  {% endif %}
-                icon_color: |-
-                  {% if is_state('binary_sensor.ouvfenetsal_contact', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: binary_sensor.ouvfenetsal_contact
-                badge_icon: mdi:battery
-                badge_color: |-
-                  {% set battery = states('sensor.ouvfenetsal_battery') | int %}
-                  {% if battery >= 100 %}
-                    green
-                  {% elif battery >= 30 %}
-                    seagreen
-                  {% elif battery >= 20 %}
-                    orange
-                  {% else %}
-                    red
-                  {% endif %}
-                fill_container: false
-                layout: horizontal
-                tap_action:
-                  action: more-info
-                multiline_secondary: false
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px !important;
-                      --card-primary-color: {% if is_state('binary_sensor.ouvfenetsal_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %} !important;
-                      --card-secondary-color: {% if is_state('binary_sensor.ouvfenetsal_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %} !important;
-                      background: transparent !important;
-                      backdrop-filter: none !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    mushroom-badge {
-                      --badge-color: {% set battery = states('sensor.ouvfenetsal_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}var(--orange-color){% else %}var(--red-color){% endif %} !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('binary_sensor.ouvfenetsal_contact') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
-              - type: custom:mushroom-template-card
-                primary: Salle à Manger
-                secondary: >-
-                  {{ 'Ouverte' if is_state('binary_sensor.ouvfenetsam_contact',
-                  'on') else 'Fermée' }}
-                icon: |-
-                  {% if is_state('binary_sensor.ouvfenetsam_contact', 'on') %}
-                    mdi:window-open-variant
-                  {% else %}
-                    mdi:window-closed-variant
-                  {% endif %}
-                icon_color: |-
-                  {% if is_state('binary_sensor.ouvfenetsam_contact', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: binary_sensor.ouvfenetsam_contact
-                badge_icon: mdi:battery
-                badge_color: |-
-                  {% set battery = states('sensor.ouvfenetsam_battery') | int %}
-                  {% if battery >= 100 %}
-                    green
-                  {% elif battery >= 30 %}
-                    seagreen
-                  {% elif battery >= 20 %}
-                    orange
-                  {% else %}
-                    red
-                  {% endif %}
-                fill_container: false
-                layout: horizontal
-                tap_action:
-                  action: more-info
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('binary_sensor.ouvfenetsam_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('binary_sensor.ouvfenetsam_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: transparent !important;
-                      backdrop-filter: none !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    mushroom-badge {
-                      {% set battery = states('sensor.ouvfenetsam_battery') | int %}
-                      {% if battery >= 100 %}
-                        --badge-color: seagreen !important;
-                      {% elif battery >= 30 %}
-                        --badge-color: seagreen !important;
-                      {% elif battery >= 20 %}
-                        --badge-color: orange !important;
-                      {% else %}
-                        --badge-color: red !important;
-                      {% endif %}
-                    }
-                    ha-state-icon {
-                     {% set state = states('binary_sensor.ouvfenetsam_contact') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_window_card
+                variables:
+                  - name: Salon
+                  - entity: binary_sensor.ouvfenetsal_contact
+                  - battery_entity: sensor.ouvfenetsal_battery
+              - type: custom:decluttering-card
+                template: mushroom_window_card
+                variables:
+                  - name: Salle à Manger
+                  - entity: binary_sensor.ouvfenetsam_contact
+                  - battery_entity: sensor.ouvfenetsam_battery
             columns: 2
             title: Fenêtres
           - square: false
@@ -2964,7 +2914,7 @@ views:
           - state_on: 'on'
           - icon_on: hue:room-bathroom
           - icon_off: hue:room-bathroom-off
-          - navigation_path: /dashboard-salon/sdb
+          - navigation_path: /salon-mushroom/sdb
       - type: custom:mushroom-template-badge
         content: ''
         icon: |-
@@ -3094,65 +3044,12 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-template-card
-                primary: Cuisine
-                secondary: >-
-                  {{ 'Ouverte' if is_state('binary_sensor.ouvfenetcuis_contact',
-                  'on') else 'Fermée' }}
-                icon: |-
-                  {% if is_state('binary_sensor.ouvfenetcuis_contact', 'on') %}
-                    mdi:window-open-variant
-                  {% else %}
-                    mdi:window-closed-variant
-                  {% endif %}
-                icon_color: |-
-                  {% if is_state('binary_sensor.ouvfenetcuis_contact', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: binary_sensor.ouvfenetcuis_contact
-                badge_icon: mdi:battery
-                badge_color: >-
-                  {% set battery = states('sensor.ouvfenetcuis_battery') | int
-                  %}
-
-                  {% if battery >= 100 %}
-                    green
-                  {% elif battery >= 30 %}
-                    seagreen
-                  {% elif battery >= 20 %}
-                    orange
-                  {% else %}
-                    red
-                  {% endif %}
-                fill_container: false
-                layout: horizontal
-                tap_action:
-                  action: more-info
-                multiline_secondary: false
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('binary_sensor.ouvfenetcuis_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('binary_sensor.ouvfenetcuis_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    mushroom-badge {
-                      --badge-color: {% set battery = states('sensor.ouvfenetcuis_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}var(--orange-color){% else %}var(--red-color){% endif %} !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('binary_sensor.ouvfenetcuis_contact') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_window_card
+                variables:
+                  - name: Cuisine
+                  - entity: binary_sensor.ouvfenetcuis_contact
+                  - battery_entity: sensor.ouvfenetcuis_battery
             title: Fenêtres
             columns: 2
           - square: false
@@ -3975,7 +3872,708 @@ views:
           - state_on: 'on'
           - icon_on: hue:room-bathroom
           - icon_off: hue:room-bathroom-off
-          - navigation_path: /dashboard-salon/sdb
+          - navigation_path: /salon-mushroom/sdb
+  - type: sections
+    max_columns: 3
+    title: Salle de Bain
+    path: sdb
+    subview: true
+    background:
+      opacity: 100
+      alignment: center
+      size: cover
+      repeat: no-repeat
+      attachment: scroll
+      image: /api/image/serve/937d57973022578603eb046c5fa022db/original
+    badges:
+      - type: custom:decluttering-card
+        template: mushroom_presence_badge
+        variables:
+          - entity: binary_sensor.esp_sdb_presence
+          - state_on: 'on'
+          - icon_on: hue:room-bathroom
+          - icon_off: hue:room-bathroom-off
+          - navigation_path: /salon-mushroom/sdb
+      - type: custom:mushroom-template-badge
+        content: ''
+        icon: |-
+          {% set state = states('binary_sensor.esp_sdb_movement') %}  
+          {% if state == 'on' %}
+            mdi:motion-sensor
+          {% else %}
+            mdi:motion-sensor-off
+          {% endif %}
+        color: |-
+          {% set state = states('binary_sensor.esp_sdb_movement') %}  
+          {% if state == 'on' %}
+            seagreen
+          {% else %}
+            gray
+          {% endif %}
+        entity: binary_sensor.esp_sdb_movement
+      - type: custom:mushroom-template-badge
+        content: '{{states(''sensor.temperature_sdb'') }}°C'
+        icon: mdi:thermometer
+        color: |-
+          {% set state = states('sensor.temperature_sdb') %}  
+          {% if state >= '23' %}
+            red
+          {% elif state >= '19' %}
+            seagreen
+          {% else %}
+            blue
+          {% endif %}
+        entity: sensor.temperature_sdb
+        tap_action:
+          action: navigate
+          navigation_path: '#temperature'
+      - type: custom:mushroom-template-badge
+        content: '{{ states(''sensor.humiditee_sdb'') }} %'
+        icon: m3r:humidity-percentage
+        color: blue
+        entity: sensor.humiditee_sdb
+      - type: entity
+        show_name: false
+        show_state: true
+        show_icon: true
+        entity: sensor.lux_sdb
+        icon: mdi:brightness-7
+        tap_action:
+          action: navigate
+          navigation_path: '#lux'
+      - type: entity
+        show_name: false
+        show_state: true
+        show_icon: true
+        entity: weather.pompey
+      - type: custom:mushroom-template-badge
+        content: '{{states(''sensor.pompey_temperature'') }}°C'
+        icon: mdi:thermometer
+        color: |-
+          {% set state = states('sensor.pompey_temperature') | float %}  
+          {% if state > 23 %}
+            red
+          {% elif state > 19 %}
+            seagreen
+          {% else %}
+            blue
+          {% endif %}
+        entity: sensor.pompey_temperature
+        tap_action:
+          action: more-info
+      - type: entity
+        show_name: false
+        show_state: false
+        show_icon: true
+        entity: sun.sun
+      - type: custom:decluttering-card
+        template: mushroom_presence_badge
+        variables:
+          - entity: person.canabang
+          - state_on: home
+          - icon_on: mdi:home-outline
+          - icon_off: mdi:home-off-outline
+          - navigation_path: /salon-mushroom/accueil
+      - type: custom:decluttering-card
+        template: mushroom_presence_badge
+        variables:
+          - entity: binary_sensor.salon_presence_globale
+          - state_on: 'on'
+          - icon_on: hue:room-living
+          - icon_off: hue:room-living-off
+          - navigation_path: /salon-mushroom/sejour
+      - type: custom:decluttering-card
+        template: mushroom_presence_badge
+        variables:
+          - entity: binary_sensor.esp_cuisine_presence
+          - state_on: 'on'
+          - icon_on: hue:room-dining
+          - icon_off: hue:room-dining-off
+          - navigation_path: /salon-mushroom/cuisine
+      - type: custom:decluttering-card
+        template: mushroom_presence_badge
+        variables:
+          - entity: binary_sensor.esp_chambre_presence
+          - state_on: 'on'
+          - icon_on: hue:room-bedroom
+          - icon_off: hue:room-bedroom-off
+          - navigation_path: /salon-mushroom/chambre
+      - type: custom:decluttering-card
+        template: mushroom_presence_badge
+        variables:
+          - entity: update.home_assistant_core_update
+          - state_on: 'on'
+          - icon_on: mdi:server
+          - icon_off: mdi:server-off
+          - navigation_path: /dashboard-salon/baie-info
+      - type: custom:decluttering-card
+        template: mushroom_multimedia_badge
+        variables:
+          - navigation_path: /dashboard-salon/multimedia
+      - type: custom:decluttering-card
+        template: mushroom_litiere_badge
+        variables:
+          - navigation_path: /salon-mushroom/petscales-v3
+    sections:
+      - type: grid
+        cards:
+          - type: custom:mushroom-empty-card
+          - type: custom:mushroom-empty-card
+          - type: custom:digital-clock
+            dateFormat:
+              weekday: long
+              day: 2-digit
+              month: long
+            timeFormat:
+              hour: 2-digit
+              minute: 2-digit
+            card_mod:
+              style: |
+                ha-card {
+                  position: relative;
+                  overflow: hidden;
+                  background: rgb(40, 40, 40);
+                  height: 120px;
+                  font-size: 19px;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: center;
+                  text-align: center;
+                  --ha-card-border-radius: 150px;
+                }
+        column_span: 3
+      - type: grid
+        cards:
+          - square: false
+            type: grid
+            cards:
+              - type: custom:decluttering-card
+                template: mushroom_window_card
+                variables:
+                  - name: Salle de Bain
+                  - entity: binary_sensor.ouvfenetsdb_contact
+                  - battery_entity: sensor.ouvfenetsdb_battery
+            columns: 2
+            title: Fenêtres
+          - square: false
+            type: grid
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Salle de Bain
+                secondary: >-
+                  {{ 'Ouverte' if is_state('binary_sensor.ouvportsdb_contact',
+                  'on') else 'Fermée' }}
+                icon: |-
+                  {% if is_state('binary_sensor.ouvportsdb_contact', 'on') %}
+                    phu:panel-door-open
+                  {% else %}
+                    phu:panel-door-close
+                  {% endif %}
+                icon_color: |-
+                  {% if is_state('binary_sensor.ouvportsdb_contact', 'on') %}
+                    seagreen
+                  {% else %}
+                    grey
+                  {% endif %}
+                entity: binary_sensor.ouvportsdb_contact
+                badge_icon: mdi:battery
+                badge_color: |-
+                  {% set battery = states('sensor.ouvportsdb_battery') | int %}
+                  {% if battery >= 100 %}
+                    green
+                  {% elif battery >= 30 %}
+                    seagreen
+                  {% elif battery >= 20 %}
+                    orange
+                  {% else %}
+                    red
+                  {% endif %}
+                fill_container: false
+                layout: horizontal
+                tap_action:
+                  action: more-info
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 25px;
+                      --card-primary-color: {% if is_state('binary_sensor.ouvportsdb_contact', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                      --card-secondary-color: {% if is_state('binary_sensor.ouvportsdb_contact', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      backdrop-filter: blur(10px) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                    }
+                    mushroom-badge {
+                      --badge-color: {% set battery = states('sensor.ouvportsdb_battery') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
+                    }
+                    ha-state-icon {
+                     {% set state = states('binary_sensor.ouvportsdb_contact') %}
+                     {% if state == 'on' %}
+                       color: seagreen !important;
+                     {% else %}
+                       color: grey !important;
+                     {% endif %}  
+                    }
+            columns: 2
+            title: Porte
+          - square: false
+            type: grid
+            cards:
+              - type: custom:mushroom-light-card
+                entity: light.hue_sdb
+                name: Salle de Bain
+                show_brightness_control: true
+                show_color_temp_control: true
+                tap_action:
+                  action: navigate
+                  navigation_path: '#scene-sdb'
+                use_light_color: true
+                collapsible_controls: true
+                double_tap_action:
+                  action: toggle
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 25px;
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      backdrop-filter: blur(10px) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                    }
+            title: Lumières
+            columns: 2
+          - square: false
+            type: grid
+            cards:
+              - type: custom:mushroom-cover-card
+                entity: cover.volsdb
+                name: Salle de Bain
+                show_position_control: true
+                fill_container: false
+                tap_action:
+                  action: more-info
+                show_buttons_control: true
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 25px;
+                      --card-primary-color: {% if is_state('cover.volsdb', 'open') %} var(--green-color) {% else %} var(--primary-text-color) {% endif %};
+                      --card-secondary-color: {% if is_state('cover.volsdb', 'open') %} var(--green-color) {% else %} var(--secondary-text-color) {% endif %};
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      backdrop-filter: blur(10px) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                    }
+                    ha-state-icon {
+                     {% set state = states('cover.volsdb') %}
+                     {% if state == 'open' %}
+                       color: var(--green-color) !important;
+                     {% else %}
+                       color: var(--primary-text-color) !important;
+                     {% endif %}  
+                    }
+                    mushroom-button {
+                     {% set state = states('cover.volsdb') %}
+                     {% if state == 'open' %}
+                       --icon-color: var(--green-color) !important;
+                     {% else %}
+                       --icon-color: var(--primary-text-color) !important;
+                     {% endif %}  
+                    }
+            columns: 2
+            title: Volets
+        columns: 2
+      - type: grid
+        cards:
+          - type: media-control
+            entity: media_player.echo_sdb
+            visibility:
+              - condition: state
+                entity: media_player.echo_sdb
+                state: playing
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+      - type: grid
+        cards:
+          - square: false
+            type: grid
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Machine à Laver
+                secondary: >-
+                  {{ 'Allumée' if is_state('switch.prismal', 'on') else
+                  'Éteinte' }} {% if is_state('switch.prismal', 'on') %} - {{
+                  states('sensor.prismal_power') }}W{% endif %}
+                icon: mdi:washing-machine
+                icon_color: |-
+                  {% if is_state('switch.prismal', 'on') %}
+                    seagreen
+                  {% else %}
+                    grey
+                  {% endif %}
+                entity: switch.prismal
+                tap_action:
+                  action: toggle
+                badge_icon: |-
+                  {% if states('sensor.prismal_power') | float(0) > 0 %}
+                    mdi:flash
+                  {% else %}
+                    mdi:flash-off
+                  {% endif %}
+                badge_color: |-
+                  {% if states('sensor.prismal_power') | float(0) > 0 %}
+                    orange
+                  {% else %}
+                    grey
+                  {% endif %}
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 25px;
+                      --card-primary-color: {% if is_state('switch.prismal', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                      --card-secondary-color: {% if is_state('switch.prismal', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      backdrop-filter: blur(10px) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                    }
+                    ha-state-icon {
+                     {% set state = states('switch.prismal') %}
+                     {% if state == 'on' %}
+                       color: seagreen !important;
+                       {% if states('sensor.prismal_power') | float(0) > 0 %}
+                         animation: spin 2s linear infinite;
+                       {% endif %}
+                     {% else %}
+                       color: grey !important;
+                     {% endif %}  
+                    }
+                    @keyframes spin {
+                      from { transform: rotate(0deg); }
+                      to { transform: rotate(360deg); }
+                    }
+              - type: custom:mushroom-template-card
+                primary: VA Salle de Bain
+                secondary: '{{ states(''assist_satellite.esp_va_sdb_satellite_assist'') }}'
+                icon: mdi:account-voice
+                icon_color: |-
+                  {% if is_state('light.esp_va_sdb_esp_va_sdb', 'on') %}
+                    seagreen
+                  {% else %}
+                    grey
+                  {% endif %}
+                entity: light.esp_va_sdb_esp_va_sdb
+                tap_action:
+                  action: assist
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 25px;
+                      --card-primary-color: {% if is_state('assist_satellite.esp_va_sdb_satellite_assist', 'idle') %} var(--primary-text-color) {% else %} seagreen {% endif %};
+                      --card-secondary-color: {% if is_state('assist_satellite.esp_va_sdb_satellite_assist', 'idle') %} var(--secondary-text-color) {% else %} seagreen {% endif %};
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      backdrop-filter: blur(10px) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                    }
+                    ha-state-icon {
+                     {% set state = states('assist_satellite.esp_va_sdb_satellite_assist') %}
+                     {% if state == 'idle' %}
+                       color: grey !important;
+                     {% else %}
+                       color: seagreen !important;
+                     {% endif %}  
+                    }
+            title: Autres
+            columns: 2
+        columns: 2
+      - type: grid
+        cards:
+          - square: false
+            type: grid
+            cards:
+              - type: custom:mushroom-climate-card
+                entity: climate.therm_sdb
+                show_temperature_control: true
+                hvac_modes:
+                  - heat
+                  - 'off'
+                fill_container: false
+                tap_action:
+                  action: more-info
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 25px;
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      backdrop-filter: blur(10px) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                    }
+              - type: custom:mushroom-template-card
+                primary: Radiateur SdB
+                secondary: >-
+                  {{ 'Éteint' if is_state('switch.radsdb_l1', 'on') else
+                  'Allumé' }}
+                icon: |-
+                  {% if is_state('switch.radsdb_l1', 'off') %}
+                    mdi:radiator
+                  {% else %}
+                    mdi:radiator-off
+                  {% endif %}
+                icon_color: |-
+                  {% if is_state('switch.radsdb_l1', 'off') %}
+                    red
+                  {% else %}
+                    grey
+                  {% endif %}
+                entity: switch.radsdb_l1
+                tap_action:
+                  action: toggle
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 25px;
+                      --card-primary-color: {% if is_state('switch.radsdb_l1', 'off') %} red {% else %} var(--primary-text-color) {% endif %};
+                      --card-secondary-color: {% if is_state('switch.radsdb_l1', 'off') %} red {% else %} var(--secondary-text-color) {% endif %};
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      backdrop-filter: blur(10px) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                    }
+                    ha-state-icon {
+                     {% set state = states('switch.radsdb_l1') %}
+                     {% if state == 'off' %}
+                       color: red !important;
+                     {% else %}
+                       color: grey !important;
+                     {% endif %}  
+                    }
+            title: Thermostat
+            columns: 2
+        columns: 2
+        visibility:
+          - condition: state
+            entity: climate.therm_sdb
+            state: heat
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#temperature'
+                show_header: false
+                close_on_click: true
+              - type: grid
+                cards:
+                  - type: custom:mushroom-template-card
+                    primary: SdB
+                    secondary: '{{ states(''sensor.temperature_sdb'') }}°C'
+                    icon: mdi:thermometer
+                    icon_color: |-
+                      {% set temp = states('sensor.temperature_sdb') | float %}
+                      {% if temp >= 23 %}
+                        red
+                      {% elif temp >= 19 %}
+                        seagreen
+                      {% else %}
+                        blue
+                      {% endif %}
+                    entity: sensor.temperature_sdb
+                    card_mod:
+                      style: |
+                        ha-card {
+                          --ha-card-border-radius: 20px;
+                        }
+                  - type: custom:mushroom-template-card
+                    primary: Fenêtre
+                    secondary: '{{ states(''sensor.capfensdb_temperature'') }}°C'
+                    icon: mdi:thermometer
+                    icon_color: >-
+                      {% set temp = states('sensor.capfensdb_temperature') |
+                      float %}
+
+                      {% if temp >= 23 %}
+                        red
+                      {% elif temp >= 19 %}
+                        seagreen
+                      {% else %}
+                        blue
+                      {% endif %}
+                    entity: sensor.capfensdb_temperature
+                    badge_icon: mdi:battery
+                    badge_color: >-
+                      {% set battery = states('sensor.capfensdb_battery') | int
+                      %}
+
+                      {% if battery >= 100 %}
+                        seagreen
+                      {% elif battery >= 30 %}
+                        seagreen
+                      {% elif battery >= 20 %}
+                        orange
+                      {% else %}
+                        red
+                      {% endif %}
+                    card_mod:
+                      style: |
+                        ha-card {
+                          --ha-card-border-radius: 20px;
+                        }
+                  - type: custom:mushroom-template-card
+                    primary: Porte
+                    secondary: '{{ states(''sensor.capsdb_temperature'') }}°C'
+                    icon: mdi:thermometer
+                    icon_color: >-
+                      {% set temp = states('sensor.capsdb_temperature') | float
+                      %}
+
+                      {% if temp >= 23 %}
+                        red
+                      {% elif temp >= 19 %}
+                        seagreen
+                      {% else %}
+                        blue
+                      {% endif %}
+                    entity: sensor.capsdb_temperature
+                    badge_icon: mdi:battery
+                    badge_color: |-
+                      {% set battery = states('sensor.capsdb_battery') | int %}
+                      {% if battery >= 100 %}
+                        seagreen
+                      {% elif battery >= 30 %}
+                        seagreen
+                      {% elif battery >= 20 %}
+                        orange
+                      {% else %}
+                        red
+                      {% endif %}
+                    card_mod:
+                      style: |
+                        ha-card {
+                          --ha-card-border-radius: 20px;
+                        }
+                  - type: custom:mushroom-template-card
+                    primary: ESP
+                    secondary: '{{ states(''sensor.esp_sdb_temperature'') }}°C'
+                    icon: mdi:thermometer
+                    icon_color: >-
+                      {% set temp = states('sensor.esp_sdb_temperature') | float
+                      %}
+
+                      {% if temp >= 23 %}
+                        red
+                      {% elif temp >= 19 %}
+                        seagreen
+                      {% else %}
+                        blue
+                      {% endif %}
+                    entity: sensor.esp_sdb_temperature
+                    card_mod:
+                      style: |
+                        ha-card {
+                          --ha-card-border-radius: 20px;
+                        }
+                columns: 2
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#lux'
+                show_header: false
+                close_on_click: true
+              - type: grid
+                cards:
+                  - type: custom:mushroom-template-card
+                    primary: Salle de Bain
+                    secondary: '{{ states(''sensor.lux_sdb'') }} lx'
+                    icon: mdi:brightness-7
+                    icon_color: yellow
+                    entity: sensor.lux_sdb
+                    card_mod:
+                      style: |
+                        ha-card {
+                          --ha-card-border-radius: 20px;
+                        }
+                columns: 1
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#scene-sdb'
+                show_header: false
+                close_on_click: true
+                margin_top_desktop: calc(100vh - 400px)
+              - type: custom:mushroom-template-card
+                primary: Veilleuse
+                icon: mdi:lightbulb-night
+                icon_color: orange
+                entity: scene.hue_sdb_1_veilleuse
+                tap_action:
+                  action: call-service
+                  service: scene.turn_on
+                  target:
+                    entity_id: scene.hue_sdb_1_veilleuse
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 20px;
+                    }
+              - type: custom:mushroom-template-card
+                primary: Stimulation
+                icon: mdi:lightbulb-on
+                icon_color: blue
+                entity: scene.hue_sdb_2_stimulation
+                tap_action:
+                  action: call-service
+                  service: scene.turn_on
+                  target:
+                    entity_id: scene.hue_sdb_2_stimulation
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 20px;
+                    }
+              - type: custom:mushroom-template-card
+                primary: Atténué
+                icon: mdi:lightbulb-variant
+                icon_color: yellow
+                entity: scene.hue_sdb_3_attenue
+                tap_action:
+                  action: call-service
+                  service: scene.turn_on
+                  target:
+                    entity_id: scene.hue_sdb_3_attenue
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 20px;
+                    }
+              - type: custom:mushroom-template-card
+                primary: Lumineux
+                icon: mdi:lightbulb-on-outline
+                icon_color: white
+                entity: scene.hue_sdb_4_lumineux
+                tap_action:
+                  action: call-service
+                  service: scene.turn_on
+                  target:
+                    entity_id: scene.hue_sdb_4_lumineux
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 20px;
+                    }
+    cards: []
   - type: sections
     max_columns: 4
     title: Disques_dur
@@ -4874,7 +5472,7 @@ views:
           - state_on: 'on'
           - icon_on: hue:room-bathroom
           - icon_off: hue:room-bathroom-off
-          - navigation_path: /dashboard-salon/sdb
+          - navigation_path: /salon-mushroom/sdb
       - type: custom:mushroom-template-badge
         icon: mdi:cat
         color: >-
@@ -5556,4 +6154,4 @@ views:
           - state_on: 'on'
           - icon_on: hue:room-bathroom
           - icon_off: hue:room-bathroom-off
-          - navigation_path: /dashboard-salon/sdb
+          - navigation_path: /salon-mushroom/sdb
