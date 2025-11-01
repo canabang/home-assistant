@@ -3434,66 +3434,38 @@ views:
                 show_header: false
                 close_on_click: true
                 margin_top_desktop: calc(100vh - 400px)
-              - type: custom:mushroom-template-card
-                primary: Veilleuse
-                icon: mdi:lightbulb-night
-                icon_color: orange
-                entity: scene.hue_cuisine_1_veilleuse
-                tap_action:
-                  action: call-service
-                  service: scene.turn_on
-                  target:
-                    entity_id: scene.hue_cuisine_1_veilleuse
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 20px;
-                    }
-              - type: custom:mushroom-template-card
-                primary: Stimulation
-                icon: mdi:lightbulb-on
-                icon_color: blue
-                entity: scene.hue_cuisine_2_stimulation
-                tap_action:
-                  action: call-service
-                  service: scene.turn_on
-                  target:
-                    entity_id: scene.hue_cuisine_2_stimulation
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 20px;
-                    }
-              - type: custom:mushroom-template-card
-                primary: Atténué
-                icon: mdi:lightbulb-variant
-                icon_color: yellow
-                entity: scene.hue_cuisine_3_attenue
-                tap_action:
-                  action: call-service
-                  service: scene.turn_on
-                  target:
-                    entity_id: scene.hue_cuisine_3_attenue
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 20px;
-                    }
-              - type: custom:mushroom-template-card
-                primary: Lumineux
-                icon: mdi:lightbulb-on-outline
-                icon_color: white
-                entity: scene.hue_cuisine_4_lumineux
-                tap_action:
-                  action: call-service
-                  service: scene.turn_on
-                  target:
-                    entity_id: scene.hue_cuisine_4_lumineux
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 20px;
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Veilleuse
+                  - icon: mdi:lightbulb-night
+                  - entity: scene.hue_cuisine_1_veilleuse
+                  - icon_color: orange
+                  - background_color: rgba(255, 152, 0, 0.1)
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Stimulation
+                  - icon: mdi:lightbulb-on
+                  - entity: scene.hue_cuisine_2_stimulation
+                  - icon_color: red
+                  - background_color: rgba(244, 67, 54, 0.1)
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Atténué
+                  - icon: mdi:lightbulb-variant
+                  - entity: scene.hue_cuisine_3_attenue
+                  - icon_color: yellow
+                  - background_color: rgba(255, 193, 7, 0.1)
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Lumineux
+                  - icon: mdi:lightbulb-on-outline
+                  - entity: scene.hue_cuisine_4_lumineux
+                  - icon_color: white
+                  - background_color: rgba(255, 235, 59, 0.1)
           - type: vertical-stack
             cards:
               - type: custom:bubble-card
@@ -3956,9 +3928,6 @@ views:
                     }
             title: Autres
             columns: 2
-        columns: 2
-      - type: grid
-        cards:
           - square: false
             type: grid
             cards:
@@ -4021,6 +3990,9 @@ views:
                     }
             title: Thermostat
             columns: 2
+        columns: 2
+      - type: grid
+        cards: []
         columns: 2
         visibility:
           - condition: state
@@ -4175,66 +4147,38 @@ views:
                 show_header: false
                 close_on_click: true
                 margin_top_desktop: calc(100vh - 400px)
-              - type: custom:mushroom-template-card
-                primary: Veilleuse
-                icon: mdi:lightbulb-night
-                icon_color: orange
-                entity: scene.hue_sdb_1_veilleuse
-                tap_action:
-                  action: call-service
-                  service: scene.turn_on
-                  target:
-                    entity_id: scene.hue_sdb_1_veilleuse
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 20px;
-                    }
-              - type: custom:mushroom-template-card
-                primary: Stimulation
-                icon: mdi:lightbulb-on
-                icon_color: blue
-                entity: scene.hue_sdb_2_stimulation
-                tap_action:
-                  action: call-service
-                  service: scene.turn_on
-                  target:
-                    entity_id: scene.hue_sdb_2_stimulation
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 20px;
-                    }
-              - type: custom:mushroom-template-card
-                primary: Atténué
-                icon: mdi:lightbulb-variant
-                icon_color: yellow
-                entity: scene.hue_sdb_3_attenue
-                tap_action:
-                  action: call-service
-                  service: scene.turn_on
-                  target:
-                    entity_id: scene.hue_sdb_3_attenue
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 20px;
-                    }
-              - type: custom:mushroom-template-card
-                primary: Lumineux
-                icon: mdi:lightbulb-on-outline
-                icon_color: white
-                entity: scene.hue_sdb_4_lumineux
-                tap_action:
-                  action: call-service
-                  service: scene.turn_on
-                  target:
-                    entity_id: scene.hue_sdb_4_lumineux
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 20px;
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Veilleuse
+                  - icon: mdi:lightbulb-night
+                  - entity: scene.hue_sdb_1_veilleuse
+                  - icon_color: orange
+                  - background_color: rgba(255, 152, 0, 0.1)
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Stimulation
+                  - icon: mdi:lightbulb-on
+                  - entity: scene.hue_sdb_2_stimulation
+                  - icon_color: red
+                  - background_color: rgba(244, 67, 54, 0.1)
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Atténué
+                  - icon: mdi:lightbulb-variant
+                  - entity: scene.hue_sdb_3_attenue
+                  - icon_color: yellow
+                  - background_color: rgba(255, 193, 7, 0.1)
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Lumineux
+                  - icon: mdi:lightbulb-on-outline
+                  - entity: scene.hue_sdb_4_lumineux
+                  - icon_color: white
+                  - background_color: rgba(255, 235, 59, 0.1)
     cards: []
   - type: sections
     max_columns: 4
