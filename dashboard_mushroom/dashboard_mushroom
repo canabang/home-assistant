@@ -242,6 +242,7 @@ decluttering_templates:
       - show_color_control: true
       - show_color_temp_control: true
       - navigation_path: ''
+      - piece: ''
     card:
       type: custom:mushroom-light-card
       entity: '[[entity]]'
@@ -250,19 +251,24 @@ decluttering_templates:
       show_color_temp_control: '[[show_color_temp_control]]'
       show_color_control: '[[show_color_control]]'
       tap_action:
-        action: |-
-          {% if '[[navigation_path]]' != '' %}
-            navigate
-          {% else %}
-            toggle
-          {% endif %}
-        navigation_path: '[[navigation_path]]'
+        action: call-service
+        service: script.gerer_eclairage
+        service_data:
+          piece: '[[piece]]'
+          source: vocal_onoff
+          action: toggle
       use_light_color: true
       collapsible_controls: true
       double_tap_action:
         action: toggle
       hold_action:
-        action: more-info
+        action: |-
+          {% if '[[navigation_path]]' != '' %}
+            navigate
+          {% else %}
+            more-info
+          {% endif %}
+        navigation_path: '[[navigation_path]]'
       card_mod:
         style: |
           ha-card {
@@ -2338,6 +2344,7 @@ views:
                 variables:
                   - entity: light.hue_salon
                   - name: Salon
+                  - piece: salon
                   - show_color_control: true
                   - show_color_temp_control: true
                   - navigation_path: '#scene-salon'
@@ -2346,6 +2353,7 @@ views:
                 variables:
                   - entity: light.hue_sam
                   - name: Salle à Manger
+                  - piece: sam
                   - show_color_control: true
                   - show_color_temp_control: true
                   - navigation_path: '#scene-sam'
@@ -2829,7 +2837,7 @@ views:
       attachment: scroll
       image: /api/image/serve/d0a8ce4fe354f31e2e67458deab93a51/original
     path: sejour
-    subview: true
+    subview: false
   - title: Cuisine
     badges:
       - type: entity
@@ -3139,6 +3147,7 @@ views:
                 variables:
                   - entity: light.hue_cuisine
                   - name: Cuisine
+                  - piece: cuisine
                   - show_color_control: true
                   - show_color_temp_control: true
                   - navigation_path: '#scene-cuisine'
@@ -3766,6 +3775,7 @@ views:
                 variables:
                   - entity: light.hue_sdb
                   - name: Salle de Bain
+                  - piece: sdb
                   - show_color_control: true
                   - show_color_temp_control: true
                   - navigation_path: '#scene-sdb'
