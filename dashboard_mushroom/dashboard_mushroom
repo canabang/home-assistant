@@ -1,4 +1,99 @@
 decluttering_templates:
+  mushroom_switch_card:
+    default:
+      - icon: mdi:power
+      - secondary: '{{ ''Allumé'' if is_state(''[[entity]]'', ''on'') else ''Éteint'' }}'
+      - badge_icon: ''
+      - badge_entity: ''
+      - badge_color_template: ''
+      - show_power: false
+      - power_entity: ''
+      - animation: ''
+      - color_on: seagreen
+      - color_off: grey
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: '[[secondary]]'
+      icon: '[[icon]]'
+      icon_color: |-
+        {% if is_state('[[entity]]', 'on') %}
+          [[color_on]]
+        {% else %}
+          [[color_off]]
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: toggle
+      badge_icon: |-
+        {% if '[[badge_icon]]' != '' %}
+          [[badge_icon]]
+        {% elif '[[badge_entity]]' != '' %}
+          {% if '[[show_power]]' == 'true' %}
+            {% if states('[[badge_entity]]') | float(0) > 0 %}
+              mdi:flash
+            {% else %}
+              mdi:flash-off
+            {% endif %}
+          {% else %}
+            mdi:battery
+          {% endif %}
+        {% endif %}
+      badge_color: |-
+        {% if '[[badge_color_template]]' != '' %}
+          [[badge_color_template]]
+        {% elif '[[badge_entity]]' != '' %}
+          {% if '[[show_power]]' == 'true' %}
+            {% if states('[[badge_entity]]') | float(0) > 0 %}
+              orange
+            {% else %}
+              grey
+            {% endif %}
+          {% else %}
+            {% set battery = states('[[badge_entity]]') | int %}
+            {% if battery >= 100 %}
+              seagreen
+            {% elif battery >= 30 %}
+              seagreen
+            {% elif battery >= 20 %}
+              orange
+            {% else %}
+              red
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            --card-primary-color: {% if is_state('[[entity]]', 'on') %} [[color_on]] {% else %} var(--primary-text-color) {% endif %};
+            --card-secondary-color: {% if is_state('[[entity]]', 'on') %} [[color_on]] {% else %} var(--secondary-text-color) {% endif %};
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
+          ha-state-icon {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'on' %}
+             color: [[color_on]] !important;
+             {% if '[[animation]]' == 'spin' %}
+               animation: spin 2s linear infinite;
+             {% elif '[[animation]]' == 'pulse' %}
+               animation: pulse 2s infinite;
+             {% endif %}
+           {% else %}
+             color: [[color_off]] !important;
+           {% endif %}  
+          }
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          @keyframes pulse {
+            0%, 100% { color: [[color_on]] !important; }
+            50% { color: red !important; }
+          }
   mushroom_presence_badge:
     default:
       - color_on: seagreen
@@ -1376,102 +1471,52 @@ views:
                 card_type: pop-up
                 hash: '#prises'
                 show_header: false
-              - type: custom:bubble-card
-                card_type: button
-                entity: switch.pris_tel_sal
-                show_state: false
-                show_attribute: false
-                name: Tél Salon
-                icon: hue:plug-eu-group
-                styles: |-
-                  .bubble-icon {
-                        color: ${hass.states['switch.pris_tel_sal'].state == 'on' ? 'seagreen' : ''
-                        } !important;
-                      }
-                  .bubble-button-background {
-                      opacity: 1 !important;
-                      background-color: ${state === 'on' ? 'rgb(40, 40, 40)' : ''} !important;
-                    }
-                sub_button:
-                  - entity: sensor.pris_tel_sal_power
-                    show_background: false
-                    show_state: true
-              - type: custom:bubble-card
-                card_type: button
-                entity: switch.priscafe
-                show_state: false
-                show_attribute: false
-                name: Café
-                icon: hue:plug-eu-group
-                styles: |-
-                  .bubble-icon {
-                        color: ${hass.states['switch.priscafe'].state == 'on' ? 'seagreen' : ''
-                        } !important;
-                      }
-                  .bubble-button-background {
-                      opacity: 1 !important;
-                      background-color: ${state === 'on' ? 'rgb(40, 40, 40)' : ''} !important;
-                    }
-                sub_button:
-                  - entity: sensor.priscafe_power
-                    show_background: false
-                    show_state: true
-              - type: custom:bubble-card
-                card_type: button
-                entity: switch.prismal
-                show_state: false
-                show_attribute: false
-                name: Machine à laver
-                icon: hue:plug-eu-group
-                styles: |-
-                  .bubble-icon {
-                        color: ${hass.states['switch.prismal'].state == 'on' ? 'seagreen' : ''
-                        } !important;
-                      }
-                  .bubble-button-background {
-                      opacity: 1 !important;
-                      background-color: ${state === 'on' ? 'rgb(40, 40, 40)' : ''} !important;
-                    }
-                sub_button:
-                  - entity: sensor.prismal_power
-                    show_background: false
-                    show_state: true
-              - type: custom:bubble-card
-                card_type: button
-                entity: switch.pristelchamb
-                show_state: false
-                show_attribute: false
-                name: Tél Chambre
-                icon: hue:plug-eu-group
-                styles: |-
-                  .bubble-icon {
-                        color: ${hass.states['switch.pristelchamb'].state == 'on' ? 'seagreen' : ''
-                        } !important;
-                      }
-                  .bubble-button-background {
-                      opacity: 1 !important;
-                      background-color: ${state === 'on' ? 'rgb(40, 40, 40)' : ''} !important;
-                    }
-                sub_button:
-                  - entity: sensor.pristelchamb_power
-                    show_background: false
-                    show_state: true
-              - type: custom:bubble-card
-                card_type: button
-                entity: switch.pristvchamb
-                show_state: false
-                show_attribute: false
-                name: Tv Chambre
-                icon: hue:plug-eu-group
-                styles: |-
-                  .bubble-icon {
-                        color: ${hass.states['switch.pristvchamb'].state == 'on' ? 'seagreen' : ''
-                        } !important;
-                      }
-                  .bubble-button-background {
-                      opacity: 1 !important;
-                      background-color: ${state === 'on' ? 'rgb(40, 40, 40)' : ''} !important;
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Téléphone
+                  - entity: switch.pris_tel_sal
+                  - icon: mdi:power-socket-fr
+                  - secondary: >-
+                      {{ states('sensor.tricordeur_14_battery_level') }}% - {{
+                      states('sensor.pris_tel_sal_power') }}W
+                  - badge_entity: sensor.tricordeur_14_battery_level
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Café
+                  - entity: switch.priscafe
+                  - icon: m3rf:coffee
+                  - animation: pulse
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Machine à Laver
+                  - entity: switch.prismal
+                  - icon: mdi:washing-machine
+                  - secondary: >-
+                      {{ 'Allumée' if is_state('switch.prismal', 'on') else
+                      'Éteinte' }}{% if is_state('switch.prismal', 'on') %} - {{
+                      states('sensor.prismal_power') }}W{% endif %}
+                  - badge_entity: sensor.prismal_power
+                  - show_power: true
+                  - animation: spin
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Téléphone
+                  - entity: switch.pristelchamb
+                  - icon: mdi:power-socket-fr
+                  - secondary: >-
+                      {{ states('sensor.tricordeur_14_battery_level') }}% - {{
+                      states('sensor.pris_tel_sal_power') }}W
+                  - badge_entity: sensor.tricordeur_14_battery_level
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: TV
+                  - entity: switch.pristvchamb
+                  - icon: m3o:tv-gen
             grid_options:
               columns: 9
               rows: 5
@@ -2424,75 +2469,23 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-template-card
-                primary: Horloge
-                secondary: '{{ states(''sensor.awtrix_salon_current_app'') }}'
-                icon: mdi:clock-digital
-                entity: light.awtrix_salon_matrix
-                tap_action:
-                  action: toggle
-                multiline_secondary: false
-                color: |-
-                  {% if is_state('light.awtrix_salon_matrix', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                features_position: bottom
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('light.awtrix_salon_matrix', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('light.awtrix_salon_matrix', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('light.awtrix_salon_matrix') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
-              - type: custom:mushroom-template-card
-                primary: Téléphone
-                secondary: >-
-                  {{ states('sensor.tricordeur_14_battery_level') }}% - {{
-                  states('sensor.pris_tel_sal_power') }}W
-                icon: mdi:power-socket-fr
-                entity: switch.pris_tel_sal
-                tap_action:
-                  action: toggle
-                color: |-
-                  {% if is_state('switch.pris_tel_sal', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                features_position: bottom
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('switch.pris_tel_sal', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('switch.pris_tel_sal', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('switch.pris_tel_sal') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Horloge
+                  - entity: light.awtrix_salon_matrix
+                  - icon: mdi:clock-digital
+                  - secondary: '{{ states(''sensor.awtrix_salon_current_app'') }}'
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Téléphone
+                  - entity: switch.pris_tel_sal
+                  - icon: mdi:power-socket-fr
+                  - secondary: >-
+                      {{ states('sensor.tricordeur_14_battery_level') }}% - {{
+                      states('sensor.pris_tel_sal_power') }}W
+                  - badge_entity: sensor.tricordeur_14_battery_level
               - type: custom:mushroom-template-card
                 primary: TV
                 secondary: >-
@@ -2506,15 +2499,16 @@ views:
                     {{ 'Allumée' if is_state('input_boolean.switch_tv_2', 'on') else 'Éteinte' }}
                   {% endif %}
                 icon: mdi:television
-                icon_color: |-
+                entity: input_boolean.switch_tv_2
+                tap_action:
+                  action: toggle
+                color: |-
                   {% if is_state('input_boolean.switch_tv_2', 'on') %}
                     seagreen
                   {% else %}
                     grey
                   {% endif %}
-                entity: input_boolean.switch_tv_2
-                tap_action:
-                  action: toggle
+                features_position: bottom
                 card_mod:
                   style: |
                     ha-card {
@@ -2566,84 +2560,28 @@ views:
               - square: false
                 type: grid
                 cards:
-                  - type: custom:mushroom-template-card
-                    primary: Radiateur Salon
-                    secondary: >-
-                      {{ 'Éteint' if is_state('switch.radsal_l1', 'on') else
-                      'Allumé' }}
-                    icon: |-
-                      {% if is_state('switch.radsal_l1', 'off') %}
-                        mdi:radiator
-                      {% else %}
-                        mdi:radiator-off
-                      {% endif %}
-                    icon_color: |-
-                      {% if is_state('switch.radsal_l1', 'off') %}
-                        red
-                      {% else %}
-                        grey
-                      {% endif %}
-                    entity: switch.radsal_l1
-                    tap_action:
-                      action: toggle
-                    card_mod:
-                      style: |
-                        ha-card {
-                          --ha-card-border-radius: 25px;
-                          --card-primary-color: {% if is_state('switch.radsal_l1', 'off') %} red {% else %} var(--primary-text-color) {% endif %};
-                          --card-secondary-color: {% if is_state('switch.radsal_l1', 'off') %} red {% else %} var(--secondary-text-color) {% endif %};
-                          background: rgba(255, 255, 255, 0.1) !important;
-                          backdrop-filter: blur(10px) !important;
-                          border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                        }
-                        ha-state-icon {
-                         {% set state = states('switch.radsal_l1') %}
-                         {% if state == 'off' %}
-                           color: red !important;
-                         {% else %}
-                           color: grey !important;
-                         {% endif %}  
-                        }
-                  - type: custom:mushroom-template-card
-                    primary: Radiateur Cuisine
-                    secondary: >-
-                      {{ 'Éteint' if is_state('switch.radcui_l1', 'on') else
-                      'Allumé' }}
-                    icon: |-
-                      {% if is_state('switch.radcui_l1', 'off') %}
-                        mdi:radiator
-                      {% else %}
-                        mdi:radiator-off
-                      {% endif %}
-                    icon_color: |-
-                      {% if is_state('switch.radcui_l1', 'off') %}
-                        red
-                      {% else %}
-                        grey
-                      {% endif %}
-                    entity: switch.radcui_l1
-                    tap_action:
-                      action: toggle
-                    card_mod:
-                      style: |
-                        ha-card {
-                          --ha-card-border-radius: 25px;
-                          --card-primary-color: {% if is_state('switch.radcui_l1', 'off') %} red {% else %} var(--primary-text-color) {% endif %};
-                          --card-secondary-color: {% if is_state('switch.radcui_l1', 'off') %} red {% else %} var(--secondary-text-color) {% endif %};
-                          background: rgba(255, 255, 255, 0.1) !important;
-                          backdrop-filter: blur(10px) !important;
-                          border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                        }
-                        ha-state-icon {
-                         {% set state = states('switch.radcui_l1') %}
-                         {% if state == 'off' %}
-                           color: red !important;
-                         {% else %}
-                           color: grey !important;
-                         {% endif %}  
-                        }
+                  - type: custom:decluttering-card
+                    template: mushroom_switch_card
+                    variables:
+                      - name: Radiateur Salon
+                      - entity: switch.radsal_l1
+                      - icon: mdi:radiator
+                      - secondary: >-
+                          {{ 'Éteint' if is_state('switch.radsal_l1', 'on') else
+                          'Allumé' }}
+                      - color_on: grey
+                      - color_off: red
+                  - type: custom:decluttering-card
+                    template: mushroom_switch_card
+                    variables:
+                      - name: Radiateur Cuisine
+                      - entity: switch.radcui_l1
+                      - icon: mdi:radiator
+                      - secondary: >-
+                          {{ 'Éteint' if is_state('switch.radcui_l1', 'on') else
+                          'Allumé' }}
+                      - color_on: grey
+                      - color_off: red
                 columns: 1
             title: Thermostat
             columns: 2
@@ -3173,122 +3111,34 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-template-card
-                primary: Horloge
-                secondary: '{{ states(''sensor.awtrix_ulanzi_current_app'') }}'
-                icon: mdi:clock-digital
-                entity: light.awtrix_ulanzi_matrix
-                tap_action:
-                  action: toggle
-                multiline_secondary: false
-                color: |-
-                  {% if is_state('light.awtrix_ulanzi_matrix', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                features_position: bottom
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('light.awtrix_ulanzi_matrix', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('light.awtrix_ulanzi_matrix', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('light.awtrix_ulanzi_matrix') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
-              - type: custom:mushroom-template-card
-                primary: Café
-                secondary: >-
-                  {{ 'Allumée' if is_state('switch.priscafe', 'on') else
-                  'Éteinte' }}
-                icon: m3rf:coffee
-                icon_color: |-
-                  {% if is_state('switch.priscafe', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: switch.priscafe
-                tap_action:
-                  action: toggle
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('switch.priscafe', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('switch.priscafe', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('switch.priscafe') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                       animation: pulse 2s infinite;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
-                    @keyframes pulse {
-                      0%, 100% { color: seagreen !important; }
-                      50% { color: red !important; }
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Horloge
+                  - entity: light.awtrix_ulanzi_matrix
+                  - icon: mdi:clock-digital
+                  - secondary: '{{ states(''sensor.awtrix_ulanzi_current_app'') }}'
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Café
+                  - entity: switch.priscafe
+                  - icon: m3rf:coffee
+                  - animation: pulse
               - type: custom:decluttering-card
                 template: mushroom_voice_assistant_card
                 variables:
                   - name: VA Cuisine
                   - entity: assist_satellite.esp_va_cuisine_satellite_assist
                   - light_entity: light.esp_va_cuisine_esp_va_cuisine
-              - type: custom:mushroom-template-card
-                primary: Suckbot
-                secondary: '{{ states(''vacuum.rockrobock'') | title }}'
-                icon: mdi:robot-vacuum
-                icon_color: |-
-                  {% if is_state('vacuum.rockrobock', 'cleaning') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: vacuum.rockrobock
-                tap_action:
-                  action: more-info
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('vacuum.rockrobock', 'cleaning') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('vacuum.rockrobock', 'cleaning') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('vacuum.rockrobock') %}
-                     {% if state == 'cleaning' %}
-                       color: seagreen !important;
-                       animation: spin 2s linear infinite;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
-                    @keyframes spin {
-                      from { transform: rotate(0deg); }
-                      to { transform: rotate(360deg); }
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Suckbot
+                  - entity: vacuum.rockrobock
+                  - icon: mdi:robot-vacuum
+                  - secondary: '{{ states(''vacuum.rockrobock'') | title }}'
+                  - animation: spin
             title: Autres
             columns: 2
         columns: 2
@@ -3749,132 +3599,38 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-template-card
-                primary: TV
-                secondary: >-
-                  {{ 'Allumée' if is_state('switch.pristvchamb', 'on') else
-                  'Éteinte' }}
-                icon: m3o:tv-gen
-                icon_color: |-
-                  {% if is_state('switch.pristvchamb', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: switch.pristvchamb
-                tap_action:
-                  action: toggle
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('switch.pristvchamb', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('switch.pristvchamb', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('switch.pristvchamb') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
-              - type: custom:mushroom-template-card
-                primary: Téléphone
-                secondary: >-
-                  {{ 'Allumée' if is_state('switch.pristelchamb', 'on') else
-                  'Éteinte' }} {% if is_state('switch.pristelchamb', 'on') %} -
-                  {{ states('sensor.pristelchamb_power') }}W{% endif %}
-                icon: mdi:power-socket-fr
-                entity: switch.pristelchamb
-                tap_action:
-                  action: toggle
-                badge_icon: mdi:battery
-                badge_color: >-
-                  {% set battery =
-                  states('sensor.redmi_note_8_pro_battery_level') | int %} {% if
-                  battery >= 100 %}
-                    seagreen
-                  {% elif battery >= 30 %}
-                    seagreen
-                  {% elif battery >= 20 %}
-                    orange
-                  {% else %}
-                    red
-                  {% endif %}
-                color: |-
-                  {% if is_state('switch.pristelchamb', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                features_position: bottom
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('switch.pristelchamb', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('switch.pristelchamb', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('switch.pristelchamb') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: TV
+                  - entity: switch.pristvchamb
+                  - icon: m3o:tv-gen
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Téléphone
+                  - entity: switch.pristelchamb
+                  - icon: mdi:power-socket-fr
+                  - secondary: >-
+                      {{ states('sensor.tricordeur_14_battery_level') }}% - {{
+                      states('sensor.pris_tel_sal_power') }}W
+                  - badge_entity: sensor.tricordeur_14_battery_level
               - type: custom:decluttering-card
                 template: mushroom_voice_assistant_card
                 variables:
                   - name: VA Chambre
                   - entity: assist_satellite.esp_va_chambre_satellite_assist
                   - light_entity: light.esp_va_chambre_esp_va_chambre
-              - type: custom:mushroom-template-card
-                primary: Occupation Lit
-                secondary: >-
-                  {{ 'Occupé' if
-                  is_state('binary_sensor.esp_bed_occupation_master_bed_occupied',
-                  'on') else 'Libre' }}
-                icon: mdi:bed-empty
-                icon_color: >-
-                  {% if
-                  is_state('binary_sensor.esp_bed_occupation_master_bed_occupied',
-                  'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: binary_sensor.esp_bed_occupation_master_bed_occupied
-                tap_action:
-                  action: more-info
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('binary_sensor.esp_bed_occupation_master_bed_occupied', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('binary_sensor.esp_bed_occupation_master_bed_occupied', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('binary_sensor.esp_bed_occupation_master_bed_occupied') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Occupation Lit
+                  - entity: binary_sensor.esp_bed_occupation_master_bed_occupied
+                  - icon: mdi:bed-empty
+                  - secondary: >-
+                      {{ 'Occupé' if
+                      is_state('binary_sensor.esp_bed_occupation_master_bed_occupied',
+                      'on') else 'Libre' }}
             title: Autres
             columns: 2
         columns: 2
@@ -4260,61 +4016,19 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:mushroom-template-card
-                primary: Machine à Laver
-                secondary: >-
-                  {{ 'Allumée' if is_state('switch.prismal', 'on') else
-                  'Éteinte' }} {% if is_state('switch.prismal', 'on') %} - {{
-                  states('sensor.prismal_power') }}W{% endif %}
-                icon: mdi:washing-machine
-                entity: switch.prismal
-                tap_action:
-                  action: toggle
-                badge_icon: |-
-                  {% if states('sensor.prismal_power') | float(0) > 0 %}
-                    mdi:flash
-                  {% else %}
-                    mdi:flash-off
-                  {% endif %}
-                badge_color: |-
-                  {% if states('sensor.prismal_power') | float(0) > 0 %}
-                    orange
-                  {% else %}
-                    grey
-                  {% endif %}
-                color: |-
-                  {% if is_state('switch.prismal', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                features_position: bottom
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('switch.prismal', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('switch.prismal', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('switch.prismal') %}
-                     {% if state == 'on' %}
-                       color: seagreen !important;
-                       {% if states('sensor.prismal_power') | float(0) > 0 %}
-                         animation: spin 2s linear infinite;
-                       {% endif %}
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
-                    @keyframes spin {
-                      from { transform: rotate(0deg); }
-                      to { transform: rotate(360deg); }
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Machine à Laver
+                  - entity: switch.prismal
+                  - icon: mdi:washing-machine
+                  - secondary: >-
+                      {{ 'Allumée' if is_state('switch.prismal', 'on') else
+                      'Éteinte' }}{% if is_state('switch.prismal', 'on') %} - {{
+                      states('sensor.prismal_power') }}W{% endif %}
+                  - badge_entity: sensor.prismal_power
+                  - show_power: true
+                  - animation: spin
               - type: custom:decluttering-card
                 template: mushroom_voice_assistant_card
                 variables:
@@ -4344,45 +4058,17 @@ views:
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
-              - type: custom:mushroom-template-card
-                primary: Radiateur SdB
-                secondary: >-
-                  {{ 'Éteint' if is_state('switch.radsdb_l1', 'on') else
-                  'Allumé' }}
-                icon: |-
-                  {% if is_state('switch.radsdb_l1', 'off') %}
-                    mdi:radiator
-                  {% else %}
-                    mdi:radiator-off
-                  {% endif %}
-                icon_color: |-
-                  {% if is_state('switch.radsdb_l1', 'off') %}
-                    red
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: switch.radsdb_l1
-                tap_action:
-                  action: toggle
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('switch.radsdb_l1', 'off') %} red {% else %} var(--primary-text-color) {% endif %};
-                      --card-secondary-color: {% if is_state('switch.radsdb_l1', 'off') %} red {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('switch.radsdb_l1') %}
-                     {% if state == 'off' %}
-                       color: red !important;
-                     {% else %}
-                       color: grey !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_switch_card
+                variables:
+                  - name: Radiateur SdB
+                  - entity: switch.radsdb_l1
+                  - icon: mdi:radiator
+                  - secondary: >-
+                      {{ 'Éteint' if is_state('switch.radsdb_l1', 'on') else
+                      'Allumé' }}
+                  - color_on: grey
+                  - color_off: red
             title: Thermostat
             columns: 2
         columns: 2
