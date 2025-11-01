@@ -338,6 +338,50 @@ decluttering_templates:
           ha-card {
             --ha-card-border-radius: 20px;
           }
+  mushroom_voice_assistant_card:
+    default:
+      - light_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: '{{ states(''[[entity]]'') }}'
+      icon: mdi:account-voice
+      icon_color: |-
+        {% if '[[light_entity]]' != '' %}
+          {% if is_state('[[light_entity]]', 'on') %}
+            seagreen
+          {% else %}
+            grey
+          {% endif %}
+        {% else %}
+          {% if is_state('[[entity]]', 'idle') %}
+            grey
+          {% else %}
+            seagreen
+          {% endif %}
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: assist
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            --card-primary-color: {% if is_state('[[entity]]', 'idle') %} var(--primary-text-color) {% else %} seagreen {% endif %};
+            --card-secondary-color: {% if is_state('[[entity]]', 'idle') %} var(--secondary-text-color) {% else %} seagreen {% endif %};
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
+          ha-state-icon {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'idle' %}
+             color: grey !important;
+           {% else %}
+             color: seagreen !important;
+           {% endif %}  
+          }
 views:
   - type: sections
     max_columns: 3
@@ -2481,38 +2525,12 @@ views:
                        color: grey !important;
                      {% endif %}  
                     }
-              - type: custom:mushroom-template-card
-                primary: VA Salon
-                secondary: '{{ states(''assist_satellite.esp_va_salon_satellite_assist'') }}'
-                icon: mdi:account-voice
-                icon_color: |-
-                  {% if is_state('light.esp_va_salon_lcd_backlight', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: light.esp_va_salon_lcd_backlight
-                tap_action:
-                  action: assist
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('assist_satellite.esp_va_salon_satellite_assist', 'idle') %} var(--primary-text-color) {% else %} seagreen {% endif %};
-                      --card-secondary-color: {% if is_state('assist_satellite.esp_va_salon_satellite_assist', 'idle') %} var(--secondary-text-color) {% else %} seagreen {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('assist_satellite.esp_va_salon_satellite_assist') %}
-                     {% if state == 'idle' %}
-                       color: grey !important;
-                     {% else %}
-                       color: seagreen !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_voice_assistant_card
+                variables:
+                  - name: VA Salon
+                  - entity: assist_satellite.esp_va_salon_satellite_assist
+                  - light_entity: light.esp_va_salon_lcd_backlight
             title: Autres
             columns: 2
           - square: false
@@ -3149,16 +3167,17 @@ views:
                 primary: Horloge
                 secondary: '{{ states(''sensor.awtrix_ulanzi_current_app'') }}'
                 icon: mdi:clock-digital
-                icon_color: |-
+                entity: light.awtrix_ulanzi_matrix
+                tap_action:
+                  action: toggle
+                multiline_secondary: false
+                color: |-
                   {% if is_state('light.awtrix_ulanzi_matrix', 'on') %}
                     seagreen
                   {% else %}
                     grey
                   {% endif %}
-                entity: light.awtrix_ulanzi_matrix
-                tap_action:
-                  action: toggle
-                multiline_secondary: false
+                features_position: bottom
                 card_mod:
                   style: |
                     ha-card {
@@ -3217,40 +3236,12 @@ views:
                       0%, 100% { color: seagreen !important; }
                       50% { color: red !important; }
                     }
-              - type: custom:mushroom-template-card
-                primary: VA Cuisine
-                secondary: >-
-                  {{ states('assist_satellite.esp_va_cuisine_satellite_assist')
-                  }}
-                icon: mdi:account-voice
-                icon_color: |-
-                  {% if is_state('light.esp_va_cuisine_esp_va_cuisine', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: light.esp_va_cuisine_esp_va_cuisine
-                tap_action:
-                  action: assist
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('assist_satellite.esp_va_cuisine_satellite_assist', 'idle') %} var(--primary-text-color) {% else %} seagreen {% endif %};
-                      --card-secondary-color: {% if is_state('assist_satellite.esp_va_cuisine_satellite_assist', 'idle') %} var(--secondary-text-color) {% else %} seagreen {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('assist_satellite.esp_va_cuisine_satellite_assist') %}
-                     {% if state == 'idle' %}
-                       color: grey !important;
-                     {% else %}
-                       color: seagreen !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_voice_assistant_card
+                variables:
+                  - name: VA Cuisine
+                  - entity: assist_satellite.esp_va_cuisine_satellite_assist
+                  - light_entity: light.esp_va_cuisine_esp_va_cuisine
               - type: custom:mushroom-template-card
                 primary: Suckbot
                 secondary: '{{ states(''vacuum.rockrobock'') | title }}'
@@ -3820,12 +3811,6 @@ views:
                   'Éteinte' }} {% if is_state('switch.prismal', 'on') %} - {{
                   states('sensor.prismal_power') }}W{% endif %}
                 icon: mdi:washing-machine
-                icon_color: |-
-                  {% if is_state('switch.prismal', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
                 entity: switch.prismal
                 tap_action:
                   action: toggle
@@ -3841,6 +3826,13 @@ views:
                   {% else %}
                     grey
                   {% endif %}
+                color: |-
+                  {% if is_state('switch.prismal', 'on') %}
+                    seagreen
+                  {% else %}
+                    grey
+                  {% endif %}
+                features_position: bottom
                 card_mod:
                   style: |
                     ha-card {
@@ -3867,38 +3859,12 @@ views:
                       from { transform: rotate(0deg); }
                       to { transform: rotate(360deg); }
                     }
-              - type: custom:mushroom-template-card
-                primary: VA Salle de Bain
-                secondary: '{{ states(''assist_satellite.esp_va_sdb_satellite_assist'') }}'
-                icon: mdi:account-voice
-                icon_color: |-
-                  {% if is_state('light.esp_va_sdb_esp_va_sdb', 'on') %}
-                    seagreen
-                  {% else %}
-                    grey
-                  {% endif %}
-                entity: light.esp_va_sdb_esp_va_sdb
-                tap_action:
-                  action: assist
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 25px;
-                      --card-primary-color: {% if is_state('assist_satellite.esp_va_sdb_satellite_assist', 'idle') %} var(--primary-text-color) {% else %} seagreen {% endif %};
-                      --card-secondary-color: {% if is_state('assist_satellite.esp_va_sdb_satellite_assist', 'idle') %} var(--secondary-text-color) {% else %} seagreen {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
-                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    ha-state-icon {
-                     {% set state = states('assist_satellite.esp_va_sdb_satellite_assist') %}
-                     {% if state == 'idle' %}
-                       color: grey !important;
-                     {% else %}
-                       color: seagreen !important;
-                     {% endif %}  
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_voice_assistant_card
+                variables:
+                  - name: VA Salle de Bain
+                  - entity: assist_satellite.esp_va_sdb_satellite_assist
+                  - light_entity: light.esp_va_sdb_esp_va_sdb
             title: Autres
             columns: 2
           - square: false
