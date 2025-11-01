@@ -3494,7 +3494,7 @@ views:
     path: cuisine
     subview: true
   - type: sections
-    max_columns: 4
+    max_columns: 3
     title: Chambre
     path: chambre
     subview: true
@@ -3505,51 +3505,90 @@ views:
       repeat: no-repeat
       attachment: scroll
       image: /api/image/serve/42b2c391fc6fa00e0c293b0b336b7cf6/original
-    sections:
-      - type: grid
-        cards:
-          - type: heading
-            heading: Nouvelle section
     badges:
+      - type: custom:decluttering-card
+        template: mushroom_presence_badge
+        variables:
+          - entity: binary_sensor.esp_chambre_presence
+          - state_on: 'on'
+          - icon_on: hue:room-bedroom
+          - icon_off: hue:room-bedroom-off
+          - navigation_path: /salon-mushroom/chambre
+      - type: custom:mushroom-template-badge
+        content: ''
+        icon: |-
+          {% set state = states('binary_sensor.esp_chambre_movement') %}  
+          {% if state == 'on' %}
+            mdi:motion-sensor
+          {% else %}
+            mdi:motion-sensor-off
+          {% endif %}
+        color: |-
+          {% set state = states('binary_sensor.esp_chambre_movement') %}  
+          {% if state == 'on' %}
+            seagreen
+          {% else %}
+            gray
+          {% endif %}
+        entity: binary_sensor.esp_chambre_movement
+      - type: custom:mushroom-template-badge
+        content: '{{states(''sensor.temperature_chambre'') }}°C'
+        icon: mdi:thermometer
+        color: |-
+          {% set state = states('sensor.temperature_chambre') %}  
+          {% if state >= '23' %}
+            red
+          {% elif state >= '19' %}
+            seagreen
+          {% else %}
+            blue
+          {% endif %}
+        entity: sensor.temperature_chambre
+        tap_action:
+          action: navigate
+          navigation_path: '#temperature'
+      - type: entity
+        show_name: false
+        show_state: true
+        show_icon: true
+        entity: sensor.esp_chambre_lux
+        icon: mdi:brightness-7
+        tap_action:
+          action: navigate
+          navigation_path: '#lux'
+      - type: entity
+        show_name: false
+        show_state: true
+        show_icon: true
+        entity: weather.pompey
+      - type: custom:mushroom-template-badge
+        content: '{{states(''sensor.pompey_temperature'') }}°C'
+        icon: mdi:thermometer
+        color: |-
+          {% set state = states('sensor.pompey_temperature') | float %}  
+          {% if state > 23 %}
+            red
+          {% elif state > 19 %}
+            seagreen
+          {% else %}
+            blue
+          {% endif %}
+        entity: sensor.pompey_temperature
+        tap_action:
+          action: more-info
       - type: entity
         show_name: false
         show_state: false
         show_icon: true
-        entity: binary_sensor.esp_chambre_presence
-      - type: entity
-        show_name: false
-        show_state: false
-        show_icon: true
-        entity: binary_sensor.esp_chambre_presence
-        card_mod:
-          style: |
-            ha-card {
-              --ha-card-border-radius: 50% !important;
-              width: 50px !important;
-              height: 50px !important;
-              background: {% if is_state('binary_sensor.esp_chambre_presence', 'on') %} rgba(46, 125, 50, 0.15) {% else %} rgba(128, 128, 128, 0.1) {% endif %} !important;
-              backdrop-filter: blur(10px) !important;
-              border: 2px solid {% if is_state('binary_sensor.esp_chambre_presence', 'on') %} seagreen {% else %} rgba(128, 128, 128, 0.3) {% endif %} !important;
-              box-shadow: {% if is_state('binary_sensor.esp_chambre_presence', 'on') %} 0 0 20px rgba(46, 125, 50, 0.3) {% else %} none {% endif %} !important;
-              transition: all 0.3s ease !important;
-              padding: 0 !important;
-              display: flex !important;
-              align-items: center !important;
-              justify-content: center !important;
-            }
-            ha-card .icon {
-              color: {% if is_state('binary_sensor.esp_chambre_presence', 'on') %} seagreen {% else %} grey {% endif %} !important;
-              width: 24px !important;
-              height: 24px !important;
-            }
-            ha-card ha-state-icon {
-              color: {% if is_state('binary_sensor.esp_chambre_presence', 'on') %} seagreen {% else %} grey {% endif %} !important;
-              --mdc-icon-size: 24px !important;
-            }
-            ha-card:hover {
-              transform: scale(1.05) !important;
-              box-shadow: {% if is_state('binary_sensor.esp_chambre_presence', 'on') %} 0 0 25px rgba(46, 125, 50, 0.5) {% else %} 0 0 10px rgba(128, 128, 128, 0.3) {% endif %} !important;
-            }
+        entity: sun.sun
+      - type: custom:decluttering-card
+        template: mushroom_presence_badge
+        variables:
+          - entity: person.canabang
+          - state_on: home
+          - icon_on: mdi:home-outline
+          - icon_off: mdi:home-off-outline
+          - navigation_path: /salon-mushroom/accueil
       - type: custom:decluttering-card
         template: mushroom_presence_badge
         variables:
@@ -3574,6 +3613,412 @@ views:
           - icon_on: hue:room-bathroom
           - icon_off: hue:room-bathroom-off
           - navigation_path: /salon-mushroom/sdb
+      - type: custom:decluttering-card
+        template: mushroom_presence_badge
+        variables:
+          - entity: update.home_assistant_core_update
+          - state_on: 'on'
+          - icon_on: mdi:server
+          - icon_off: mdi:server-off
+          - navigation_path: /salon-mushroom/disques-dur
+      - type: custom:decluttering-card
+        template: mushroom_multimedia_badge
+        variables:
+          - navigation_path: /salon-mushroom/multimedia
+      - type: custom:decluttering-card
+        template: mushroom_litiere_badge
+        variables:
+          - navigation_path: /salon-mushroom/petscales-v3
+    sections:
+      - type: grid
+        cards:
+          - type: custom:mushroom-empty-card
+          - type: custom:mushroom-empty-card
+          - type: custom:digital-clock
+            dateFormat:
+              weekday: long
+              day: 2-digit
+              month: long
+            timeFormat:
+              hour: 2-digit
+              minute: 2-digit
+            card_mod:
+              style: |
+                ha-card {
+                  position: relative;
+                  overflow: hidden;
+                  background: rgb(40, 40, 40);
+                  height: 120px;
+                  font-size: 19px;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                  align-items: center;
+                  text-align: center;
+                  --ha-card-border-radius: 150px;
+                }
+          - type: vertical-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Réveil
+                secondary: '{{ states(''input_datetime.heure_reveil'') }}'
+                icon: mdi:alarm
+                entity: input_datetime.heure_reveil
+                icon_color: |-
+                  {% if is_state('input_datetime.heure_reveil', '00:00:00') %}
+                    grey
+                  {% else %}
+                    orange
+                  {% endif %}
+                tap_action:
+                  action: more-info
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 25px;
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      backdrop-filter: blur(10px) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                    }
+              - type: horizontal-stack
+                cards:
+                  - type: custom:mushroom-template-card
+                    primary: '-30mn'
+                    secondary: '{{ states(''input_datetime.heure_reveil_30mn_avant'') }}'
+                    icon: mdi:alarm-minus
+                    entity: input_datetime.heure_reveil_30mn_avant
+                    icon_color: blue
+                    tap_action:
+                      action: more-info
+                    card_mod:
+                      style: |
+                        ha-card {
+                          --ha-card-border-radius: 15px;
+                          background: rgba(33, 150, 243, 0.1) !important;
+                        }
+                  - type: custom:mushroom-template-card
+                    primary: '-03mn'
+                    secondary: '{{ states(''input_datetime.heure_reveil_03mn_avant'') }}'
+                    icon: mdi:alarm-minus
+                    entity: input_datetime.heure_reveil_03mn_avant
+                    icon_color: purple
+                    tap_action:
+                      action: more-info
+                    card_mod:
+                      style: |
+                        ha-card {
+                          --ha-card-border-radius: 15px;
+                          background: rgba(156, 39, 176, 0.1) !important;
+                        }
+                  - type: custom:mushroom-template-card
+                    primary: +15mn
+                    secondary: '{{ states(''input_datetime.heure_reveil_15mn_apres'') }}'
+                    icon: mdi:alarm-plus
+                    entity: input_datetime.heure_reveil_15mn_apres
+                    icon_color: green
+                    tap_action:
+                      action: more-info
+                    card_mod:
+                      style: |
+                        ha-card {
+                          --ha-card-border-radius: 15px;
+                          background: rgba(76, 175, 80, 0.1) !important;
+                        }
+                visibility:
+                  - condition: state
+                    entity: input_datetime.heure_reveil
+                    state_not: '00:00:00'
+        column_span: 3
+      - type: grid
+        cards:
+          - square: false
+            type: grid
+            cards:
+              - type: custom:decluttering-card
+                template: mushroom_light_card
+                variables:
+                  - entity: light.hue_chambre
+                  - name: Chambre
+                  - piece: chambre
+                  - show_color_control: true
+                  - show_color_temp_control: true
+                  - navigation_path: '#scene-chambre'
+            title: Lumières
+            columns: 2
+          - square: false
+            type: grid
+            cards:
+              - type: custom:mushroom-template-card
+                primary: TV
+                secondary: >-
+                  {{ 'Allumée' if is_state('switch.pristvchamb', 'on') else
+                  'Éteinte' }}
+                icon: m3o:tv-gen
+                icon_color: |-
+                  {% if is_state('switch.pristvchamb', 'on') %}
+                    seagreen
+                  {% else %}
+                    grey
+                  {% endif %}
+                entity: switch.pristvchamb
+                tap_action:
+                  action: toggle
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 25px;
+                      --card-primary-color: {% if is_state('switch.pristvchamb', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                      --card-secondary-color: {% if is_state('switch.pristvchamb', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      backdrop-filter: blur(10px) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                    }
+                    ha-state-icon {
+                     {% set state = states('switch.pristvchamb') %}
+                     {% if state == 'on' %}
+                       color: seagreen !important;
+                     {% else %}
+                       color: grey !important;
+                     {% endif %}  
+                    }
+              - type: custom:mushroom-template-card
+                primary: Téléphone
+                secondary: >-
+                  {{ 'Allumée' if is_state('switch.pristelchamb', 'on') else
+                  'Éteinte' }} {% if is_state('switch.pristelchamb', 'on') %} -
+                  {{ states('sensor.pristelchamb_power') }}W{% endif %}
+                icon: mdi:power-socket-fr
+                entity: switch.pristelchamb
+                tap_action:
+                  action: toggle
+                badge_icon: mdi:battery
+                badge_color: >-
+                  {% set battery =
+                  states('sensor.redmi_note_8_pro_battery_level') | int %} {% if
+                  battery >= 100 %}
+                    seagreen
+                  {% elif battery >= 30 %}
+                    seagreen
+                  {% elif battery >= 20 %}
+                    orange
+                  {% else %}
+                    red
+                  {% endif %}
+                color: |-
+                  {% if is_state('switch.pristelchamb', 'on') %}
+                    seagreen
+                  {% else %}
+                    grey
+                  {% endif %}
+                features_position: bottom
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 25px;
+                      --card-primary-color: {% if is_state('switch.pristelchamb', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                      --card-secondary-color: {% if is_state('switch.pristelchamb', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      backdrop-filter: blur(10px) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                    }
+                    ha-state-icon {
+                     {% set state = states('switch.pristelchamb') %}
+                     {% if state == 'on' %}
+                       color: seagreen !important;
+                     {% else %}
+                       color: grey !important;
+                     {% endif %}  
+                    }
+              - type: custom:decluttering-card
+                template: mushroom_voice_assistant_card
+                variables:
+                  - name: VA Chambre
+                  - entity: assist_satellite.esp_va_chambre_satellite_assist
+                  - light_entity: light.esp_va_chambre_esp_va_chambre
+              - type: custom:mushroom-template-card
+                primary: Occupation Lit
+                secondary: >-
+                  {{ 'Occupé' if
+                  is_state('binary_sensor.esp_bed_occupation_master_bed_occupied',
+                  'on') else 'Libre' }}
+                icon: mdi:bed-empty
+                icon_color: >-
+                  {% if
+                  is_state('binary_sensor.esp_bed_occupation_master_bed_occupied',
+                  'on') %}
+                    seagreen
+                  {% else %}
+                    grey
+                  {% endif %}
+                entity: binary_sensor.esp_bed_occupation_master_bed_occupied
+                tap_action:
+                  action: more-info
+                card_mod:
+                  style: |
+                    ha-card {
+                      --ha-card-border-radius: 25px;
+                      --card-primary-color: {% if is_state('binary_sensor.esp_bed_occupation_master_bed_occupied', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
+                      --card-secondary-color: {% if is_state('binary_sensor.esp_bed_occupation_master_bed_occupied', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
+                      background: rgba(255, 255, 255, 0.1) !important;
+                      backdrop-filter: blur(10px) !important;
+                      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                    }
+                    ha-state-icon {
+                     {% set state = states('binary_sensor.esp_bed_occupation_master_bed_occupied') %}
+                     {% if state == 'on' %}
+                       color: seagreen !important;
+                     {% else %}
+                       color: grey !important;
+                     {% endif %}  
+                    }
+            title: Autres
+            columns: 2
+        columns: 2
+      - type: grid
+        cards:
+          - type: media-control
+            entity: media_player.echo_show_chambre
+            visibility:
+              - condition: state
+                entity: media_player.echo_show_chambre
+                state: playing
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+          - type: media-control
+            entity: media_player.plex_plex_for_android_tv_chambre
+            name: Plex Chambre
+            visibility:
+              - condition: state
+                entity: media_player.plex_plex_for_android_tv_chambre
+                state: playing
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+          - type: media-control
+            entity: media_player.kodi_chambre
+            visibility:
+              - condition: state
+                entity: media_player.kodi_chambre
+                state: playing
+            card_mod:
+              style: |
+                ha-card {
+                  --ha-card-border-radius: 25px;
+                  background: rgba(255, 255, 255, 0.1) !important;
+                  backdrop-filter: blur(10px) !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                }
+      - type: grid
+        cards: []
+        columns: 2
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#temperature'
+                show_header: false
+                close_on_click: true
+              - type: grid
+                cards:
+                  - type: custom:decluttering-card
+                    template: mushroom_temperature_card
+                    variables:
+                      - name: Chambre (all)
+                      - entity: sensor.temperature_chambre
+                  - type: custom:decluttering-card
+                    template: mushroom_temperature_card
+                    variables:
+                      - name: Chambre
+                      - entity: sensor.capcham_temperature
+                      - battery_entity: sensor.capcham_battery
+                  - type: custom:decluttering-card
+                    template: mushroom_temperature_card
+                    variables:
+                      - name: Fenêtre Chambre
+                      - entity: sensor.esp_chambre_temperature
+                columns: 2
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#lux'
+                show_header: false
+                close_on_click: true
+              - type: grid
+                cards:
+                  - type: custom:mushroom-template-card
+                    primary: Chambre
+                    secondary: '{{ states(''sensor.esp_chambre_lux'') }} lx'
+                    icon: mdi:brightness-7
+                    icon_color: yellow
+                    entity: sensor.esp_chambre_lux
+                    card_mod:
+                      style: |
+                        ha-card {
+                          --ha-card-border-radius: 20px;
+                        }
+                columns: 1
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: '#scene-chambre'
+                show_header: false
+                close_on_click: true
+                margin_top_desktop: calc(100vh - 400px)
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Veilleuse
+                  - icon: mdi:lightbulb-night
+                  - entity: scene.hue_chambre_1_veilleuse
+                  - icon_color: orange
+                  - background_color: rgba(255, 152, 0, 0.1)
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Stimulation
+                  - icon: mdi:lightbulb-on
+                  - entity: scene.hue_chambre_2_stimulation
+                  - icon_color: red
+                  - background_color: rgba(244, 67, 54, 0.1)
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Atténué
+                  - icon: mdi:lightbulb-variant
+                  - entity: scene.hue_chambre_3_attenue
+                  - icon_color: yellow
+                  - background_color: rgba(255, 193, 7, 0.1)
+              - type: custom:decluttering-card
+                template: mushroom_scene_card
+                variables:
+                  - name: Lumineux
+                  - icon: mdi:lightbulb-on-outline
+                  - entity: scene.hue_chambre_4_lumineux
+                  - icon_color: white
+                  - background_color: rgba(255, 235, 59, 0.1)
+    cards: []
   - type: sections
     max_columns: 3
     title: Salle de Bain
