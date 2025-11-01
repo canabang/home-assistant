@@ -295,6 +295,49 @@ decluttering_templates:
             background: [[background_color]] !important;
             margin: 2px !important;
           }
+  mushroom_temperature_card:
+    default:
+      - badge_icon: ''
+      - battery_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: '{{ states(''[[entity]]'') }}°C'
+      icon: mdi:thermometer
+      icon_color: |-
+        {% set temp = states('[[entity]]') | float %}
+        {% if temp >= 23 %}
+          red
+        {% elif temp >= 19 %}
+          seagreen
+        {% else %}
+          blue
+        {% endif %}
+      entity: '[[entity]]'
+      badge_icon: |-
+        {% if '[[badge_icon]]' != '' %}
+          [[badge_icon]]
+        {% elif '[[battery_entity]]' != '' %}
+          mdi:battery
+        {% endif %}
+      badge_color: |-
+        {% if '[[battery_entity]]' != '' %}
+          {% set battery = states('[[battery_entity]]') | int %}
+          {% if battery >= 100 %}
+            seagreen
+          {% elif battery >= 30 %}
+            seagreen
+          {% elif battery >= 20 %}
+            orange
+          {% else %}
+            red
+          {% endif %}
+        {% endif %}
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 20px;
+          }
 views:
   - type: sections
     max_columns: 3
@@ -2599,60 +2642,17 @@ views:
                 hash: '#temperature'
               - type: grid
                 cards:
-                  - type: custom:mushroom-template-card
-                    primary: Séjour
-                    secondary: '{{ states(''sensor.sejour'') }}°C'
-                    icon: mdi:thermometer
-                    icon_color: |-
-                      {% set temp = states('sensor.sejour') | float %}
-                      {% if temp >= 23 %}
-                        red
-                      {% elif temp >= 19 %}
-                        seagreen
-                      {% else %}
-                        blue
-                      {% endif %}
-                    entity: sensor.sejour
-                    card_mod:
-                      style: |
-                        ha-card {
-                          --ha-card-border-radius: 20px;
-                        }
-                  - type: custom:mushroom-template-card
-                    primary: Fenêtre Cuisine
-                    secondary: '{{ states(''sensor.capfencui_temperature'') }}°C'
-                    icon: mdi:thermometer
-                    icon_color: >-
-                      {% set temp = states('sensor.capfencui_temperature') |
-                      float %}
-
-                      {% if temp >= 23 %}
-                        red
-                      {% elif temp >= 19 %}
-                        seagreen
-                      {% else %}
-                        blue
-                      {% endif %}
-                    entity: sensor.capfencui_temperature
-                    badge_icon: mdi:battery
-                    badge_color: >-
-                      {% set battery = states('sensor.capfencui_battery') | int
-                      %}
-
-                      {% if battery >= 100 %}
-                        seagreen
-                      {% elif battery >= 30 %}
-                        seagreen
-                      {% elif battery >= 20 %}
-                        orange
-                      {% else %}
-                        red
-                      {% endif %}
-                    card_mod:
-                      style: |
-                        ha-card {
-                          --ha-card-border-radius: 20px;
-                        }
+                  - type: custom:decluttering-card
+                    template: mushroom_temperature_card
+                    variables:
+                      - name: Séjour
+                      - entity: sensor.sejour
+                  - type: custom:decluttering-card
+                    template: mushroom_temperature_card
+                    variables:
+                      - name: Fenêtre Cuisine
+                      - entity: sensor.capfencui_temperature
+                      - battery_entity: sensor.capfencui_battery
                 columns: 2
           - type: vertical-stack
             cards:
@@ -3473,39 +3473,12 @@ views:
                 hash: '#temperature'
                 show_header: false
                 close_on_click: true
-              - type: custom:mushroom-template-card
-                primary: Température Frigo
-                secondary: '{{ states(''sensor.capetalon_temperature'') }}°C'
-                icon: mdi:thermometer
-                icon_color: >-
-                  {% set temp = states('sensor.capetalon_temperature') | float
-                  %}
-
-                  {% if temp >= 9 %}
-                    red
-                  {% elif temp >= 2 %}
-                    seagreen
-                  {% else %}
-                    blue
-                  {% endif %}
-                entity: sensor.capetalon_temperature
-                badge_icon: mdi:battery
-                badge_color: |-
-                  {% set battery = states('sensor.capetalon_battery') | int %}
-                  {% if battery >= 100 %}
-                    seagreen
-                  {% elif battery >= 30 %}
-                    seagreen
-                  {% elif battery >= 20 %}
-                    orange
-                  {% else %}
-                    red
-                  {% endif %}
-                card_mod:
-                  style: |
-                    ha-card {
-                      --ha-card-border-radius: 20px;
-                    }
+              - type: custom:decluttering-card
+                template: mushroom_temperature_card
+                variables:
+                  - name: Température Frigo
+                  - entity: sensor.capetalon_temperature
+                  - battery_entity: sensor.capetalon_battery
     type: sections
     max_columns: 3
     cards: []
@@ -4009,114 +3982,28 @@ views:
                 close_on_click: true
               - type: grid
                 cards:
-                  - type: custom:mushroom-template-card
-                    primary: SdB
-                    secondary: '{{ states(''sensor.temperature_sdb'') }}°C'
-                    icon: mdi:thermometer
-                    icon_color: |-
-                      {% set temp = states('sensor.temperature_sdb') | float %}
-                      {% if temp >= 23 %}
-                        red
-                      {% elif temp >= 19 %}
-                        seagreen
-                      {% else %}
-                        blue
-                      {% endif %}
-                    entity: sensor.temperature_sdb
-                    card_mod:
-                      style: |
-                        ha-card {
-                          --ha-card-border-radius: 20px;
-                        }
-                  - type: custom:mushroom-template-card
-                    primary: Fenêtre
-                    secondary: '{{ states(''sensor.capfensdb_temperature'') }}°C'
-                    icon: mdi:thermometer
-                    icon_color: >-
-                      {% set temp = states('sensor.capfensdb_temperature') |
-                      float %}
-
-                      {% if temp >= 23 %}
-                        red
-                      {% elif temp >= 19 %}
-                        seagreen
-                      {% else %}
-                        blue
-                      {% endif %}
-                    entity: sensor.capfensdb_temperature
-                    badge_icon: mdi:battery
-                    badge_color: >-
-                      {% set battery = states('sensor.capfensdb_battery') | int
-                      %}
-
-                      {% if battery >= 100 %}
-                        seagreen
-                      {% elif battery >= 30 %}
-                        seagreen
-                      {% elif battery >= 20 %}
-                        orange
-                      {% else %}
-                        red
-                      {% endif %}
-                    card_mod:
-                      style: |
-                        ha-card {
-                          --ha-card-border-radius: 20px;
-                        }
-                  - type: custom:mushroom-template-card
-                    primary: Porte
-                    secondary: '{{ states(''sensor.capsdb_temperature'') }}°C'
-                    icon: mdi:thermometer
-                    icon_color: >-
-                      {% set temp = states('sensor.capsdb_temperature') | float
-                      %}
-
-                      {% if temp >= 23 %}
-                        red
-                      {% elif temp >= 19 %}
-                        seagreen
-                      {% else %}
-                        blue
-                      {% endif %}
-                    entity: sensor.capsdb_temperature
-                    badge_icon: mdi:battery
-                    badge_color: |-
-                      {% set battery = states('sensor.capsdb_battery') | int %}
-                      {% if battery >= 100 %}
-                        seagreen
-                      {% elif battery >= 30 %}
-                        seagreen
-                      {% elif battery >= 20 %}
-                        orange
-                      {% else %}
-                        red
-                      {% endif %}
-                    card_mod:
-                      style: |
-                        ha-card {
-                          --ha-card-border-radius: 20px;
-                        }
-                  - type: custom:mushroom-template-card
-                    primary: ESP
-                    secondary: '{{ states(''sensor.esp_sdb_temperature'') }}°C'
-                    icon: mdi:thermometer
-                    icon_color: >-
-                      {% set temp = states('sensor.esp_sdb_temperature') | float
-                      %}
-
-                      {% if temp >= 23 %}
-                        red
-                      {% elif temp >= 19 %}
-                        seagreen
-                      {% else %}
-                        blue
-                      {% endif %}
-                    entity: sensor.esp_sdb_temperature
-                    card_mod:
-                      style: |
-                        ha-card {
-                          --ha-card-border-radius: 20px;
-                        }
+                  - type: custom:decluttering-card
+                    template: mushroom_temperature_card
+                    variables:
+                      - name: SdB
+                      - entity: sensor.temperature_sdb
+                  - type: custom:decluttering-card
+                    template: mushroom_temperature_card
+                    variables:
+                      - name: Fenêtre
+                      - entity: sensor.capfensdb_temperature
+                      - battery_entity: sensor.capfensdb_battery
+                  - type: custom:decluttering-card
+                    template: mushroom_temperature_card
+                    variables:
+                      - name: Porte
+                      - entity: sensor.capsdb_temperature
+                      - battery_entity: sensor.capsdb_battery
+                  - type: custom:decluttering-card
+                    template: mushroom_temperature_card
+                    variables:
+                      - name: ESP
+                      - entity: sensor.esp_sdb_temperature
                 columns: 2
           - type: vertical-stack
             cards:
