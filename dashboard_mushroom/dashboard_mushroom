@@ -2068,7 +2068,8 @@ views:
         variables:
           - navigation_path: /salon-mushroom/petscales-v3
     cards: []
-    subview: true
+    subview: false
+    icon: mdi:home
   - title: Séjour
     badges:
       - type: custom:decluttering-card
@@ -2837,7 +2838,7 @@ views:
       attachment: scroll
       image: /api/image/serve/d0a8ce4fe354f31e2e67458deab93a51/original
     path: sejour
-    subview: false
+    subview: true
   - title: Cuisine
     badges:
       - type: entity
@@ -5067,6 +5068,7 @@ views:
         tap_action:
           action: navigate
           navigation_path: /salon-mushroom/petscales-v3
+    subview: true
   - type: sections
     max_columns: 4
     title: petscales v3
