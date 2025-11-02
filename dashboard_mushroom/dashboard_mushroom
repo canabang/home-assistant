@@ -1,4 +1,4 @@
-decluttering_templates:
+streamline_templates:
   mushroom_switch_card:
     default:
       - icon: mdi:power
@@ -356,14 +356,11 @@ decluttering_templates:
       collapsible_controls: true
       double_tap_action:
         action: toggle
-      hold_action:
-        action: |-
-          {% if '[[navigation_path]]' != '' %}
-            navigate
-          {% else %}
-            more-info
-          {% endif %}
-        navigation_path: '[[navigation_path]]'
+      hold_action_javascript: |
+        return {
+          action: '[[navigation_path]]' !== '' ? 'navigate' : 'more-info',
+          navigation_path: '[[navigation_path]]'
+        };
       card_mod:
         style: |
           ha-card {
@@ -1471,7 +1468,7 @@ views:
                 card_type: pop-up
                 hash: '#prises'
                 show_header: false
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Téléphone
@@ -1481,14 +1478,14 @@ views:
                       {{ states('sensor.tricordeur_14_battery_level') }}% - {{
                       states('sensor.pris_tel_sal_power') }}W
                   - badge_entity: sensor.tricordeur_14_battery_level
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Café
                   - entity: switch.priscafe
                   - icon: m3rf:coffee
                   - animation: pulse
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Machine à Laver
@@ -1501,7 +1498,7 @@ views:
                   - badge_entity: sensor.prismal_power
                   - show_power: true
                   - animation: spin
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Téléphone
@@ -1511,7 +1508,7 @@ views:
                       {{ states('sensor.tricordeur_14_battery_level') }}% - {{
                       states('sensor.pris_tel_sal_power') }}W
                   - badge_entity: sensor.tricordeur_14_battery_level
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: TV
@@ -2018,7 +2015,7 @@ views:
       attachment: scroll
       image: /api/image/serve/468a7538ce1a7001cbb7bcca80027267/original
     badges:
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: person.canabang
@@ -2064,7 +2061,7 @@ views:
         show_state: false
         show_icon: true
         entity: sun.sun
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.salon_presence_globale
@@ -2072,7 +2069,7 @@ views:
           - icon_on: hue:room-living
           - icon_off: hue:room-living-off
           - navigation_path: /salon-mushroom/sejour
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_cuisine_presence
@@ -2080,7 +2077,7 @@ views:
           - icon_on: hue:room-dining
           - icon_off: hue:room-dining-off
           - navigation_path: /salon-mushroom/cuisine
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_chambre_presence
@@ -2088,7 +2085,7 @@ views:
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
           - navigation_path: /salon-mushroom/chambre
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_sdb_presence
@@ -2096,7 +2093,7 @@ views:
           - icon_on: hue:room-bathroom
           - icon_off: hue:room-bathroom-off
           - navigation_path: /salon-mushroom/sdb
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: update.home_assistant_core_update
@@ -2104,11 +2101,11 @@ views:
           - icon_on: mdi:server
           - icon_off: mdi:server-off
           - navigation_path: /salon-mushroom/disques-dur
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_multimedia_badge
         variables:
           - navigation_path: /salon-mushroom/multimedia
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_litiere_badge
         variables:
           - navigation_path: /salon-mushroom/petscales-v3
@@ -2117,7 +2114,7 @@ views:
     icon: mdi:home
   - title: Séjour
     badges:
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.salon_presence_globale
@@ -2220,7 +2217,7 @@ views:
         tap_action:
           action: navigate
           navigation_path: /salon-mushroom/accueil
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_cuisine_presence
@@ -2228,7 +2225,7 @@ views:
           - icon_on: hue:room-dining
           - icon_off: hue:room-dining-off
           - navigation_path: /salon-mushroom/cuisine
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_chambre_presence
@@ -2236,7 +2233,7 @@ views:
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
           - navigation_path: /salon-mushroom/chambre
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_sdb_presence
@@ -2357,13 +2354,13 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_window_card
                 variables:
                   - name: Salon
                   - entity: binary_sensor.ouvfenetsal_contact
                   - battery_entity: sensor.ouvfenetsal_battery
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_window_card
                 variables:
                   - name: Salle à Manger
@@ -2374,7 +2371,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_door_card
                 variables:
                   - name: Entrée
@@ -2385,7 +2382,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_light_card
                 variables:
                   - entity: light.hue_salon
@@ -2394,7 +2391,7 @@ views:
                   - show_color_control: true
                   - show_color_temp_control: true
                   - navigation_path: '#scene-salon'
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_light_card
                 variables:
                   - entity: light.hue_sam
@@ -2408,12 +2405,12 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_cover_card
                 variables:
                   - name: Salon
                   - entity: cover.volsal
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_cover_card
                 variables:
                   - name: Salle à Manger
@@ -2469,14 +2466,14 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Horloge
                   - entity: light.awtrix_salon_matrix
                   - icon: mdi:clock-digital
                   - secondary: '{{ states(''sensor.awtrix_salon_current_app'') }}'
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Téléphone
@@ -2528,7 +2525,7 @@ views:
                        color: grey !important;
                      {% endif %}  
                     }
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_voice_assistant_card
                 variables:
                   - name: VA Salon
@@ -2560,7 +2557,7 @@ views:
               - square: false
                 type: grid
                 cards:
-                  - type: custom:decluttering-card
+                  - type: custom:streamline-card
                     template: mushroom_switch_card
                     variables:
                       - name: Radiateur Salon
@@ -2571,7 +2568,7 @@ views:
                           'Allumé' }}
                       - color_on: grey
                       - color_off: red
-                  - type: custom:decluttering-card
+                  - type: custom:streamline-card
                     template: mushroom_switch_card
                     variables:
                       - name: Radiateur Cuisine
@@ -2607,12 +2604,12 @@ views:
                 hash: '#temperature'
               - type: grid
                 cards:
-                  - type: custom:decluttering-card
+                  - type: custom:streamline-card
                     template: mushroom_temperature_card
                     variables:
                       - name: Séjour
                       - entity: sensor.sejour
-                  - type: custom:decluttering-card
+                  - type: custom:streamline-card
                     template: mushroom_temperature_card
                     variables:
                       - name: Fenêtre Cuisine
@@ -2657,7 +2654,7 @@ views:
                 show_header: false
                 close_on_click: true
                 margin_top_desktop: calc(100vh - 400px)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Veilleuse
@@ -2665,7 +2662,7 @@ views:
                   - entity: scene.hue_salon_1_veilleuse
                   - icon_color: orange
                   - background_color: rgba(255, 152, 0, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Stimulation
@@ -2673,7 +2670,7 @@ views:
                   - entity: scene.hue_salon_2_stimulation
                   - icon_color: red
                   - background_color: rgba(244, 67, 54, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Atténué
@@ -2681,7 +2678,7 @@ views:
                   - entity: scene.hue_salon_3_attenue
                   - icon_color: yellow
                   - background_color: rgba(255, 193, 7, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Lumineux
@@ -2857,7 +2854,7 @@ views:
         tap_action:
           action: navigate
           navigation_path: /salon-mushroom/accueil
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.salon_presence_globale
@@ -2865,7 +2862,7 @@ views:
           - icon_on: hue:room-living
           - icon_off: hue:room-living-off
           - navigation_path: /salon-mushroom/sejour
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_chambre_presence
@@ -2873,7 +2870,7 @@ views:
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
           - navigation_path: /salon-mushroom/chambre
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_sdb_presence
@@ -3010,7 +3007,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_window_card
                 variables:
                   - name: Cuisine
@@ -3021,7 +3018,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_door_card
                 variables:
                   - name: Frigo
@@ -3029,7 +3026,7 @@ views:
                   - battery_entity: sensor.ouvportfrig_battery
                   - icon_open: mdi:fridge-industrial
                   - icon_closed: mdi:fridge-industrial
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_door_card
                 variables:
                   - name: Congel
@@ -3037,7 +3034,7 @@ views:
                   - battery_entity: sensor.ouvportfrig_battery
                   - icon_open: mdi:fridge-industrial
                   - icon_closed: mdi:fridge-industrial
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_door_card
                 variables:
                   - name: Petit congel
@@ -3081,7 +3078,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_light_card
                 variables:
                   - entity: light.hue_cuisine
@@ -3090,7 +3087,7 @@ views:
                   - show_color_control: true
                   - show_color_temp_control: true
                   - navigation_path: '#scene-cuisine'
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_light_card
                 variables:
                   - entity: light.ledplancui_cct
@@ -3101,7 +3098,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_cover_card
                 variables:
                   - name: Cuisine
@@ -3111,27 +3108,27 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Horloge
                   - entity: light.awtrix_ulanzi_matrix
                   - icon: mdi:clock-digital
                   - secondary: '{{ states(''sensor.awtrix_ulanzi_current_app'') }}'
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Café
                   - entity: switch.priscafe
                   - icon: m3rf:coffee
                   - animation: pulse
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_voice_assistant_card
                 variables:
                   - name: VA Cuisine
                   - entity: assist_satellite.esp_va_cuisine_satellite_assist
                   - light_entity: light.esp_va_cuisine_esp_va_cuisine
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Suckbot
@@ -3285,7 +3282,7 @@ views:
                 show_header: false
                 close_on_click: true
                 margin_top_desktop: calc(100vh - 400px)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Veilleuse
@@ -3293,7 +3290,7 @@ views:
                   - entity: scene.hue_cuisine_1_veilleuse
                   - icon_color: orange
                   - background_color: rgba(255, 152, 0, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Stimulation
@@ -3301,7 +3298,7 @@ views:
                   - entity: scene.hue_cuisine_2_stimulation
                   - icon_color: red
                   - background_color: rgba(244, 67, 54, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Atténué
@@ -3309,7 +3306,7 @@ views:
                   - entity: scene.hue_cuisine_3_attenue
                   - icon_color: yellow
                   - background_color: rgba(255, 193, 7, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Lumineux
@@ -3324,7 +3321,7 @@ views:
                 hash: '#temperature'
                 show_header: false
                 close_on_click: true
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_temperature_card
                 variables:
                   - name: Température Frigo
@@ -3356,7 +3353,7 @@ views:
       attachment: scroll
       image: /api/image/serve/42b2c391fc6fa00e0c293b0b336b7cf6/original
     badges:
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_chambre_presence
@@ -3431,7 +3428,7 @@ views:
         show_state: false
         show_icon: true
         entity: sun.sun
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: person.canabang
@@ -3439,7 +3436,7 @@ views:
           - icon_on: mdi:home-outline
           - icon_off: mdi:home-off-outline
           - navigation_path: /salon-mushroom/accueil
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.salon_presence_globale
@@ -3447,7 +3444,7 @@ views:
           - icon_on: hue:room-living
           - icon_off: hue:room-living-off
           - navigation_path: /salon-mushroom/sejour
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_cuisine_presence
@@ -3455,7 +3452,7 @@ views:
           - icon_on: hue:room-dining
           - icon_off: hue:room-dining-off
           - navigation_path: /salon-mushroom/cuisine
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_sdb_presence
@@ -3463,7 +3460,7 @@ views:
           - icon_on: hue:room-bathroom
           - icon_off: hue:room-bathroom-off
           - navigation_path: /salon-mushroom/sdb
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: update.home_assistant_core_update
@@ -3471,11 +3468,11 @@ views:
           - icon_on: mdi:server
           - icon_off: mdi:server-off
           - navigation_path: /salon-mushroom/disques-dur
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_multimedia_badge
         variables:
           - navigation_path: /salon-mushroom/multimedia
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_litiere_badge
         variables:
           - navigation_path: /salon-mushroom/petscales-v3
@@ -3585,7 +3582,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_light_card
                 variables:
                   - entity: light.hue_chambre
@@ -3599,13 +3596,13 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: TV
                   - entity: switch.pristvchamb
                   - icon: m3o:tv-gen
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Téléphone
@@ -3615,13 +3612,13 @@ views:
                       {{ states('sensor.tricordeur_14_battery_level') }}% - {{
                       states('sensor.pris_tel_sal_power') }}W
                   - badge_entity: sensor.tricordeur_14_battery_level
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_voice_assistant_card
                 variables:
                   - name: VA Chambre
                   - entity: assist_satellite.esp_va_chambre_satellite_assist
                   - light_entity: light.esp_va_chambre_esp_va_chambre
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Occupation Lit
@@ -3667,21 +3664,6 @@ views:
                   border: 1px solid rgba(255, 255, 255, 0.2) !important;
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                 }
-          - type: media-control
-            entity: media_player.kodi_chambre
-            visibility:
-              - condition: state
-                entity: media_player.kodi_chambre
-                state: playing
-            card_mod:
-              style: |
-                ha-card {
-                  --ha-card-border-radius: 25px;
-                  background: rgba(255, 255, 255, 0.1) !important;
-                  backdrop-filter: blur(10px) !important;
-                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                }
       - type: grid
         cards: []
         columns: 2
@@ -3696,18 +3678,18 @@ views:
                 close_on_click: true
               - type: grid
                 cards:
-                  - type: custom:decluttering-card
+                  - type: custom:streamline-card
                     template: mushroom_temperature_card
                     variables:
                       - name: Chambre (all)
                       - entity: sensor.temperature_chambre
-                  - type: custom:decluttering-card
+                  - type: custom:streamline-card
                     template: mushroom_temperature_card
                     variables:
                       - name: Chambre
                       - entity: sensor.capcham_temperature
                       - battery_entity: sensor.capcham_battery
-                  - type: custom:decluttering-card
+                  - type: custom:streamline-card
                     template: mushroom_temperature_card
                     variables:
                       - name: Fenêtre Chambre
@@ -3742,7 +3724,7 @@ views:
                 show_header: false
                 close_on_click: true
                 margin_top_desktop: calc(100vh - 400px)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Veilleuse
@@ -3750,7 +3732,7 @@ views:
                   - entity: scene.hue_chambre_1_veilleuse
                   - icon_color: orange
                   - background_color: rgba(255, 152, 0, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Stimulation
@@ -3758,7 +3740,7 @@ views:
                   - entity: scene.hue_chambre_2_stimulation
                   - icon_color: red
                   - background_color: rgba(244, 67, 54, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Atténué
@@ -3766,7 +3748,7 @@ views:
                   - entity: scene.hue_chambre_3_attenue
                   - icon_color: yellow
                   - background_color: rgba(255, 193, 7, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Lumineux
@@ -3788,7 +3770,7 @@ views:
       attachment: scroll
       image: /api/image/serve/937d57973022578603eb046c5fa022db/original
     badges:
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_sdb_presence
@@ -3868,7 +3850,7 @@ views:
         show_state: false
         show_icon: true
         entity: sun.sun
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: person.canabang
@@ -3876,7 +3858,7 @@ views:
           - icon_on: mdi:home-outline
           - icon_off: mdi:home-off-outline
           - navigation_path: /salon-mushroom/accueil
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.salon_presence_globale
@@ -3884,7 +3866,7 @@ views:
           - icon_on: hue:room-living
           - icon_off: hue:room-living-off
           - navigation_path: /salon-mushroom/sejour
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_cuisine_presence
@@ -3892,7 +3874,7 @@ views:
           - icon_on: hue:room-dining
           - icon_off: hue:room-dining-off
           - navigation_path: /salon-mushroom/cuisine
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_chambre_presence
@@ -3900,7 +3882,7 @@ views:
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
           - navigation_path: /salon-mushroom/chambre
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: update.home_assistant_core_update
@@ -3908,11 +3890,11 @@ views:
           - icon_on: mdi:server
           - icon_off: mdi:server-off
           - navigation_path: /salon-mushroom/disques-dur
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_multimedia_badge
         variables:
           - navigation_path: /salon-mushroom/multimedia
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_litiere_badge
         variables:
           - navigation_path: /salon-mushroom/petscales-v3
@@ -3950,7 +3932,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_window_card
                 variables:
                   - name: Salle de Bain
@@ -3961,7 +3943,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_door_card
                 variables:
                   - name: Salle de Bain
@@ -3972,7 +3954,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_light_card
                 variables:
                   - entity: light.hue_sdb
@@ -3986,7 +3968,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_cover_card
                 variables:
                   - name: SdB
@@ -4016,7 +3998,7 @@ views:
           - square: false
             type: grid
             cards:
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Machine à Laver
@@ -4029,7 +4011,7 @@ views:
                   - badge_entity: sensor.prismal_power
                   - show_power: true
                   - animation: spin
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_voice_assistant_card
                 variables:
                   - name: VA Salle de Bain
@@ -4058,7 +4040,7 @@ views:
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_switch_card
                 variables:
                   - name: Radiateur SdB
@@ -4090,24 +4072,24 @@ views:
                 close_on_click: true
               - type: grid
                 cards:
-                  - type: custom:decluttering-card
+                  - type: custom:streamline-card
                     template: mushroom_temperature_card
                     variables:
                       - name: SdB
                       - entity: sensor.temperature_sdb
-                  - type: custom:decluttering-card
+                  - type: custom:streamline-card
                     template: mushroom_temperature_card
                     variables:
                       - name: Fenêtre
                       - entity: sensor.capfensdb_temperature
                       - battery_entity: sensor.capfensdb_battery
-                  - type: custom:decluttering-card
+                  - type: custom:streamline-card
                     template: mushroom_temperature_card
                     variables:
                       - name: Porte
                       - entity: sensor.capsdb_temperature
                       - battery_entity: sensor.capsdb_battery
-                  - type: custom:decluttering-card
+                  - type: custom:streamline-card
                     template: mushroom_temperature_card
                     variables:
                       - name: ESP
@@ -4142,7 +4124,7 @@ views:
                 show_header: false
                 close_on_click: true
                 margin_top_desktop: calc(100vh - 400px)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Veilleuse
@@ -4150,7 +4132,7 @@ views:
                   - entity: scene.hue_sdb_1_veilleuse
                   - icon_color: orange
                   - background_color: rgba(255, 152, 0, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Stimulation
@@ -4158,7 +4140,7 @@ views:
                   - entity: scene.hue_sdb_2_stimulation
                   - icon_color: red
                   - background_color: rgba(244, 67, 54, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Atténué
@@ -4166,7 +4148,7 @@ views:
                   - entity: scene.hue_sdb_3_attenue
                   - icon_color: yellow
                   - background_color: rgba(255, 193, 7, 0.1)
-              - type: custom:decluttering-card
+              - type: custom:streamline-card
                 template: mushroom_scene_card
                 variables:
                   - name: Lumineux
@@ -5154,7 +5136,7 @@ views:
         tap_action:
           action: navigate
           navigation_path: /salon-mushroom/accueil
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.salon_presence_globale
@@ -5162,7 +5144,7 @@ views:
           - icon_on: hue:room-living
           - icon_off: hue:room-living-off
           - navigation_path: /salon-mushroom/sejour
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_cuisine_presence
@@ -5170,7 +5152,7 @@ views:
           - icon_on: hue:room-dining
           - icon_off: hue:room-dining-off
           - navigation_path: /salon-mushroom/cuisine
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_chambre_presence
@@ -5178,7 +5160,7 @@ views:
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
           - navigation_path: /salon-mushroom/chambre
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_sdb_presence
@@ -5837,7 +5819,7 @@ views:
     cards: []
     subview: true
     badges:
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.salon_presence_globale
@@ -5845,7 +5827,7 @@ views:
           - icon_on: hue:room-living
           - icon_off: hue:room-living-off
           - navigation_path: /salon-mushroom/sejour
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_cuisine_presence
@@ -5853,7 +5835,7 @@ views:
           - icon_on: hue:room-dining
           - icon_off: hue:room-dining-off
           - navigation_path: /salon-mushroom/cuisine
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_chambre_presence
@@ -5861,7 +5843,7 @@ views:
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
           - navigation_path: /salon-mushroom/chambre
-      - type: custom:decluttering-card
+      - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
           - entity: binary_sensor.esp_sdb_presence
