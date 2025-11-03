@@ -484,7 +484,33 @@ streamline_templates:
   mushroom_weather_badge:
     card:
       type: custom:mushroom-template-badge
-      content: ''
+      content: |-
+        {% set weather_state = states('[[entity]]') %}
+        {% if weather_state == 'partlycloudy' %}
+          Partiellement nuageux
+        {% elif weather_state == 'clear-night' %}
+          Nuit claire
+        {% elif weather_state == 'cloudy' %}
+          Nuageux
+        {% elif weather_state == 'rainy' %}
+          Pluvieux
+        {% elif weather_state == 'pouring' %}
+          Très pluvieux
+        {% elif weather_state == 'sunny' %}
+          Ensoleillé
+        {% elif weather_state == 'lightning' %}
+          Orageux
+        {% elif weather_state == 'windy' %}
+          Venteux
+        {% elif weather_state == 'snow' %}
+          Neigeux
+        {% elif weather_state == 'hail' %}
+          Grêle
+        {% elif weather_state == 'fog' %}
+          Brouillard
+        {% else %}
+          {{ weather_state | title }}
+        {% endif %}
       icon: |-
         {% set weather_state = states('[[entity]]') %}
         {% if weather_state == 'partlycloudy' %}
@@ -537,7 +563,7 @@ streamline_templates:
         {% elif weather_state == 'fog' %}
           grey
         {% else %}
-          white
+          skyblue
         {% endif %}
       entity: '[[entity]]'
       tap_action:
