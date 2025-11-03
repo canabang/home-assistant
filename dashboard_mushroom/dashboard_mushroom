@@ -2340,11 +2340,11 @@ views:
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: binary_sensor.esp_chambre_presence
-          state_on: 'on'
-          icon_on: hue:room-bedroom
-          icon_off: hue:room-bedroom-off
-          navigation_path: /salon-mushroom/chambre
+          - entity: binary_sensor.esp_chambre_presence
+          - state_on: 'on'
+          - icon_on: hue:room-bedroom
+          - icon_off: hue:room-bedroom-off
+          - navigation_path: /salon-mushroom/chambre
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
@@ -2870,27 +2870,27 @@ views:
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: binary_sensor.salon_presence_globale
-          state_on: 'on'
-          icon_on: hue:room-living
-          icon_off: hue:room-living-off
-          navigation_path: /salon-mushroom/sejour
+          - entity: binary_sensor.salon_presence_globale
+          - state_on: 'on'
+          - icon_on: hue:room-living
+          - icon_off: hue:room-living-off
+          - navigation_path: /salon-mushroom/sejour
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: binary_sensor.esp_chambre_presence
-          state_on: 'on'
-          icon_on: hue:room-bedroom
-          icon_off: hue:room-bedroom-off
-          navigation_path: /salon-mushroom/chambre
+          - entity: binary_sensor.esp_chambre_presence
+          - state_on: 'on'
+          - icon_on: hue:room-bedroom
+          - icon_off: hue:room-bedroom-off
+          - navigation_path: /salon-mushroom/chambre
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: binary_sensor.esp_sdb_presence
-          state_on: 'on'
-          icon_on: hue:room-bathroom
-          icon_off: hue:room-bathroom-off
-          navigation_path: /salon-mushroom/sdb
+          - entity: binary_sensor.esp_sdb_presence
+          - state_on: 'on'
+          - icon_on: hue:room-bathroom
+          - icon_off: hue:room-bathroom-off
+          - navigation_path: /salon-mushroom/sdb
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
@@ -3345,11 +3345,11 @@ views:
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: person.canabang
-          state_on: home
-          icon_on: mdi:home-outline
-          icon_off: mdi:home-off-outline
-          navigation_path: /salon-mushroom/accueil
+          - entity: person.canabang
+          - state_on: home
+          - icon_on: mdi:home-outline
+          - icon_off: mdi:home-off-outline
+          - navigation_path: /salon-mushroom/accueil
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
@@ -3369,27 +3369,27 @@ views:
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: binary_sensor.esp_sdb_presence
-          state_on: 'on'
-          icon_on: hue:room-bathroom
-          icon_off: hue:room-bathroom-off
-          navigation_path: /salon-mushroom/sdb
+          - entity: binary_sensor.esp_sdb_presence
+          - state_on: 'on'
+          - icon_on: hue:room-bathroom
+          - icon_off: hue:room-bathroom-off
+          - navigation_path: /salon-mushroom/sdb
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: update.home_assistant_core_update
-          state_on: 'on'
-          icon_on: mdi:server
-          icon_off: mdi:server-off
-          navigation_path: /salon-mushroom/disques-dur
+          - entity: update.home_assistant_core_update
+          - state_on: 'on'
+          - icon_on: mdi:server
+          - icon_off: mdi:server-off
+          - navigation_path: /salon-mushroom/disques-dur
       - type: custom:streamline-card
         template: mushroom_multimedia_badge
         variables:
-          navigation_path: /salon-mushroom/multimedia
+          - navigation_path: /salon-mushroom/multimedia
       - type: custom:streamline-card
         template: mushroom_litiere_badge
         variables:
-          navigation_path: /salon-mushroom/petscales-v3
+          - navigation_path: /salon-mushroom/petscales-v3
     sections:
       - type: grid
         cards:
@@ -3727,11 +3727,11 @@ views:
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: person.canabang
-          state_on: home
-          icon_on: mdi:home-outline
-          icon_off: mdi:home-off-outline
-          navigation_path: /salon-mushroom/accueil
+          - entity: person.canabang
+          - state_on: home
+          - icon_on: mdi:home-outline
+          - icon_off: mdi:home-off-outline
+          - navigation_path: /salon-mushroom/accueil
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
@@ -3751,27 +3751,27 @@ views:
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: binary_sensor.esp_chambre_presence
-          state_on: 'on'
-          icon_on: hue:room-bedroom
-          icon_off: hue:room-bedroom-off
-          navigation_path: /salon-mushroom/chambre
+          - entity: binary_sensor.esp_chambre_presence
+          - state_on: 'on'
+          - icon_on: hue:room-bedroom
+          - icon_off: hue:room-bedroom-off
+          - navigation_path: /salon-mushroom/chambre
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: update.home_assistant_core_update
-          state_on: 'on'
-          icon_on: mdi:server
-          icon_off: mdi:server-off
-          navigation_path: /salon-mushroom/disques-dur
+          - entity: update.home_assistant_core_update
+          - state_on: 'on'
+          - icon_on: mdi:server
+          - icon_off: mdi:server-off
+          - navigation_path: /salon-mushroom/disques-dur
       - type: custom:streamline-card
         template: mushroom_multimedia_badge
         variables:
-          navigation_path: /salon-mushroom/multimedia
+          - navigation_path: /salon-mushroom/multimedia
       - type: custom:streamline-card
         template: mushroom_litiere_badge
         variables:
-          navigation_path: /salon-mushroom/petscales-v3
+          - navigation_path: /salon-mushroom/petscales-v3
     sections:
       - type: grid
         cards:
@@ -4998,35 +4998,35 @@ views:
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: binary_sensor.salon_presence_globale
-          state_on: 'on'
-          icon_on: hue:room-living
-          icon_off: hue:room-living-off
-          navigation_path: /salon-mushroom/sejour
+          - entity: binary_sensor.salon_presence_globale
+          - state_on: 'on'
+          - icon_on: hue:room-living
+          - icon_off: hue:room-living-off
+          - navigation_path: /salon-mushroom/sejour
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: binary_sensor.esp_cuisine_presence
-          state_on: 'on'
-          icon_on: hue:room-dining
-          icon_off: hue:room-dining-off
-          navigation_path: /salon-mushroom/cuisine
+          - entity: binary_sensor.esp_cuisine_presence
+          - state_on: 'on'
+          - icon_on: hue:room-dining
+          - icon_off: hue:room-dining-off
+          - navigation_path: /salon-mushroom/cuisine
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: binary_sensor.esp_chambre_presence
-          state_on: 'on'
-          icon_on: hue:room-bedroom
-          icon_off: hue:room-bedroom-off
-          navigation_path: /salon-mushroom/chambre
+          - entity: binary_sensor.esp_chambre_presence
+          - state_on: 'on'
+          - icon_on: hue:room-bedroom
+          - icon_off: hue:room-bedroom-off
+          - navigation_path: /salon-mushroom/chambre
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          entity: binary_sensor.esp_sdb_presence
-          state_on: 'on'
-          icon_on: hue:room-bathroom
-          icon_off: hue:room-bathroom-off
-          navigation_path: /salon-mushroom/sdb
+          - entity: binary_sensor.esp_sdb_presence
+          - state_on: 'on'
+          - icon_on: hue:room-bathroom
+          - icon_off: hue:room-bathroom-off
+          - navigation_path: /salon-mushroom/sdb
       - type: custom:streamline-card
         template: mushroom_litiere_badge
         variables:
