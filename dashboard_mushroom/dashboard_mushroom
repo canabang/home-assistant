@@ -94,79 +94,6 @@ streamline_templates:
             0%, 100% { color: [[color_on]] !important; }
             50% { color: red !important; }
           }
-  mushroom_presence_badge:
-    default:
-      - color_on: seagreen
-      - color_off: gray
-    card:
-      type: custom:mushroom-template-badge
-      content: ''
-      icon: |-
-        {% set state = states('[[entity]]') %}  
-        {% if state == '[[state_on]]' %}
-          [[icon_on]]
-        {% else %}
-          [[icon_off]]
-        {% endif %}
-      color: |-
-        {% set state = states('[[entity]]') %}  
-        {% if state == '[[state_on]]' %}
-          [[color_on]]
-        {% else %}
-          [[color_off]]
-        {% endif %}
-      entity: '[[entity]]'
-      tap_action:
-        action: navigate
-        navigation_path: '[[navigation_path]]'
-  mushroom_multimedia_badge:
-    card:
-      type: custom:mushroom-template-badge
-      content: ''
-      icon: >
-        {% set kodi_playing = states('media_player.kodi_salon') == 'playing' or
-        states('media_player.kodi_chambre') == 'playing' %} {% set plex_playing
-        = states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
-        states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing' %}
-        {% set partout_playing = states('media_player.partout_2') == 'playing'
-        %} {% if partout_playing %}
-          m3of:queue-music
-        {% elif kodi_playing %}
-          mdi:kodi
-        {% elif plex_playing %}
-          mdi:plex
-        {% else %}
-          mdi:multimedia
-        {% endif %}
-      color: >
-        {% set kodi_playing = states('media_player.kodi_salon') == 'playing' or
-        states('media_player.kodi_chambre') == 'playing' %} {% set plex_playing
-        = states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
-        states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing' %}
-        {% set partout_playing = states('media_player.partout_2') == 'playing'
-        %} {% if partout_playing or kodi_playing or plex_playing %}
-          seagreen
-        {% else %}
-          gray
-        {% endif %}
-      tap_action:
-        action: navigate
-        navigation_path: '[[navigation_path]]'
-  mushroom_litiere_badge:
-    card:
-      type: custom:mushroom-template-badge
-      content: ''
-      icon: mdi:cat
-      color: |-
-        {% set state = states('binary_sensor.litiere_bac_a_dechets_plein') %}  
-        {% if state == 'on' %}
-          red
-        {% else %}
-          seagreen
-        {% endif %}
-      tap_action:
-        action: navigate
-        navigation_path: '[[navigation_path]]'
   mushroom_window_card:
     default:
       - icon_open: mdi:window-open-variant
@@ -480,6 +407,246 @@ streamline_templates:
              color: seagreen !important;
            {% endif %}  
           }
+  mushroom_presence_badge:
+    default:
+      - color_on: seagreen
+      - color_off: gray
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == '[[state_on]]' %}
+          [[icon_on]]
+        {% else %}
+          [[icon_off]]
+        {% endif %}
+      color: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == '[[state_on]]' %}
+          [[color_on]]
+        {% else %}
+          [[color_off]]
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: navigate
+        navigation_path: '[[navigation_path]]'
+  mushroom_person_badge:
+    default:
+      - state_on: home
+      - icon_on: mdi:home-outline
+      - icon_off: mdi:home-off-outline
+      - color_on: seagreen
+      - color_off: gray
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == '[[state_on]]' %}
+          [[icon_on]]
+        {% else %}
+          [[icon_off]]
+        {% endif %}
+      color: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == '[[state_on]]' %}
+          [[color_on]]
+        {% else %}
+          [[color_off]]
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: navigate
+        navigation_path: '[[navigation_path]]'
+  mushroom_temperature_badge:
+    default:
+      - tap_action: more-info
+      - navigation_path: ''
+    card:
+      type: custom:mushroom-template-badge
+      content: '{{states("[[entity]]") }}°C'
+      icon: mdi:thermometer
+      color: |-
+        {% set state = states('[[entity]]') | float %}  
+        {% if state >= 23 %}
+          red
+        {% elif state >= 19 %}
+          seagreen
+        {% else %}
+          blue
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: '[[tap_action]]'
+        navigation_path: '[[navigation_path]]'
+  mushroom_weather_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: |-
+        {% set weather_state = states('[[entity]]') %}
+        {% if weather_state == 'partlycloudy' %}
+          mdi:weather-partly-cloudy
+        {% elif weather_state == 'clear-night' %}
+          mdi:weather-night
+        {% elif weather_state == 'cloudy' %}
+          mdi:weather-cloudy
+        {% elif weather_state == 'rainy' %}
+          mdi:weather-rainy
+        {% elif weather_state == 'pouring' %}
+          mdi:weather-pouring
+        {% elif weather_state == 'sunny' %}
+          mdi:weather-sunny
+        {% elif weather_state == 'lightning' %}
+          mdi:weather-lightning
+        {% elif weather_state == 'windy' %}
+          mdi:weather-windy
+        {% elif weather_state == 'snow' %}
+          mdi:weather-snowy
+        {% elif weather_state == 'hail' %}
+          mdi:weather-hail
+        {% elif weather_state == 'fog' %}
+          mdi:weather-fog
+        {% else %}
+          mdi:weather-partly-cloudy
+        {% endif %}
+      color: |-
+        {% set weather_state = states('[[entity]]') %}
+        {% if weather_state == 'partlycloudy' %}
+          skyblue
+        {% elif weather_state == 'clear-night' %}
+          purple
+        {% elif weather_state == 'cloudy' %}
+          skyblue
+        {% elif weather_state == 'rainy' %}
+          blue
+        {% elif weather_state == 'pouring' %}
+          red
+        {% elif weather_state == 'sunny' %}
+          yellow
+        {% elif weather_state == 'lightning' %}
+          yellow
+        {% elif weather_state == 'windy' %}
+          red
+        {% elif weather_state == 'snow' %}
+          white
+        {% elif weather_state == 'hail' %}
+          red
+        {% elif weather_state == 'fog' %}
+          grey
+        {% else %}
+          white
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: more-info
+  mushroom_sun_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: |-
+        {% if is_state('sun.sun', 'above_horizon') %}
+          mdi:weather-sunny
+        {% else %}
+          mdi:weather-night
+        {% endif %}
+      color: |-
+        {% if is_state('sun.sun', 'above_horizon') %}
+          orange
+        {% else %}
+          indigo
+        {% endif %}
+      entity: sun.sun
+      tap_action:
+        action: more-info
+  mushroom_lux_badge:
+    default:
+      - navigation_path: ''
+    card:
+      type: custom:mushroom-template-badge
+      content: '{{ states("[[entity]]") | int(0) }} lx'
+      icon: mdi:brightness-7
+      color: yellow
+      entity: '[[entity]]'
+      tap_action:
+        action: navigate
+        navigation_path: '[[navigation_path]]'
+  mushroom_humidity_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: '{{ states("[[entity]]") }} %'
+      icon: m3r:humidity-percentage
+      color: blue
+      entity: '[[entity]]'
+  mushroom_movement_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == 'on' %}
+          mdi:motion-sensor
+        {% else %}
+          mdi:motion-sensor-off
+        {% endif %}
+      color: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == 'on' %}
+          seagreen
+        {% else %}
+          gray
+        {% endif %}
+      entity: '[[entity]]'
+  mushroom_multimedia_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: >
+        {% set kodi_playing = states('media_player.kodi_salon') == 'playing' or
+        states('media_player.kodi_chambre') == 'playing' %} {% set plex_playing
+        = states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
+        states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing' %}
+        {% set partout_playing = states('media_player.partout_2') == 'playing'
+        %} {% if partout_playing %}
+          m3of:queue-music
+        {% elif kodi_playing %}
+          mdi:kodi
+        {% elif plex_playing %}
+          mdi:plex
+        {% else %}
+          mdi:multimedia
+        {% endif %}
+      color: >
+        {% set kodi_playing = states('media_player.kodi_salon') == 'playing' or
+        states('media_player.kodi_chambre') == 'playing' %} {% set plex_playing
+        = states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
+        states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing' %}
+        {% set partout_playing = states('media_player.partout_2') == 'playing'
+        %} {% if partout_playing or kodi_playing or plex_playing %}
+          seagreen
+        {% else %}
+          gray
+        {% endif %}
+      tap_action:
+        action: navigate
+        navigation_path: '[[navigation_path]]'
+  mushroom_litiere_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: mdi:cat
+      color: |-
+        {% set state = states('binary_sensor.litiere_bac_a_dechets_plein') %}  
+        {% if state == 'on' %}
+          red
+        {% else %}
+          seagreen
+        {% endif %}
+      tap_action:
+        action: navigate
+        navigation_path: '[[navigation_path]]'
 views:
   - type: sections
     max_columns: 3
@@ -2016,46 +2183,26 @@ views:
       image: /api/image/serve/468a7538ce1a7001cbb7bcca80027267/original
     badges:
       - type: custom:streamline-card
-        template: mushroom_presence_badge
+        template: mushroom_person_badge
         variables:
           - entity: person.canabang
-          - state_on: home
-          - icon_on: mdi:home-outline
-          - icon_off: mdi:home-off-outline
           - navigation_path: /salon-mushroom/accueil
-      - type: custom:mushroom-template-badge
-        content: '{{states(''sensor.temperature_maison'') | round(2) }}°C'
-        icon: mdi:thermometer
-        color: |-
-          {% set state = states('sensor.temperature_maison') %}  
-                {% if state >= '23' %}
-                  red
-                {% elif state >= '19' %}
-                  seagreen
-                {% else %}
-                  blue
-                {% endif %}
-        entity: sensor.temperature_maison
-      - type: entity
-        show_name: false
-        show_state: true
-        show_icon: true
-        entity: weather.pompey
-      - type: custom:mushroom-template-badge
-        content: '{{states(''sensor.pompey_temperature'') }}°C'
-        icon: mdi:thermometer
-        color: |-
-          {% set state = states('sensor.pompey_temperature') | float %}  
-                {% if state > 23 %}
-                  red
-                {% elif state > 19 %}
-                  seagreen
-                {% else %}
-                  blue
-                {% endif %}
-        entity: sensor.pompey_temperature
-        tap_action:
-          action: more-info
+      - type: custom:streamline-card
+        template: mushroom_temperature_badge
+        variables:
+          - entity: sensor.temperature_maison
+          - tap_action: more-info
+          - navigation_path: ''
+      - type: custom:streamline-card
+        template: mushroom_weather_badge
+        variables:
+          - entity: weather.pompey
+      - type: custom:streamline-card
+        template: mushroom_temperature_badge
+        variables:
+          - entity: sensor.pompey_temperature
+          - tap_action: more-info
+          - navigation_path: ''
       - type: entity
         show_name: false
         show_state: false
@@ -2122,100 +2269,42 @@ views:
           - icon_on: hue:room-living
           - icon_off: hue:room-living-off
           - navigation_path: /salon-mushroom/sejour
-      - type: custom:mushroom-template-badge
-        content: ''
-        icon: |-
-          {% set state = states('binary_sensor.esp_salon_movement') %}  
-                {% if state == 'on' %}
-                  mdi:motion-sensor
-                {% else %}
-                  mdi:motion-sensor-off
-                {% endif %}
-        color: |-
-          {% set state = states('binary_sensor.esp_salon_movement') %}  
-                {% if state == 'on' %}
-                  seagreen
-                {% else %}
-                  gray
-                {% endif %}
-        entity: binary_sensor.esp_salon_movement
-      - type: custom:mushroom-template-badge
-        content: '{{states(''sensor.sejour'') }}°C'
-        icon: mdi:thermometer
-        color: |-
-          {% set state = states('sensor.sejour') %}  
-                {% if state >= '23' %}
-                  red
-                {% elif state >= '19' %}
-                  seagreen
-                {% else %}
-                  blue
-                {% endif %}
-        entity: sensor.sejour
-        tap_action:
-          action: navigate
-          navigation_path: '#temperature'
-      - type: custom:mushroom-template-badge
-        content: '{{ states(''sensor.humidite_sejour'') }} %'
-        icon: m3r:humidity-percentage
-        color: blue
-        entity: sensor.humidite_sejour
-      - type: entity
-        show_name: false
-        show_state: true
-        show_icon: true
-        color: ''
-        entity: sensor.lux_sejour
-        icon: mdi:brightness-7
-        tap_action:
-          action: navigate
-          navigation_path: '#lux'
-      - type: entity
-        show_name: false
-        show_state: true
-        show_icon: true
-        entity: weather.pompey
-        color: ''
-      - type: custom:mushroom-template-badge
-        content: '{{states(''sensor.pompey_temperature'') }}°C'
-        icon: mdi:thermometer
-        color: |-
-          {% set state = states('sensor.pompey_temperature') | float %}  
-                {% if state > 23 %}
-                  red
-                {% elif state > 19 %}
-                  seagreen
-                {% else %}
-                  blue
-                {% endif %}
-        entity: sensor.pompey_temperature
-        tap_action:
-          action: more-info
-      - type: entity
-        show_name: false
-        show_state: false
-        show_icon: true
-        entity: sun.sun
-        color: ''
-      - type: custom:mushroom-template-badge
-        content: ''
-        icon: |-
-          {% set state = states('person.canabang') %}  
-                {% if state == 'home' %}
-                  mdi:home-outline
-                {% else %}
-                  mdi:home-off-outline
-                {% endif %} 
-        color: |-
-          {% set state = states('person.canabang') %}  
-                {% if state == 'home' %}
-                  seagreen
-                {% else %}
-                  gray
-                {% endif %}
-        entity: person.canabang
-        tap_action:
-          action: navigate
+      - type: custom:streamline-card
+        template: mushroom_movement_badge
+        variables:
+          - entity: binary_sensor.esp_salon_movement
+      - type: custom:streamline-card
+        template: mushroom_temperature_badge
+        variables:
+          - entity: sensor.sejour
+          - tap_action: navigate
+          - navigation_path: '#temperature'
+      - type: custom:streamline-card
+        template: mushroom_humidity_badge
+        variables:
+          - entity: sensor.humidite_sejour
+      - type: custom:streamline-card
+        template: mushroom_lux_badge
+        variables:
+          - entity: sensor.lux_sejour
+          - navigation_path: '#lux'
+      - type: custom:streamline-card
+        template: mushroom_weather_badge
+        variables:
+          - entity: weather.pompey
+      - type: custom:streamline-card
+        template: mushroom_temperature_badge
+        variables:
+          - entity: sensor.pompey_temperature
+          - tap_action: more-info
+          - navigation_path: ''
+      - type: custom:streamline-card
+        template: mushroom_sun_badge
+        variables: []
+      - type: custom:streamline-card
+        template: mushroom_person_badge
+        variables:
+          entity: person.canabang
           navigation_path: /salon-mushroom/accueil
       - type: custom:streamline-card
         template: mushroom_presence_badge
@@ -2241,84 +2330,22 @@ views:
           - icon_on: hue:room-bathroom
           - icon_off: hue:room-bathroom-off
           - navigation_path: /salon-mushroom/sdb
-      - type: custom:mushroom-template-badge
-        content: ''
-        icon: |-
-          {% set state = states('update.home_assistant_core_update') %}  
-                {% if state == 'on' %}
-                  mdi:server
-                {% else %}
-                  mdi:server-off
-                {% endif %} 
-        color: |-
-          {% set state = states('update.home_assistant_core_update') %}  
-                {% if state == 'on' %}
-                  seagreen
-                {% else %}
-                  gray
-                {% endif %}
-        entity: update.home_assistant_core_update
-        tap_action:
-          action: navigate
-          navigation_path: /salon-mushroom/disques-dur
-      - type: custom:mushroom-template-badge
-        content: ''
-        icon: >
-          {% set kodi_playing = states('media_player.kodi_salon') == 'playing'
-          or states('media_player.kodi_chambre') == 'playing' %}
-
-          {% set plex_playing =
-          states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
-          states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing'
-          %}
-
-          {% set partout_playing = states('media_player.partout_2') == 'playing'
-          %}
-
-
-          {% if partout_playing %}
-            m3of:queue-music
-          {% elif kodi_playing %}
-            mdi:kodi
-          {% elif plex_playing %}
-            mdi:plex
-          {% else %}
-            mdi:multimedia
-          {% endif %}
-        color: >
-          {% set kodi_playing = states('media_player.kodi_salon') == 'playing'
-          or states('media_player.kodi_chambre') == 'playing' %}
-
-          {% set plex_playing =
-          states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
-          states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing'
-          %}
-
-          {% set partout_playing = states('media_player.partout_2') == 'playing'
-          %}
-
-
-          {% if partout_playing or kodi_playing or plex_playing %}
-            seagreen
-          {% else %}
-            gray
-          {% endif %}
-        tap_action:
-          action: navigate
-          navigation_path: /salon-mushroom/multimedia
-      - type: custom:mushroom-template-badge
-        icon: mdi:cat
-        color: >-
-          {% set state = states('binary_sensor.litiere_bac_a_dechets_plein')
-          %}  
-            {% if state == 'on' %}
-              red
-            {% else %}
-              seagreen
-            {% endif %}
-        tap_action:
-          action: navigate
-          navigation_path: /salon-mushroom/petscales-v3
+      - type: custom:streamline-card
+        template: mushroom_presence_badge
+        variables:
+          - entity: update.home_assistant_core_update
+          - state_on: 'on'
+          - icon_on: mdi:server
+          - icon_off: mdi:server-off
+          - navigation_path: /salon-mushroom/disques-dur
+      - type: custom:streamline-card
+        template: mushroom_multimedia_badge
+        variables:
+          - navigation_path: /salon-mushroom/multimedia
+      - type: custom:streamline-card
+        template: mushroom_litiere_badge
+        variables:
+          - navigation_path: /salon-mushroom/petscales-v3
     sections:
       - type: grid
         cards:
@@ -2776,184 +2803,87 @@ views:
     subview: true
   - title: Cuisine
     badges:
-      - type: entity
-        show_name: false
-        show_state: false
-        show_icon: true
-        color: ''
-        entity: binary_sensor.esp_cuisine_presence
-      - type: entity
-        show_name: false
-        show_state: false
-        show_icon: true
-        color: ''
-        entity: binary_sensor.esp_cuisine_movement
-      - type: custom:mushroom-template-badge
-        content: '{{states(''sensor.temperature_cuisine'') }}°C'
-        icon: mdi:thermometer
-        color: |-
-          {% set state = states('sensor.temperature_cuisine') %}  
-                {% if state >= '23' %}
-                  red
-                {% elif state >= '19' %}
-                  seagreen
-                {% else %}
-                  blue
-                {% endif %}
-        entity: sensor.temperature_cuisine
-      - type: entity
-        show_name: false
-        show_state: true
-        show_icon: true
-        entity: sensor.esp_cuisine_lux
-        color: ''
-      - type: entity
-        show_name: false
-        show_state: true
-        show_icon: true
-        entity: weather.pompey
-        color: ''
-      - type: custom:mushroom-template-badge
-        content: '{{states(''sensor.pompey_temperature'') }}°C'
-        icon: mdi:thermometer
-        color: |-
-          {% set state = states('sensor.pompey_temperature') | float %}  
-                {% if state > 23 %}
-                  red
-                {% elif state > 19 %}
-                  seagreen
-                {% else %}
-                  blue
-                {% endif %}
-        entity: sensor.pompey_temperature
-        tap_action:
-          action: more-info
-      - type: entity
-        show_name: false
-        show_state: false
-        show_icon: true
-        entity: sun.sun
-        color: ''
-      - type: custom:mushroom-template-badge
-        content: ''
-        icon: |-
-          {% set state = states('person.canabang') %}  
-                {% if state == 'home' %}
-                  mdi:home-outline
-                {% else %}
-                  mdi:home-off-outline
-                {% endif %} 
-        color: |-
-          {% set state = states('person.canabang') %}  
-                {% if state == 'home' %}
-                  seagreen
-                {% else %}
-                  gray
-                {% endif %}
-        entity: person.canabang
-        tap_action:
-          action: navigate
-          navigation_path: /salon-mushroom/accueil
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: binary_sensor.salon_presence_globale
+          - entity: binary_sensor.esp_cuisine_presence
           - state_on: 'on'
-          - icon_on: hue:room-living
-          - icon_off: hue:room-living-off
-          - navigation_path: /salon-mushroom/sejour
+          - icon_on: hue:room-dining
+          - icon_off: hue:room-dining-off
+          - navigation_path: /salon-mushroom/cuisine
+      - type: custom:streamline-card
+        template: mushroom_movement_badge
+        variables:
+          - entity: binary_sensor.esp_cuisine_movement
+      - type: custom:streamline-card
+        template: mushroom_temperature_badge
+        variables:
+          - entity: sensor.temperature_cuisine
+          - tap_action: more-info
+          - navigation_path: ''
+      - type: custom:streamline-card
+        template: mushroom_lux_badge
+        variables:
+          - entity: sensor.esp_cuisine_lux
+          - navigation_path: ''
+      - type: custom:streamline-card
+        template: mushroom_weather_badge
+        variables:
+          - entity: weather.pompey
+      - type: custom:streamline-card
+        template: mushroom_temperature_badge
+        variables:
+          - entity: sensor.pompey_temperature
+          - tap_action: more-info
+          - navigation_path: ''
+      - type: custom:streamline-card
+        template: mushroom_sun_badge
+        variables: []
+      - type: custom:streamline-card
+        template: mushroom_person_badge
+        variables:
+          - entity: person.canabang
+          - navigation_path: /salon-mushroom/accueil
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: binary_sensor.esp_chambre_presence
-          - state_on: 'on'
-          - icon_on: hue:room-bedroom
-          - icon_off: hue:room-bedroom-off
-          - navigation_path: /salon-mushroom/chambre
+          entity: binary_sensor.salon_presence_globale
+          state_on: 'on'
+          icon_on: hue:room-living
+          icon_off: hue:room-living-off
+          navigation_path: /salon-mushroom/sejour
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: binary_sensor.esp_sdb_presence
+          entity: binary_sensor.esp_chambre_presence
+          state_on: 'on'
+          icon_on: hue:room-bedroom
+          icon_off: hue:room-bedroom-off
+          navigation_path: /salon-mushroom/chambre
+      - type: custom:streamline-card
+        template: mushroom_presence_badge
+        variables:
+          entity: binary_sensor.esp_sdb_presence
+          state_on: 'on'
+          icon_on: hue:room-bathroom
+          icon_off: hue:room-bathroom-off
+          navigation_path: /salon-mushroom/sdb
+      - type: custom:streamline-card
+        template: mushroom_presence_badge
+        variables:
+          - entity: update.home_assistant_core_update
           - state_on: 'on'
-          - icon_on: hue:room-bathroom
-          - icon_off: hue:room-bathroom-off
-          - navigation_path: /salon-mushroom/sdb
-      - type: custom:mushroom-template-badge
-        content: ''
-        icon: |-
-          {% set state = states('update.home_assistant_core_update') %}  
-                {% if state == 'on' %}
-                  mdi:server
-                {% else %}
-                  mdi:server-off
-                {% endif %} 
-        color: |-
-          {% set state = states('update.home_assistant_core_update') %}  
-                {% if state == 'on' %}
-                  seagreen
-                {% else %}
-                  gray
-                {% endif %}
-        entity: update.home_assistant_core_update
-        tap_action:
-          action: navigate
-          navigation_path: /salon-mushroom/disques-dur
-      - type: custom:mushroom-template-badge
-        content: ''
-        icon: >
-          {% set kodi_playing = states('media_player.kodi_salon') == 'playing'
-          or states('media_player.kodi_chambre') == 'playing' %}
-
-          {% set plex_playing =
-          states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
-          states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing'
-          %}
-
-          {% set partout_playing = states('media_player.partout_2') == 'playing'
-          %}
-
-          {% if partout_playing %}
-            m3of:queue-music
-          {% elif kodi_playing %}
-            mdi:kodi
-          {% elif plex_playing %}
-            mdi:plex
-          {% else %}
-            mdi:multimedia
-          {% endif %}
-        color: >
-          {% set kodi_playing = states('media_player.kodi_salon') == 'playing'
-          or states('media_player.kodi_chambre') == 'playing' %}
-
-          {% set plex_playing =
-          states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
-          states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing'
-          %}
-
-          {% set partout_playing = states('media_player.partout_2') == 'playing'
-          %}
-
-          {% if partout_playing or kodi_playing or plex_playing %}
-            seagreen
-          {% else %}
-            gray
-          {% endif %}
-        tap_action:
-          action: navigate
-          navigation_path: /salon-mushroom/multimedia
-      - type: custom:mushroom-template-badge
-        icon: mdi:cat
-        color: >-
-          {% set state = states('binary_sensor.litiere_bac_a_dechets_plein')
-          %}  
-            {% if state == 'on' %}
-              red
-            {% else %}
-              seagreen
-            {% endif %}
-        tap_action:
-          action: navigate
-          navigation_path: /salon-mushroom/petscales-v3
+          - icon_on: mdi:server
+          - icon_off: mdi:server-off
+          - navigation_path: /salon-mushroom/disques-dur
+      - type: custom:streamline-card
+        template: mushroom_multimedia_badge
+        variables:
+          - navigation_path: /salon-mushroom/multimedia
+      - type: custom:streamline-card
+        template: mushroom_litiere_badge
+        variables:
+          - navigation_path: /salon-mushroom/petscales-v3
     sections:
       - type: grid
         cards:
@@ -3361,81 +3291,42 @@ views:
           - icon_on: hue:room-bedroom
           - icon_off: hue:room-bedroom-off
           - navigation_path: /salon-mushroom/chambre
-      - type: custom:mushroom-template-badge
-        content: ''
-        icon: |-
-          {% set state = states('binary_sensor.esp_chambre_movement') %}  
-          {% if state == 'on' %}
-            mdi:motion-sensor
-          {% else %}
-            mdi:motion-sensor-off
-          {% endif %}
-        color: |-
-          {% set state = states('binary_sensor.esp_chambre_movement') %}  
-          {% if state == 'on' %}
-            seagreen
-          {% else %}
-            gray
-          {% endif %}
-        entity: binary_sensor.esp_chambre_movement
-      - type: custom:mushroom-template-badge
-        content: '{{states(''sensor.temperature_chambre'') }}°C'
-        icon: mdi:thermometer
-        color: |-
-          {% set state = states('sensor.temperature_chambre') %}  
-          {% if state >= '23' %}
-            red
-          {% elif state >= '19' %}
-            seagreen
-          {% else %}
-            blue
-          {% endif %}
-        entity: sensor.temperature_chambre
-        tap_action:
-          action: navigate
-          navigation_path: '#temperature'
-      - type: entity
-        show_name: false
-        show_state: true
-        show_icon: true
-        entity: sensor.esp_chambre_lux
-        icon: mdi:brightness-7
-        tap_action:
-          action: navigate
-          navigation_path: '#lux'
-      - type: entity
-        show_name: false
-        show_state: true
-        show_icon: true
-        entity: weather.pompey
-      - type: custom:mushroom-template-badge
-        content: '{{states(''sensor.pompey_temperature'') }}°C'
-        icon: mdi:thermometer
-        color: |-
-          {% set state = states('sensor.pompey_temperature') | float %}  
-          {% if state > 23 %}
-            red
-          {% elif state > 19 %}
-            seagreen
-          {% else %}
-            blue
-          {% endif %}
-        entity: sensor.pompey_temperature
-        tap_action:
-          action: more-info
-      - type: entity
-        show_name: false
-        show_state: false
-        show_icon: true
-        entity: sun.sun
+      - type: custom:streamline-card
+        template: mushroom_movement_badge
+        variables:
+          - entity: binary_sensor.esp_chambre_movement
+      - type: custom:streamline-card
+        template: mushroom_temperature_badge
+        variables:
+          - entity: sensor.temperature_chambre
+          - tap_action: navigate
+          - navigation_path: '#temperature'
+      - type: custom:streamline-card
+        template: mushroom_lux_badge
+        variables:
+          - entity: sensor.esp_chambre_lux
+          - navigation_path: '#lux'
+      - type: custom:streamline-card
+        template: mushroom_weather_badge
+        variables:
+          - entity: weather.pompey
+      - type: custom:streamline-card
+        template: mushroom_temperature_badge
+        variables:
+          - entity: sensor.pompey_temperature
+          - tap_action: more-info
+          - navigation_path: ''
+      - type: custom:streamline-card
+        template: mushroom_sun_badge
+        variables: []
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: person.canabang
-          - state_on: home
-          - icon_on: mdi:home-outline
-          - icon_off: mdi:home-off-outline
-          - navigation_path: /salon-mushroom/accueil
+          entity: person.canabang
+          state_on: home
+          icon_on: mdi:home-outline
+          icon_off: mdi:home-off-outline
+          navigation_path: /salon-mushroom/accueil
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
@@ -3455,27 +3346,27 @@ views:
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: binary_sensor.esp_sdb_presence
-          - state_on: 'on'
-          - icon_on: hue:room-bathroom
-          - icon_off: hue:room-bathroom-off
-          - navigation_path: /salon-mushroom/sdb
+          entity: binary_sensor.esp_sdb_presence
+          state_on: 'on'
+          icon_on: hue:room-bathroom
+          icon_off: hue:room-bathroom-off
+          navigation_path: /salon-mushroom/sdb
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: update.home_assistant_core_update
-          - state_on: 'on'
-          - icon_on: mdi:server
-          - icon_off: mdi:server-off
-          - navigation_path: /salon-mushroom/disques-dur
+          entity: update.home_assistant_core_update
+          state_on: 'on'
+          icon_on: mdi:server
+          icon_off: mdi:server-off
+          navigation_path: /salon-mushroom/disques-dur
       - type: custom:streamline-card
         template: mushroom_multimedia_badge
         variables:
-          - navigation_path: /salon-mushroom/multimedia
+          navigation_path: /salon-mushroom/multimedia
       - type: custom:streamline-card
         template: mushroom_litiere_badge
         variables:
-          - navigation_path: /salon-mushroom/petscales-v3
+          navigation_path: /salon-mushroom/petscales-v3
     sections:
       - type: grid
         cards:
@@ -3778,86 +3669,46 @@ views:
           - icon_on: hue:room-bathroom
           - icon_off: hue:room-bathroom-off
           - navigation_path: /salon-mushroom/sdb
-      - type: custom:mushroom-template-badge
-        content: ''
-        icon: |-
-          {% set state = states('binary_sensor.esp_sdb_movement') %}  
-          {% if state == 'on' %}
-            mdi:motion-sensor
-          {% else %}
-            mdi:motion-sensor-off
-          {% endif %}
-        color: |-
-          {% set state = states('binary_sensor.esp_sdb_movement') %}  
-          {% if state == 'on' %}
-            seagreen
-          {% else %}
-            gray
-          {% endif %}
-        entity: binary_sensor.esp_sdb_movement
-      - type: custom:mushroom-template-badge
-        content: '{{states(''sensor.temperature_sdb'') }}°C'
-        icon: mdi:thermometer
-        color: |-
-          {% set state = states('sensor.temperature_sdb') %}  
-          {% if state >= '23' %}
-            red
-          {% elif state >= '19' %}
-            seagreen
-          {% else %}
-            blue
-          {% endif %}
-        entity: sensor.temperature_sdb
-        tap_action:
-          action: navigate
-          navigation_path: '#temperature'
-      - type: custom:mushroom-template-badge
-        content: '{{ states(''sensor.humiditee_sdb'') }} %'
-        icon: m3r:humidity-percentage
-        color: blue
-        entity: sensor.humiditee_sdb
-      - type: entity
-        show_name: false
-        show_state: true
-        show_icon: true
-        entity: sensor.lux_sdb
-        icon: mdi:brightness-7
-        tap_action:
-          action: navigate
-          navigation_path: '#lux'
-      - type: entity
-        show_name: false
-        show_state: true
-        show_icon: true
-        entity: weather.pompey
-      - type: custom:mushroom-template-badge
-        content: '{{states(''sensor.pompey_temperature'') }}°C'
-        icon: mdi:thermometer
-        color: |-
-          {% set state = states('sensor.pompey_temperature') | float %}  
-          {% if state > 23 %}
-            red
-          {% elif state > 19 %}
-            seagreen
-          {% else %}
-            blue
-          {% endif %}
-        entity: sensor.pompey_temperature
-        tap_action:
-          action: more-info
-      - type: entity
-        show_name: false
-        show_state: false
-        show_icon: true
-        entity: sun.sun
+      - type: custom:streamline-card
+        template: mushroom_movement_badge
+        variables:
+          - entity: binary_sensor.esp_sdb_movement
+      - type: custom:streamline-card
+        template: mushroom_temperature_badge
+        variables:
+          - entity: sensor.temperature_sdb
+          - tap_action: navigate
+          - navigation_path: '#temperature'
+      - type: custom:streamline-card
+        template: mushroom_humidity_badge
+        variables:
+          - entity: sensor.humiditee_sdb
+      - type: custom:streamline-card
+        template: mushroom_lux_badge
+        variables:
+          - entity: sensor.lux_sdb
+          - navigation_path: '#lux'
+      - type: custom:streamline-card
+        template: mushroom_weather_badge
+        variables:
+          - entity: weather.pompey
+      - type: custom:streamline-card
+        template: mushroom_temperature_badge
+        variables:
+          - entity: sensor.pompey_temperature
+          - tap_action: more-info
+          - navigation_path: ''
+      - type: custom:streamline-card
+        template: mushroom_sun_badge
+        variables: []
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: person.canabang
-          - state_on: home
-          - icon_on: mdi:home-outline
-          - icon_off: mdi:home-off-outline
-          - navigation_path: /salon-mushroom/accueil
+          entity: person.canabang
+          state_on: home
+          icon_on: mdi:home-outline
+          icon_off: mdi:home-off-outline
+          navigation_path: /salon-mushroom/accueil
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
@@ -3877,27 +3728,27 @@ views:
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: binary_sensor.esp_chambre_presence
-          - state_on: 'on'
-          - icon_on: hue:room-bedroom
-          - icon_off: hue:room-bedroom-off
-          - navigation_path: /salon-mushroom/chambre
+          entity: binary_sensor.esp_chambre_presence
+          state_on: 'on'
+          icon_on: hue:room-bedroom
+          icon_off: hue:room-bedroom-off
+          navigation_path: /salon-mushroom/chambre
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: update.home_assistant_core_update
-          - state_on: 'on'
-          - icon_on: mdi:server
-          - icon_off: mdi:server-off
-          - navigation_path: /salon-mushroom/disques-dur
+          entity: update.home_assistant_core_update
+          state_on: 'on'
+          icon_on: mdi:server
+          icon_off: mdi:server-off
+          navigation_path: /salon-mushroom/disques-dur
       - type: custom:streamline-card
         template: mushroom_multimedia_badge
         variables:
-          - navigation_path: /salon-mushroom/multimedia
+          navigation_path: /salon-mushroom/multimedia
       - type: custom:streamline-card
         template: mushroom_litiere_badge
         variables:
-          - navigation_path: /salon-mushroom/petscales-v3
+          navigation_path: /salon-mushroom/petscales-v3
     sections:
       - type: grid
         cards:
@@ -5116,71 +4967,47 @@ views:
             columns: 1
     cards: []
     badges:
-      - type: custom:mushroom-template-badge
-        content: ''
-        icon: |-
-          {% set state = states('person.canabang') %}  
-                {% if state == 'home' %}
-                  mdi:home-outline
-                {% else %}
-                  mdi:home-off-outline
-                {% endif %} 
-        color: |-
-          {% set state = states('person.canabang') %}  
-                {% if state == 'home' %}
-                  seagreen
-                {% else %}
-                  gray
-                {% endif %}
-        entity: person.canabang
-        tap_action:
-          action: navigate
-          navigation_path: /salon-mushroom/accueil
+      - type: custom:streamline-card
+        template: mushroom_person_badge
+        variables:
+          - entity: person.canabang
+          - navigation_path: /salon-mushroom/accueil
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: binary_sensor.salon_presence_globale
-          - state_on: 'on'
-          - icon_on: hue:room-living
-          - icon_off: hue:room-living-off
-          - navigation_path: /salon-mushroom/sejour
+          entity: binary_sensor.salon_presence_globale
+          state_on: 'on'
+          icon_on: hue:room-living
+          icon_off: hue:room-living-off
+          navigation_path: /salon-mushroom/sejour
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: binary_sensor.esp_cuisine_presence
-          - state_on: 'on'
-          - icon_on: hue:room-dining
-          - icon_off: hue:room-dining-off
-          - navigation_path: /salon-mushroom/cuisine
+          entity: binary_sensor.esp_cuisine_presence
+          state_on: 'on'
+          icon_on: hue:room-dining
+          icon_off: hue:room-dining-off
+          navigation_path: /salon-mushroom/cuisine
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: binary_sensor.esp_chambre_presence
-          - state_on: 'on'
-          - icon_on: hue:room-bedroom
-          - icon_off: hue:room-bedroom-off
-          - navigation_path: /salon-mushroom/chambre
+          entity: binary_sensor.esp_chambre_presence
+          state_on: 'on'
+          icon_on: hue:room-bedroom
+          icon_off: hue:room-bedroom-off
+          navigation_path: /salon-mushroom/chambre
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
-          - entity: binary_sensor.esp_sdb_presence
-          - state_on: 'on'
-          - icon_on: hue:room-bathroom
-          - icon_off: hue:room-bathroom-off
-          - navigation_path: /salon-mushroom/sdb
-      - type: custom:mushroom-template-badge
-        icon: mdi:cat
-        color: >-
-          {% set state = states('binary_sensor.litiere_bac_a_dechets_plein')
-          %}  
-            {% if state == 'on' %}
-              red
-            {% else %}
-              seagreen
-            {% endif %}
-        tap_action:
-          action: navigate
-          navigation_path: /salon-mushroom/petscales-v3
+          entity: binary_sensor.esp_sdb_presence
+          state_on: 'on'
+          icon_on: hue:room-bathroom
+          icon_off: hue:room-bathroom-off
+          navigation_path: /salon-mushroom/sdb
+      - type: custom:streamline-card
+        template: mushroom_litiere_badge
+        variables:
+          - navigation_path: /salon-mushroom/petscales-v3
     subview: true
   - type: sections
     max_columns: 4
@@ -5819,6 +5646,11 @@ views:
     cards: []
     subview: true
     badges:
+      - type: custom:streamline-card
+        template: mushroom_person_badge
+        variables:
+          - entity: person.canabang
+          - navigation_path: /salon-mushroom/accueil
       - type: custom:streamline-card
         template: mushroom_presence_badge
         variables:
