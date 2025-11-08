@@ -744,7 +744,7 @@ streamline_templates:
         navigation_path: '[[navigation_path]]'
 views:
   - type: sections
-    max_columns: 3
+    max_columns: 4
     title: Accueil
     path: accueil
     sections:
