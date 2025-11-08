@@ -1,4 +1,73 @@
 streamline_templates:
+  mushroom_media_player_card:
+    default:
+      - type: native
+      - show_source: false
+      - show_volume: false
+      - artwork: default
+    card:
+      type: |-
+        {% if '[[type]]' == 'mini' %}
+          custom:mini-media-player
+        {% else %}
+          media-control
+        {% endif %}
+      entity: '[[entity]]'
+      name: '[[name]]'
+      artwork: |-
+        {% if '[[type]]' == 'mini' %}
+          {% if '[[artwork]]' == 'full-cover' %}
+            full-cover
+          {% else %}
+            default
+          {% endif %}
+        {% endif %}
+      artwork_border: |-
+        {% if '[[type]]' == 'mini' %}
+          true
+        {% endif %}
+      power_color: |-
+        {% if '[[type]]' == 'mini' %}
+          true
+        {% endif %}
+      show_source: '[[show_source]]'
+      source: |-
+        {% if '[[type]]' == 'mini' %}
+          full
+        {% endif %}
+      info: |-
+        {% if '[[type]]' == 'mini' %}
+          scroll
+        {% endif %}
+      hide: |-
+        {% if '[[type]]' == 'mini' %}
+          power: false
+          repeat: false
+          runtime: false
+          shuffle: false
+          source: {{ not [[show_source]] }}
+          volume: {{ not [[show_volume]] }}
+        {% endif %}
+      card_mod:
+        style: |-
+          ha-card {
+            {% if '[[type]]' == 'mini' %}
+              --ha-card-border-radius: 25px;
+              background: rgba(255, 255, 255, 0.1) !important;
+              backdrop-filter: blur(10px) !important;
+              border: 1px solid rgba(255, 255, 255, 0.2) !important;
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            {% else %}
+              position: relative;
+              overflow: hidden;
+              background: rgba(40, 40, 40, 0.8);
+              height: 120px;
+              --ha-card-border-radius: 25px;
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            {% endif %}
+          }
   mushroom_switch_card:
     default:
       - icon: mdi:power
@@ -2364,7 +2433,7 @@ views:
       - type: custom:streamline-card
         template: mushroom_multimedia_badge
         variables:
-          - navigation_path: /salon-mushroom/multimedia
+          navigation_path: /salon-mushroom/multimedia
       - type: custom:streamline-card
         template: mushroom_litiere_badge
         variables:
@@ -2470,21 +2539,6 @@ views:
         columns: 2
       - type: grid
         cards:
-          - type: media-control
-            entity: media_player.plex_plex_for_android_tv_salon
-            name: Plex
-            card_mod:
-              style: |
-                ha-card {
-                  --ha-card-border-radius: 20px;
-                }
-            visibility:
-              - condition: state
-                entity: media_player.plex_plex_for_android_tv_salon
-                state: playing
-            grid_options:
-              columns: 12
-              rows: 5
           - type: custom:mini-media-player
             entity: media_player.spotifyplus_gael
             artwork: full-cover
@@ -2510,6 +2564,19 @@ views:
             visibility:
               - condition: state
                 entity: media_player.spotifyplus_gael
+                state: playing
+          - type: custom:mini-media-player
+            entity: media_player.plex_plex_for_android_tv_salon
+            artwork: full-cover-fit
+            source: full
+            sound_mode: full
+            info: scroll
+            grid_options:
+              columns: 12
+              rows: 8
+            visibility:
+              - condition: state
+                entity: media_player.plex_plex_for_android_tv_salon
                 state: playing
       - type: grid
         cards:
@@ -4033,6 +4100,83 @@ views:
     cards: []
   - type: sections
     max_columns: 4
+    title: multimedia
+    path: multimedia
+    subview: true
+    icon: mdi:multimedia
+    background:
+      opacity: 100
+      alignment: center
+      size: cover
+      repeat: no-repeat
+      attachment: fixed
+      image: /api/image/serve/42b2c391fc6fa00e0c293b0b336b7cf6/original
+    sections:
+      - type: grid
+        cards:
+          - type: custom:mini-media-player
+            entity: media_player.spotifyplus_gael
+            artwork: full-cover
+            source: full
+            sound_mode: full
+            info: scroll
+            volume_stateless: false
+            toggle_power: true
+            group: false
+      - type: grid
+        cards:
+          - type: custom:mini-media-player
+            entity: media_player.plex_plex_for_android_tv_salon
+            artwork: full-cover-fit
+            source: full
+            sound_mode: full
+            info: scroll
+            grid_options:
+              columns: 12
+              rows: 8
+    badges:
+      - type: custom:streamline-card
+        template: mushroom_presence_badge
+        variables:
+          entity: person.canabang
+          state_on: home
+          icon_on: mdi:home-outline
+          icon_off: mdi:home-off-outline
+          navigation_path: /salon-mushroom/accueil
+      - type: custom:streamline-card
+        template: mushroom_presence_badge
+        variables:
+          entity: binary_sensor.salon_presence_globale
+          state_on: 'on'
+          icon_on: hue:room-living
+          icon_off: hue:room-living-off
+          navigation_path: /salon-mushroom/sejour
+      - type: custom:streamline-card
+        template: mushroom_presence_badge
+        variables:
+          entity: binary_sensor.esp_cuisine_presence
+          state_on: 'on'
+          icon_on: hue:room-dining
+          icon_off: hue:room-dining-off
+          navigation_path: /salon-mushroom/cuisine
+      - type: custom:streamline-card
+        template: mushroom_presence_badge
+        variables:
+          entity: binary_sensor.esp_chambre_presence
+          state_on: 'on'
+          icon_on: hue:room-bedroom
+          icon_off: hue:room-bedroom-off
+          navigation_path: /salon-mushroom/chambre
+      - type: custom:streamline-card
+        template: mushroom_presence_badge
+        variables:
+          entity: binary_sensor.esp_sdb_presence
+          state_on: 'on'
+          icon_on: hue:room-bathroom
+          icon_off: hue:room-bathroom-off
+          navigation_path: /salon-mushroom/sdb
+  - type: sections
+    max_columns: 4
     title: Disques_dur
     path: disques-dur
     icon: m3s:hard-drive
@@ -4507,6 +4651,74 @@ views:
             color: >-
               {% set usage =
               states('sensor.system_monitor_utilisation_du_disque_share_128go')
+              | float %} {% if usage > 90 %}
+                red
+              {% elif usage > 75 %}
+                orange
+              {% else %}
+                seagreen
+              {% endif %}
+            features_position: bottom
+            card_mod:
+              style: |
+                ha-card {
+                  background: transparent !important;
+                  backdrop-filter: none !important;
+                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+                  border-radius: 20px !important;
+                  transition: all 0.3s ease !important;
+                }
+                ha-card:hover {
+                  transform: translateY(-2px) !important;
+                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+                }
+          - type: custom:mushroom-template-card
+            primary: Disque 128g_kingston
+            secondary: |-
+              {{
+                states('sensor.system_monitor_utilisation_du_disque_share_128g_kingston') | float | round(1)
+              }}% • {{
+                states('sensor.system_monitor_espace_libre_share_128g_kingston') | float | round(1)
+              }} Go / {{
+                (states('sensor.system_monitor_espace_utilise_share_128g_kingston') | float + states('sensor.system_monitor_espace_libre_share_128g_kingston') | float) | round(1)
+              }} Go
+              🌡️ {{ states('sensor.omv_disk_2') | int }}°C
+            icon: >-
+              {% set usage =
+              states('sensor.system_monitor_utilisation_du_disque_share_128g_kingston')
+              | float %} {% if usage > 90 %}
+                mdi:harddisk-remove
+              {% elif usage > 75 %}
+                mdi:harddisk-plus
+              {% else %}
+                mdi:harddisk
+              {% endif %}
+            badge_icon: >-
+              {% set temp = states('sensor.omv_disk_2') | int %} {% if temp > 50
+              %}
+                mdi:thermometer-alert128g_kingston
+              {% elif temp > 40 %}
+                mdi:thermometer-high
+              {% else %}
+                mdi:thermometer
+              {% endif %}
+            badge_color: >-
+              {% set temp = states('sensor.omv_disk_2') | int %} {% if temp > 50
+              %}
+                red
+              {% elif temp > 40 %}
+                orange
+              {% else %}
+                seagreen
+              {% endif %}
+            entity: sensor.system_monitor_utilisation_du_disque_share_128g_kingston
+            tap_action:
+              action: more-info
+            multiline_secondary: true
+            color: >-
+              {% set usage =
+              states('sensor.system_monitor_utilisation_du_disque_share_128g_kingston')
               | float %} {% if usage > 90 %}
                 red
               {% elif usage > 75 %}
