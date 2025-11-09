@@ -1,0 +1,17 @@
+#substitutions:
+#  name: "a changer"
+#  piece: à changer
+#
+# !include .bh1750.yaml
+
+esphome:
+  name: ${name}
+  friendly_name: ${name}
+
+sensor:
+  - platform: bh1750
+    name: "lux"
+    id: "${piece}_lux"
+    device_class: "illuminance"
+    address: 0x23
+    update_interval: 5s 
