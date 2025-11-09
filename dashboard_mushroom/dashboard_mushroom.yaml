@@ -1,4 +1,270 @@
 streamline_templates:
+  mushroom_attribute_card:
+    default:
+      - attribute: state
+      - icon: mdi:information
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: |-
+        {% if '[[attribute]]' == 'state' %}
+        {{ states('[[entity]]') }}
+        {% else %}
+        {{ state_attr('[[entity]]', '[[attribute]]') }}
+        {% endif %}
+      icon: '[[icon]]'
+      icon_color: |-
+        {% if '[[attribute]]' == 'state' %}
+          {% set status = states('[[entity]]') | lower %}
+          {% if 'succeeded' in status or 'idle' in status %}
+            green
+          {% elif 'running' in status or 'in progress' in status %}
+            blue
+          {% elif 'failed' in status or 'error' in status %}
+            red
+          {% else %}
+            grey
+          {% endif %}
+        {% elif '[[attribute]]' == 'total_backups_failed' %}
+          {% set failed = state_attr('[[entity]]', '[[attribute]]') | int(0) %}
+          {% if failed > 0 %}red{% else %}green{% endif %}
+        {% elif '[[attribute]]' == 'total_backups_succeeded' %}
+          green
+        {% else %}
+          blue
+        {% endif %}
+      tap_action:
+        action: more-info
+      card_mod:
+        style: |
+          ha-card {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            border-radius: 20px !important;
+            transition: all 0.3s ease !important;
+          }
+          ha-card:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+          }
+  mushroom_action_button:
+    default:
+      - icon: mdi:play
+      - service: ''
+      - service_data: {}
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: ''
+      icon: '[[icon]]'
+      icon_color: blue
+      tap_action:
+        action: call-service
+        service: '[[service]]'
+        service_data: '[[service_data]]'
+      card_mod:
+        style: |
+          ha-card {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            border-radius: 20px !important;
+            transition: all 0.3s ease !important;
+            cursor: pointer !important;
+          }
+          ha-card:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+          }
+          ha-card:active {
+            transform: scale(0.98) !important;
+          }
+  mushroom_server_status_card:
+    default:
+      - cpu_entity: ''
+      - ram_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: ''
+      icon: '[[icon]]'
+      badge_icon: |-
+        {% set cpu = states('[[cpu_entity]]') | float(0) %}
+        {% set ram = states('[[ram_entity]]') | float(0) %}
+        {% if cpu >= 80 or ram >= 90 %}
+          mdi:alert-circle
+        {% elif cpu >= 60 or ram >= 75 %}
+          mdi:alert
+        {% else %}
+          mdi:check-circle
+        {% endif %}
+      badge_color: |-
+        {% set cpu = states('[[cpu_entity]]') | float(0) %}
+        {% set ram = states('[[ram_entity]]') | float(0) %}
+        {% if cpu >= 80 or ram >= 90 %}
+          red
+        {% elif cpu >= 60 or ram >= 75 %}
+          orange
+        {% else %}
+          seagreen
+        {% endif %}
+      color: '[[color]]'
+      entity: '[[cpu_entity]]'
+      card_mod:
+        style: |-
+          ha-card {
+            --ha-card-border-radius: 25px !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+            transition: all 0.3s ease !important;
+            
+            --cpu-color: {% set cpu = states('[[cpu_entity]]') | float(0) %}
+                         {% if cpu >= 80 %}#ff4444{% elif cpu >= 60 %}#ff8800{% elif cpu >= 40 %}#ffaa00{% else %}#44aa44{% endif %};
+            --ram-color: {% set ram = states('[[ram_entity]]') | float(0) %}
+                         {% if ram >= 90 %}#ff4444{% elif ram >= 75 %}#ff8800{% elif ram >= 50 %}#ffaa00{% else %}#44aa44{% endif %};
+          }
+          ha-card:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+          }
+          .container {
+            position: relative !important;
+          }
+          .container::before {
+            content: "🔲 {% set cpu = states('[[cpu_entity]]') | float(0) %}{{ cpu | round(1) }}%";
+            position: absolute !important;
+            right: 140px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            color: var(--cpu-color) !important;
+          }
+          .container::after {
+            content: "💾 {% set ram = states('[[ram_entity]]') | float(0) %}{{ ram | round(1) }}%";
+            position: absolute !important;
+            right: 60px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            color: var(--ram-color) !important;
+          }
+  mushroom_disk_card:
+    default:
+      - unit: To
+      - temp_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: >-
+        {% if '[[unit]]' == 'To' %}
+
+        {{ states('[[usage_entity]]') | float | round(1) }}% • {{
+        (states('[[free_entity]]') | float / 1024) | round(1) }} To / {{
+        ((states('[[used_entity]]') | float + states('[[free_entity]]') | float)
+        / 1024) | round(1) }} To
+
+        {% else %}
+
+        {{ states('[[usage_entity]]') | float | round(1) }}% • {{
+        states('[[free_entity]]') | float | round(1) }} Go / {{
+        (states('[[used_entity]]') | float + states('[[free_entity]]') | float)
+        | round(1) }} Go
+
+        {% endif %}
+
+        {% if '[[temp_entity]]' != '' %}🌡️ {{ states('[[temp_entity]]') | int
+        }}°C{% endif %}
+      icon: |-
+        {% set usage = states('[[usage_entity]]') | float %}
+        {% if usage > 90 %}
+          mdi:harddisk-remove
+        {% elif usage > 75 %}
+          mdi:harddisk-plus
+        {% else %}
+          mdi:harddisk
+        {% endif %}
+      badge_icon: |-
+        {% if '[[temp_entity]]' != '' %}
+          {% set temp = states('[[temp_entity]]') | int %}
+          {% if temp > 60 %}
+            mdi:thermometer-alert
+          {% elif temp > 50 %}
+            mdi:thermometer-high
+          {% else %}
+            mdi:thermometer
+          {% endif %}
+        {% endif %}
+      badge_color: |-
+        {% if '[[temp_entity]]' != '' %}
+          {% set temp = states('[[temp_entity]]') | int %}
+          {% if temp > 60 %}
+            red
+          {% elif temp > 50 %}
+            orange
+          {% else %}
+            seagreen
+          {% endif %}
+        {% endif %}
+      entity: '[[usage_entity]]'
+      tap_action:
+        action: more-info
+      multiline_secondary: true
+      color: |-
+        {% set usage = states('[[usage_entity]]') | float %}
+        {% if usage > 90 %}
+          red
+        {% elif usage > 75 %}
+          orange
+        {% else %}
+          seagreen
+        {% endif %}
+      card_mod:
+        style:
+          mushroom-state-info$mushroom-line-info$: |
+            .secondary {
+              width: 100%;
+              animation: scroll-text 15s linear infinite;
+              white-space: nowrap !important;
+              display: inline-block;
+            }
+            @keyframes scroll-text {
+              0% {
+                transform: translateX(0%);
+              }
+              90% {
+                transform: translateX(-50%);
+              }
+              95% {
+                transform: translateX(-50%);
+              }
+              100% {
+                transform: translateX(0%);
+              }
+            }
+            .container:hover .secondary {
+              animation-play-state: paused;
+            }
+          .: |
+            ha-card {
+              background: transparent !important;
+              backdrop-filter: none !important;
+              border: 1px solid rgba(255, 255, 255, 0.2) !important;
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+              border-radius: 20px !important;
+              transition: all 0.3s ease !important;
+            }
+            ha-card:hover {
+              transform: translateY(-2px) !important;
+              box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+            }
   mushroom_media_player_card:
     default:
       - type: native
@@ -4190,1016 +4456,202 @@ views:
     sections:
       - type: grid
         cards:
-          - type: custom:mushroom-template-card
-            primary: NAS-OMV
-            secondary: ''
-            icon: phu:nas-v2
-            badge_icon: >-
-              {% set cpu = states('sensor.omv_system_cpu_load_2') | float(0) %} 
-              {% set ram = states('sensor.omv_system_memory') | float(0) %}  {%
-              if cpu >= 80 or ram >= 90 %}
-                mdi:alert-circle
-              {% elif cpu >= 60 or ram >= 75 %}
-                mdi:alert
-              {% else %}
-                mdi:check-circle
-              {% endif %}
-            badge_color: >-
-              {% set cpu = states('sensor.omv_system_cpu_load_2') | float(0) %} 
-              {% set ram = states('sensor.omv_system_memory') | float(0) %}  {%
-              if cpu >= 80 or ram >= 90 %}
-                red
-              {% elif cpu >= 60 or ram >= 75 %}
-                orange
-              {% else %}
-                green
-              {% endif %}
-            color: blue
-            features_position: bottom
+          - type: custom:streamline-card
+            template: mushroom_server_status_card
+            variables:
+              name: NAS-OMV
+              icon: phu:nas-v2
+              color: blue
+              cpu_entity: sensor.omv_system_cpu_load_2
+              ram_entity: sensor.omv_system_memory
             grid_options:
               columns: 12
               rows: 1
-            card_mod:
-              style: |
-                ha-card {
-                  --ha-card-border-radius: 25px !important;
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border-radius: 20px !important;
-                  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
-                  transition: all 0.3s ease !important;
-                  
-                  /* Variables CSS pour les couleurs */
-                  --cpu-color: {% set cpu = states('sensor.omv_system_cpu_load_2') | float(0) %}
-                               {% if cpu >= 80 %}#ff4444{% elif cpu >= 60 %}#ff8800{% elif cpu >= 40 %}#ffaa00{% else %}#44aa44{% endif %};
-                  --ram-color: {% set ram = states('sensor.omv_system_memory') | float(0) %}
-                               {% if ram >= 90 %}#ff4444{% elif ram >= 75 %}#ff8800{% elif ram >= 50 %}#ffaa00{% else %}#44aa44{% endif %};
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
-                .container {
-                  position: relative !important;
-                }
-                /* CPU - Premier élément */
-                .container::before {
-                  content: "🔲 {% set cpu = states('sensor.omv_system_cpu_load_2') | float(0) %}{{ cpu | round(1) }}%";
-                  position: absolute !important;
-                  right: 140px !important;
-                  top: 50% !important;
-                  transform: translateY(-50%) !important;
-                  font-size: 14px !important;
-                  font-weight: 500 !important;
-                  color: var(--cpu-color) !important;
-                }
-                /* RAM - Deuxième élément */
-                .container::after {
-                  content: "💾 {% set ram = states('sensor.omv_system_memory') | float(0) %}{{ ram | round(1) }}%";
-                  position: absolute !important;
-                  right: 60px !important;
-                  top: 50% !important;
-                  transform: translateY(-50%) !important;
-                  font-size: 14px !important;
-                  font-weight: 500 !important;
-                  color: var(--ram-color) !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Disque 12T Séries
-            secondary: |-
-              {{
-                states('sensor.system_monitor_utilisation_du_disque_share_12t') | float | round(1)
-              }}% • {{
-                (states('sensor.system_monitor_espace_libre_share_12t') | float / 1024) | round(1)
-              }} To / {{
-                ((states('sensor.system_monitor_espace_utilise_share_12t') | float + states('sensor.system_monitor_espace_libre_share_12t') | float) / 1024) | round(1)
-              }} To
-              🌡️ {{ states('sensor.omv_disk_5') | int }}°C
-            icon: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_12t') |
-              float %} {% if usage > 90 %}
-                mdi:harddisk-remove
-              {% elif usage > 75 %}
-                mdi:harddisk-plus
-              {% else %}
-                mdi:harddisk
-              {% endif %}
-            badge_icon: >-
-              {% set temp = states('sensor.omv_disk_5') | int %} {% if temp > 60
-              %}
-                mdi:thermometer-alert
-              {% elif temp > 50 %}
-                mdi:thermometer-high
-              {% else %}
-                mdi:thermometer
-              {% endif %}
-            badge_color: >-
-              {% set temp = states('sensor.omv_disk_5') | int %} {% if temp > 60
-              %}
-                red
-              {% elif temp > 50 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            entity: sensor.system_monitor_utilisation_du_disque_share_12t
-            tap_action:
-              action: more-info
-            multiline_secondary: true
-            color: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_12t') |
-              float %} {% if usage > 90 %}
-                red
-              {% elif usage > 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            features_position: bottom
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                  border-radius: 20px !important;
-                  transition: all 0.3s ease !important;
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Disque 2T Sata
-            secondary: |-
-              {{
-                states('sensor.system_monitor_utilisation_du_disque_share_camera') | float | round(1)
-              }}% • {{
-                (states('sensor.system_monitor_espace_libre_share_camera') | float / 1024) | round(1)
-              }} To / {{
-                ((states('sensor.system_monitor_espace_utilise_share_camera') | float + states('sensor.system_monitor_espace_libre_share_camera') | float) / 1024) | round(1)
-              }} To
-              🌡️ {{ states('sensor.omv_disk_4') | int }}°C
-            icon: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_camera')
-              | float %} {% if usage > 90 %}
-                mdi:harddisk-remove
-              {% elif usage > 75 %}
-                mdi:harddisk-plus
-              {% else %}
-                mdi:harddisk
-              {% endif %}
-            badge_icon: >-
-              {% set temp = states('sensor.omv_disk_4') | int %} {% if temp > 60
-              %}
-                mdi:thermometer-alert
-              {% elif temp > 50 %}
-                mdi:thermometer-high
-              {% else %}
-                mdi:thermometer
-              {% endif %}
-            badge_color: >-
-              {% set temp = states('sensor.omv_disk_4') | int %} {% if temp > 60
-              %}
-                red
-              {% elif temp > 50 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            entity: sensor.system_monitor_utilisation_du_disque_share_camera
-            tap_action:
-              action: more-info
-            multiline_secondary: true
-            color: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_camera')
-              | float %} {% if usage > 90 %}
-                red
-              {% elif usage > 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            features_position: bottom
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                  border-radius: 20px !important;
-                  transition: all 0.3s ease !important;
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Disque 12T Films
-            secondary: |-
-              {{
-                states('sensor.system_monitor_utilisation_du_disque_share_12t_02') | float | round(1)
-              }}% • {{
-                (states('sensor.system_monitor_espace_libre_share_12t_02') | float / 1024) | round(1)
-              }} To / {{
-                ((states('sensor.system_monitor_espace_utilise_share_12t_02') | float + states('sensor.system_monitor_espace_libre_share_12t_02') | float) / 1024) | round(1)
-              }} To
-              🌡️ {{ states('sensor.omv_disk_2') | int }}°C
-            icon: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_12t_02')
-              | float %} {% if usage > 90 %}
-                mdi:harddisk-remove
-              {% elif usage > 75 %}
-                mdi:harddisk-plus
-              {% else %}
-                mdi:harddisk
-              {% endif %}
-            badge_icon: >-
-              {% set temp = states('sensor.omv_disk_2') | int %} {% if temp > 60
-              %}
-                mdi:thermometer-alert
-              {% elif temp > 50 %}
-                mdi:thermometer-high
-              {% else %}
-                mdi:thermometer
-              {% endif %}
-            badge_color: >-
-              {% set temp = states('sensor.omv_disk_2') | int %} {% if temp > 60
-              %}
-                red
-              {% elif temp > 50 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            entity: sensor.system_monitor_utilisation_du_disque_share_12t_02
-            tap_action:
-              action: more-info
-            multiline_secondary: true
-            color: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_12t_02')
-              | float %} {% if usage > 90 %}
-                red
-              {% elif usage > 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            features_position: bottom
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                  border-radius: 20px !important;
-                  transition: all 0.3s ease !important;
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Disque 2T usb
-            secondary: |-
-              {{
-                states('sensor.system_monitor_utilisation_du_disque_share_2t_usb') | float | round(1)
-              }}% • {{
-                (states('sensor.system_monitor_espace_libre_share_2t_usb') | float / 1024) | round(1)
-              }} To / {{
-                ((states('sensor.system_monitor_espace_utilise_share_2t_usb') | float + states('sensor.system_monitor_espace_libre_share_2t_usb') | float) / 1024) | round(1)
-              }} To
-              🌡️ {{ states('sensor.omv_disk_7') | int }}°C
-            icon: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_2t_usb')
-              | float %} {% if usage > 90 %}
-                mdi:harddisk-remove
-              {% elif usage > 75 %}
-                mdi:harddisk-plus
-              {% else %}
-                mdi:harddisk
-              {% endif %}
-            badge_icon: >-
-              {% set temp = states('sensor.omv_disk_7') | int %} {% if temp > 60
-              %}
-                mdi:thermometer-alert
-              {% elif temp > 50 %}
-                mdi:thermometer-high
-              {% else %}
-                mdi:thermometer
-              {% endif %}
-            badge_color: >-
-              {% set temp = states('sensor.omv_disk_7') | int %} {% if temp > 60
-              %}
-                red
-              {% elif temp > 50 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            entity: sensor.system_monitor_utilisation_du_disque_share_2t_usb
-            tap_action:
-              action: more-info
-            multiline_secondary: true
-            color: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_2t_usb')
-              | float %} {% if usage > 90 %}
-                red
-              {% elif usage > 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            features_position: bottom
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                  border-radius: 20px !important;
-                  transition: all 0.3s ease !important;
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Disque 250Go
-            secondary: |-
-              {{
-                states('sensor.system_monitor_utilisation_du_disque_share_250go') | float | round(1)
-              }}% • {{
-                states('sensor.system_monitor_espace_libre_share_250go') | float | round(1)
-              }} Go / {{
-                (states('sensor.system_monitor_espace_utilise_share_250go') | float + states('sensor.system_monitor_espace_libre_share_250go') | float) | round(1)
-              }} Go
-              🌡️ {{ states('sensor.omv_disk_3') | int }}°C
-            icon: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_250go')
-              | float %} {% if usage > 90 %}
-                mdi:harddisk-remove
-              {% elif usage > 75 %}
-                mdi:harddisk-plus
-              {% else %}
-                mdi:harddisk
-              {% endif %}
-            badge_icon: >-
-              {% set temp = states('sensor.omv_disk_3') | int %} {% if temp > 50
-              %}
-                mdi:thermometer-alert
-              {% elif temp > 40 %}
-                mdi:thermometer-high
-              {% else %}
-                mdi:thermometer
-              {% endif %}
-            badge_color: >-
-              {% set temp = states('sensor.omv_disk_3') | int %} {% if temp > 50
-              %}
-                red
-              {% elif temp > 40 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            entity: sensor.system_monitor_utilisation_du_disque_share_250go
-            tap_action:
-              action: more-info
-            multiline_secondary: true
-            color: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_250go')
-              | float %} {% if usage > 90 %}
-                red
-              {% elif usage > 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            features_position: bottom
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                  border-radius: 20px !important;
-                  transition: all 0.3s ease !important;
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Disque 128Go
-            secondary: |-
-              {{
-                states('sensor.system_monitor_utilisation_du_disque_share_128go') | float | round(1)
-              }}% • {{
-                states('sensor.system_monitor_espace_libre_share_128go') | float | round(1)
-              }} Go / {{
-                (states('sensor.system_monitor_espace_utilise_share_128go') | float + states('sensor.system_monitor_espace_libre_share_128go') | float) | round(1)
-              }} Go
-              🌡️ {{ states('sensor.omv_disk_6') | int }}°C
-            icon: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_128go')
-              | float %} {% if usage > 90 %}
-                mdi:harddisk-remove
-              {% elif usage > 75 %}
-                mdi:harddisk-plus
-              {% else %}
-                mdi:harddisk
-              {% endif %}
-            badge_icon: |-
-              {% set temp = states('sensor.omv_disk_6') | int %}
-              {% if temp > 50 %}
-                mdi:thermometer-alert
-              {% elif temp > 40 %}
-                mdi:thermometer-high
-              {% else %}
-                mdi:thermometer
-              {% endif %}
-            badge_color: |-
-              {% set temp = states('sensor.omv_disk_6') | int %}
-              {% if temp > 50 %}
-                red
-              {% elif temp > 40 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            entity: sensor.system_monitor_utilisation_du_disque_share_128go
-            tap_action:
-              action: more-info
-            multiline_secondary: true
-            color: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_128go')
-              | float %} {% if usage > 90 %}
-                red
-              {% elif usage > 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            features_position: bottom
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                  border-radius: 20px !important;
-                  transition: all 0.3s ease !important;
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Disque 128g_kingston
-            secondary: |-
-              {{
-                states('sensor.system_monitor_utilisation_du_disque_share_128g_kingston') | float | round(1)
-              }}% • {{
-                states('sensor.system_monitor_espace_libre_share_128g_kingston') | float | round(1)
-              }} Go / {{
-                (states('sensor.system_monitor_espace_utilise_share_128g_kingston') | float + states('sensor.system_monitor_espace_libre_share_128g_kingston') | float) | round(1)
-              }} Go
-              🌡️ {{ states('sensor.omv_disk_2') | int }}°C
-            icon: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_128g_kingston')
-              | float %} {% if usage > 90 %}
-                mdi:harddisk-remove
-              {% elif usage > 75 %}
-                mdi:harddisk-plus
-              {% else %}
-                mdi:harddisk
-              {% endif %}
-            badge_icon: >-
-              {% set temp = states('sensor.omv_disk_2') | int %} {% if temp > 50
-              %}
-                mdi:thermometer-alert128g_kingston
-              {% elif temp > 40 %}
-                mdi:thermometer-high
-              {% else %}
-                mdi:thermometer
-              {% endif %}
-            badge_color: >-
-              {% set temp = states('sensor.omv_disk_2') | int %} {% if temp > 50
-              %}
-                red
-              {% elif temp > 40 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            entity: sensor.system_monitor_utilisation_du_disque_share_128g_kingston
-            tap_action:
-              action: more-info
-            multiline_secondary: true
-            color: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_128g_kingston')
-              | float %} {% if usage > 90 %}
-                red
-              {% elif usage > 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            features_position: bottom
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                  border-radius: 20px !important;
-                  transition: all 0.3s ease !important;
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
+          - type: custom:streamline-card
+            template: mushroom_disk_card
+            variables:
+              - name: Disque 12T Séries
+              - usage_entity: sensor.system_monitor_utilisation_du_disque_share_12t
+              - free_entity: sensor.system_monitor_espace_libre_share_12t
+              - used_entity: sensor.system_monitor_espace_utilise_share_12t
+              - unit: To
+              - temp_entity: sensor.omv_disk_5
+          - type: custom:streamline-card
+            template: mushroom_disk_card
+            variables:
+              - name: Disque 2T Sata
+              - usage_entity: sensor.system_monitor_utilisation_du_disque_share_camera
+              - free_entity: sensor.system_monitor_espace_libre_share_camera
+              - used_entity: sensor.system_monitor_espace_utilise_share_camera
+              - unit: To
+              - temp_entity: sensor.omv_disk_4
+          - type: custom:streamline-card
+            template: mushroom_disk_card
+            variables:
+              - name: Disque 12T Films
+              - usage_entity: sensor.system_monitor_utilisation_du_disque_share_12t_02
+              - free_entity: sensor.system_monitor_espace_libre_share_12t_02
+              - used_entity: sensor.system_monitor_espace_utilise_share_12t_02
+              - unit: To
+              - temp_entity: sensor.omv_disk_2
+          - type: custom:streamline-card
+            template: mushroom_disk_card
+            variables:
+              - name: Disque 2T usb
+              - usage_entity: sensor.system_monitor_utilisation_du_disque_share_2t_usb
+              - free_entity: sensor.system_monitor_espace_libre_share_2t_usb
+              - used_entity: sensor.system_monitor_espace_utilise_share_2t_usb
+              - unit: To
+              - temp_entity: sensor.omv_disk_7
+          - type: custom:streamline-card
+            template: mushroom_disk_card
+            variables:
+              - name: Disque 250Go
+              - usage_entity: sensor.system_monitor_utilisation_du_disque_share_250go
+              - free_entity: sensor.system_monitor_espace_libre_share_250go
+              - used_entity: sensor.system_monitor_espace_utilise_share_250go
+              - unit: Go
+              - temp_entity: sensor.omv_disk_3
+          - type: custom:streamline-card
+            template: mushroom_disk_card
+            variables:
+              - name: Disque 128Go
+              - usage_entity: sensor.system_monitor_utilisation_du_disque_share_128go
+              - free_entity: sensor.system_monitor_espace_libre_share_128go
+              - used_entity: sensor.system_monitor_espace_utilise_share_128go
+              - unit: Go
+              - temp_entity: sensor.omv_disk_6
+          - type: custom:streamline-card
+            template: mushroom_disk_card
+            variables:
+              - name: Disque 128g_kingston
+              - usage_entity: >-
+                  sensor.system_monitor_utilisation_du_disque_share_128g_kingston
+              - free_entity: sensor.system_monitor_espace_libre_share_128g_kingston
+              - used_entity: sensor.system_monitor_espace_utilise_share_128g_kingston
+              - unit: Go
+              - temp_entity: sensor.omv_disk_2
       - type: grid
         cards:
-          - type: custom:mushroom-template-card
-            primary: Proxmox
-            secondary: ''
-            icon: whh:servers
-            badge_icon: >-
-              {% set cpu = states('sensor.node_proxmox_cpu_used') | float(0) %} 
-              {% set ram = states('sensor.node_proxmox_memory_used_percentage')
-              | float(0) %}  {% if cpu >= 80 or ram >= 90 %}
-                mdi:alert-circle
-              {% elif cpu >= 60 or ram >= 75 %}
-                mdi:alert
-              {% else %}
-                mdi:check-circle
-              {% endif %}
-            badge_color: >-
-              {% set cpu = states('sensor.node_proxmox_cpu_used') | float(0) %} 
-              {% set ram = states('sensor.node_proxmox_memory_used_percentage')
-              | float(0) %}  {% if cpu >= 80 or ram >= 90 %}
-                red
-              {% elif cpu >= 60 or ram >= 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            color: blue
-            features_position: bottom
+          - type: custom:streamline-card
+            template: mushroom_server_status_card
+            variables:
+              name: Proxmox
+              icon: whh:servers
+              color: blue
+              cpu_entity: sensor.node_proxmox_cpu_used
+              ram_entity: sensor.node_proxmox_memory_used_percentage
             grid_options:
               columns: 12
               rows: 1
-            card_mod:
-              style: |
-                ha-card {
-                  --ha-card-border-radius: 25px !important;
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border-radius: 20px !important;
-                  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
-                  transition: all 0.3s ease !important;
-                  
-                  /* Variables CSS pour les couleurs */
-                  --cpu-color: {% set cpu = states('sensor.node_proxmox_cpu_used') | float(0) %}
-                               {% if cpu >= 80 %}#ff4444{% elif cpu >= 60 %}#ff8800{% elif cpu >= 40 %}#ffaa00{% else %}#44aa44{% endif %};
-                  --ram-color: {% set ram = states('sensor.node_proxmox_memory_used_percentage') | float(0) %}
-                               {% if ram >= 90 %}#ff4444{% elif ram >= 75 %}#ff8800{% elif ram >= 50 %}#ffaa00{% else %}#44aa44{% endif %};
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
-                .container {
-                  position: relative !important;
-                }
-                /* CPU - Premier élément */
-                .container::before {
-                  content: "🔲 {% set cpu = states('sensor.node_proxmox_cpu_used') | float(0) %}{{ cpu | round(1) }}%";
-                  position: absolute !important;
-                  right: 140px !important;
-                  top: 50% !important;
-                  transform: translateY(-50%) !important;
-                  font-size: 14px !important;
-                  font-weight: 500 !important;
-                  color: var(--cpu-color) !important;
-                }
-                /* RAM - Deuxième élément */
-                .container::after {
-                  content: "💾 {% set ram = states('sensor.node_proxmox_memory_used_percentage') | float(0) %}{{ ram | round(1) }}%";
-                  position: absolute !important;
-                  right: 60px !important;
-                  top: 50% !important;
-                  transform: translateY(-50%) !important;
-                  font-size: 14px !important;
-                  font-weight: 500 !important;
-                  color: var(--ram-color) !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Disque Proxmox
-            secondary: >-
-              {{
-                states('sensor.system_monitor_utilisation_du_disque_share_proxmoxryzen') | float | round(1)
-              }}% • {{
-                states('sensor.system_monitor_espace_libre_share_proxmoxryzen') | float | round(1)
-              }} Go / {{
-                (states('sensor.system_monitor_espace_utilise_share_proxmoxryzen') | float + states('sensor.system_monitor_espace_libre_share_proxmoxryzen') | float) | round(1)
-              }} Go
-
-              🌡️ {{ states('sensor.disk_proxmox_ct1000p3pssd8_temperature') |
-              int }}°C
-            icon: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_proxmoxryzen')
-              | float %} {% if usage > 90 %}
-                mdi:harddisk-remove
-              {% elif usage > 75 %}
-                mdi:harddisk-plus
-              {% else %}
-                mdi:harddisk
-              {% endif %}
-            badge_icon: >-
-              {% set temp =
-              states('sensor.disk_proxmox_ct1000p3pssd8_temperature') | int %}
-              {% if temp > 50 %}
-                mdi:thermometer-alert
-              {% elif temp > 40 %}
-                mdi:thermometer-high
-              {% else %}
-                mdi:thermometer
-              {% endif %}
-            badge_color: >-
-              {% set temp =
-              states('sensor.disk_proxmox_ct1000p3pssd8_temperature') | int %}
-              {% if temp > 50 %}
-                red
-              {% elif temp > 40 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            entity: sensor.system_monitor_utilisation_du_disque_share_proxmoxryzen
-            tap_action:
-              action: more-info
-            multiline_secondary: true
-            color: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_proxmoxryzen')
-              | float %} {% if usage > 90 %}
-                red
-              {% elif usage > 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            features_position: bottom
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                  border-radius: 20px !important;
-                  transition: all 0.3s ease !important;
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Disque Proxmox LVM
-            secondary: >-
-              {{
-                states('sensor.storage_proxmox_local_lvm_disk_used_percentage') | float | round(1)
-              }}% • {{
-                states('sensor.storage_proxmox_local_lvm_disk_free') | float | round(1)
-              }} Go / {{
-                (states('sensor.storage_proxmox_local_lvm_disk_used') | float + states('sensor.storage_proxmox_local_lvm_disk_free') | float) | round(1)
-              }} Go
-
-              🌡️ {{ states('sensor.disk_proxmox_ct1000p3pssd8_temperature') |
-              int }}°C
-            icon: >-
-              {% set usage =
-              states('sensor.storage_proxmox_local_lvm_disk_used_percentage') |
-              float %} {% if usage > 90 %}
-                mdi:harddisk-remove
-              {% elif usage > 75 %}
-                mdi:harddisk-plus
-              {% else %}
-                mdi:harddisk
-              {% endif %}
-            badge_icon: >-
-              {% set temp =
-              states('sensor.disk_proxmox_ct1000p3pssd8_temperature') | int %}
-              {% if temp > 50 %}
-                mdi:thermometer-alert
-              {% elif temp > 40 %}
-                mdi:thermometer-high
-              {% else %}
-                mdi:thermometer
-              {% endif %}
-            badge_color: >-
-              {% set temp =
-              states('sensor.disk_proxmox_ct1000p3pssd8_temperature') | int %}
-              {% if temp > 50 %}
-                red
-              {% elif temp > 40 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            entity: sensor.storage_proxmox_local_lvm_disk_used_percentage
-            tap_action:
-              action: more-info
-            multiline_secondary: true
-            color: >-
-              {% set usage =
-              states('sensor.storage_proxmox_local_lvm_disk_used_percentage') |
-              float %} {% if usage > 90 %}
-                red
-              {% elif usage > 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            features_position: bottom
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                  border-radius: 20px !important;
-                  transition: all 0.3s ease !important;
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Dockarr
-            secondary: ''
-            icon: fa6-brands:docker
-            badge_icon: >-
-              {% set cpu = states('sensor.qemu_dockarr_108_cpu_used') | float(0)
-              %}  {% set ram =
-              states('sensor.qemu_dockarr_108_memory_used_percentage') |
-              float(0) %}  {% if cpu >= 80 or ram >= 90 %}
-                mdi:alert-circle
-              {% elif cpu >= 60 or ram >= 75 %}
-                mdi:alert
-              {% else %}
-                mdi:check-circle
-              {% endif %}
-            badge_color: >-
-              {% set cpu = states('sensor.qemu_dockarr_108_cpu_used') | float(0)
-              %}  {% set ram =
-              states('sensor.qemu_dockarr_108_memory_used_percentage') |
-              float(0) %}  {% if cpu >= 80 or ram >= 90 %}
-                red
-              {% elif cpu >= 60 or ram >= 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            color: blue
-            features_position: bottom
+          - type: custom:streamline-card
+            template: mushroom_disk_card
+            variables:
+              name: Disque Proxmox
+              usage_entity: sensor.system_monitor_utilisation_du_disque_share_proxmoxryzen
+              free_entity: sensor.system_monitor_espace_libre_share_proxmoxryzen
+              used_entity: sensor.system_monitor_espace_utilise_share_proxmoxryzen
+              unit: Go
+              temp_entity: sensor.disk_proxmox_ct1000p3pssd8_temperature
+          - type: custom:streamline-card
+            template: mushroom_disk_card
+            variables:
+              name: Disque Proxmox LVM
+              usage_entity: sensor.storage_proxmox_local_lvm_disk_used_percentage
+              free_entity: sensor.storage_proxmox_local_lvm_disk_free
+              used_entity: sensor.storage_proxmox_local_lvm_disk_used
+              unit: Go
+              temp_entity: sensor.disk_proxmox_ct1000p3pssd8_temperature
+          - type: custom:streamline-card
+            template: mushroom_server_status_card
+            variables:
+              name: Dockarr
+              icon: fa6-brands:docker
+              color: blue
+              cpu_entity: sensor.qemu_dockarr_108_cpu_used
+              ram_entity: sensor.qemu_dockarr_108_memory_used_percentage
             grid_options:
               columns: 12
               rows: 1
-            card_mod:
-              style: |
-                ha-card {
-                  --ha-card-border-radius: 25px !important;
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border-radius: 20px !important;
-                  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
-                  transition: all 0.3s ease !important;
-                  
-                  /* Variables CSS pour les couleurs */
-                  --cpu-color: {% set cpu = states('sensor.qemu_dockarr_108_cpu_used') | float(0) %}
-                               {% if cpu >= 80 %}#ff4444{% elif cpu >= 60 %}#ff8800{% elif cpu >= 40 %}#ffaa00{% else %}#44aa44{% endif %};
-                  --ram-color: {% set ram = states('sensor.qemu_dockarr_108_memory_used_percentage') | float(0) %}
-                               {% if ram >= 90 %}#ff4444{% elif ram >= 75 %}#ff8800{% elif ram >= 50 %}#ffaa00{% else %}#44aa44{% endif %};
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
-                .container {
-                  position: relative !important;
-                }
-                /* CPU - Premier élément */
-                .container::before {
-                  content: "🔲 {% set cpu = states('sensor.qemu_dockarr_108_cpu_used') | float(0) %}{{ cpu | round(1) }}%";
-                  position: absolute !important;
-                  right: 140px !important;
-                  top: 50% !important;
-                  transform: translateY(-50%) !important;
-                  font-size: 14px !important;
-                  font-weight: 500 !important;
-                  color: var(--cpu-color) !important;
-                }
-                /* RAM - Deuxième élément */
-                .container::after {
-                  content: "💾 {% set ram = states('sensor.qemu_dockarr_108_memory_used_percentage') | float(0) %}{{ ram | round(1) }}%";
-                  position: absolute !important;
-                  right: 60px !important;
-                  top: 50% !important;
-                  transform: translateY(-50%) !important;
-                  font-size: 14px !important;
-                  font-weight: 500 !important;
-                  color: var(--ram-color) !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Disque Dockarr
-            secondary: |-
-              {{
-                states('sensor.system_monitor_utilisation_du_disque_share_dockarr') | float | round(1)
-              }}% • {{
-                states('sensor.system_monitor_espace_libre_share_dockarr') | float | round(1)
-              }} Go / {{
-                (states('sensor.system_monitor_espace_utilise_share_dockarr') | float + states('sensor.system_monitor_espace_libre_share_dockarr') | float) | round(1)
-              }} Go
-            icon: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_dockarr')
-              | float %} {% if usage > 90 %}
-                mdi:harddisk-remove
-              {% elif usage > 75 %}
-                mdi:harddisk-plus
-              {% else %}
-                mdi:harddisk
-              {% endif %}
-            entity: sensor.system_monitor_utilisation_du_disque_share_dockarr
-            tap_action:
-              action: more-info
-            multiline_secondary: true
-            color: >-
-              {% set usage =
-              states('sensor.system_monitor_utilisation_du_disque_share_dockarr')
-              | float %} {% if usage > 90 %}
-                red
-              {% elif usage > 75 %}
-                orange
-              {% else %}
-                seagreen
-              {% endif %}
-            features_position: bottom
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  backdrop-filter: none !important;
-                  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-                  border-radius: 20px !important;
-                  transition: all 0.3s ease !important;
-                }
-                ha-card:hover {
-                  transform: translateY(-2px) !important;
-                  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
-                }
+          - type: custom:streamline-card
+            template: mushroom_disk_card
+            variables:
+              name: Disque Dockarr
+              usage_entity: sensor.system_monitor_utilisation_du_disque_share_dockarr
+              free_entity: sensor.system_monitor_espace_libre_share_dockarr
+              used_entity: sensor.system_monitor_espace_utilise_share_dockarr
+              unit: Go
       - type: grid
         cards:
+          - type: custom:mushroom-title-card
+            title: Samba Backup
+            title_tap_action:
+              action: none
           - square: false
             type: grid
             cards:
-              - type: custom:bubble-card
-                card_type: separator
-                name: Samba backup
-              - square: false
-                type: grid
-                cards:
-                  - type: custom:bubble-card
-                    card_type: button
-                    button_type: state
-                    entity: sensor.samba_backup
-                    name: Status
-                    scrolling_effect: false
-                    icon: ''
-                    columns: 1
-                  - type: custom:bubble-card
-                    card_type: button
-                    button_type: state
-                    entity: sensor.samba_backup
-                    name: Local
-                    scrolling_effect: false
-                    icon: ''
-                    columns: 1
-                    show_state: false
-                    show_attribute: true
-                    attribute: backups_local
-                  - type: custom:bubble-card
-                    card_type: button
-                    button_type: state
-                    entity: sensor.samba_backup
-                    name: Failed
-                    scrolling_effect: false
-                    icon: ''
-                    columns: 1
-                    show_state: false
-                    show_attribute: true
-                    attribute: total_backups_failed
-                  - type: custom:bubble-card
-                    card_type: button
-                    button_type: state
-                    entity: sensor.samba_backup
-                    name: Remote
-                    scrolling_effect: false
-                    icon: ''
-                    columns: 1
-                    show_state: false
-                    show_attribute: true
-                    attribute: backups_remote
-                  - type: custom:bubble-card
-                    card_type: button
-                    button_type: state
-                    entity: sensor.samba_backup
-                    name: Succeeded
-                    scrolling_effect: false
-                    icon: ''
-                    columns: 1
-                    show_state: false
-                    show_attribute: true
-                    attribute: total_backups_succeeded
-                  - type: custom:bubble-card
-                    card_type: button
-                    button_type: state
-                    entity: sensor.samba_backup
-                    name: Last
-                    scrolling_effect: false
-                    icon: ''
-                    columns: 1
-                    show_state: false
-                    show_attribute: true
-                    attribute: last_backup
-                  - type: custom:bubble-card
-                    card_type: button
-                    button_type: name
-                    name: Run backup
-                    scrolling_effect: false
-                    button_action:
-                      tap_action:
-                        action: call-service
-                        service: hassio.addon_stdin
-                        service_data:
-                          addon: 15d21743_samba_backup
-                          input: trigger
-                        target: {}
-                    icon: mdi:database
-                    tap_action:
-                      action: call-service
-                      target: {}
-                      service: hassio.addon_stdin
-                      service_data:
-                        addon: 15d21743_samba_backup
-                        input: trigger
-                  - type: custom:bubble-card
-                    card_type: button
-                    button_type: name
-                    name: Reset
-                    scrolling_effect: false
-                    button_action:
-                      tap_action:
-                        action: call-service
-                        target: {}
-                        service: hassio.addon_stdin
-                        service_data:
-                          addon: 15d21743_samba_backup
-                          input: reset-counter
-                    icon: mdi:database
-                    sub_button: []
-                columns: 2
-            columns: 1
+              - type: custom:streamline-card
+                template: mushroom_attribute_card
+                variables:
+                  name: Status
+                  entity: sensor.samba_backup
+                  attribute: state
+                  icon: mdi:backup-restore
+              - type: custom:streamline-card
+                template: mushroom_attribute_card
+                variables:
+                  name: Local
+                  entity: sensor.samba_backup
+                  attribute: backups_local
+                  icon: mdi:harddisk
+              - type: custom:streamline-card
+                template: mushroom_attribute_card
+                variables:
+                  name: Failed
+                  entity: sensor.samba_backup
+                  attribute: total_backups_failed
+                  icon: mdi:alert-circle
+              - type: custom:streamline-card
+                template: mushroom_attribute_card
+                variables:
+                  name: Remote
+                  entity: sensor.samba_backup
+                  attribute: backups_remote
+                  icon: mdi:cloud
+              - type: custom:streamline-card
+                template: mushroom_attribute_card
+                variables:
+                  name: Succeeded
+                  entity: sensor.samba_backup
+                  attribute: total_backups_succeeded
+                  icon: mdi:check-circle
+              - type: custom:streamline-card
+                template: mushroom_attribute_card
+                variables:
+                  name: Last
+                  entity: sensor.samba_backup
+                  attribute: last_backup
+                  icon: mdi:clock-outline
+              - type: custom:streamline-card
+                template: mushroom_action_button
+                variables:
+                  name: Run backup
+                  icon: mdi:play-circle
+                  service: hassio.addon_stdin
+                  service_data:
+                    addon: 15d21743_samba_backup
+                    input: trigger
+              - type: custom:streamline-card
+                template: mushroom_action_button
+                variables:
+                  name: Reset
+                  icon: mdi:restore
+                  service: hassio.addon_stdin
+                  service_data:
+                    addon: 15d21743_samba_backup
+                    input: reset-counter
+            columns: 2
+        columns: 1
     cards: []
     badges:
       - type: custom:streamline-card
