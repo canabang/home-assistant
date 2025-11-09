@@ -1,0 +1,27 @@
+#substitutions:
+#  name: "a changer"
+#  offset: "0"
+#  bmeaddress: "0x76"  # 0x77
+
+esphome:
+  name: ${name}
+  friendly_name: ${name}
+
+sensor:
+  - platform: bme280_i2c
+    temperature:
+      name: "Temperature"
+      id: "BME280_Temperature"
+      oversampling: 16x
+      accuracy_decimals: 2
+      device_class: "temperature"
+      filters:
+        - offset: ${offset}
+    pressure:
+      name: "Pressure"
+      id: "BME280_Pressure"
+    humidity:
+      name: "Humidity"
+      id: "BME280_Humidity"
+    update_interval: 20s
+    address: ${bmeaddress}
