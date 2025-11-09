@@ -319,8 +319,8 @@ streamline_templates:
           ha-card {
             {% if '[[type]]' == 'mini' %}
               --ha-card-border-radius: 25px;
-              background: rgba(255, 255, 255, 0.1) !important;
-              backdrop-filter: blur(10px) !important;
+              background: transparent !important;
+              backdrop-filter: none !important;
               border: 1px solid rgba(255, 255, 255, 0.2) !important;
               box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
             {% else %}
@@ -403,8 +403,8 @@ streamline_templates:
             --ha-card-border-radius: 25px;
             --card-primary-color: {% if is_state('[[entity]]', 'on') %} [[color_on]] {% else %} var(--primary-text-color) {% endif %};
             --card-secondary-color: {% if is_state('[[entity]]', 'on') %} [[color_on]] {% else %} var(--secondary-text-color) {% endif %};
-            background: rgba(255, 255, 255, 0.1) !important;
-            backdrop-filter: blur(10px) !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
           }
@@ -476,8 +476,8 @@ streamline_templates:
             --ha-card-border-radius: 25px;
             --card-primary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--primary-text-color) {% endif %};
             --card-secondary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--secondary-text-color) {% endif %};
-            background: rgba(255, 255, 255, 0.1) !important;
-            backdrop-filter: blur(10px) !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
           }
@@ -538,8 +538,8 @@ streamline_templates:
             --ha-card-border-radius: 25px;
             --card-primary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--primary-text-color) {% endif %};
             --card-secondary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--secondary-text-color) {% endif %};
-            background: rgba(255, 255, 255, 0.1) !important;
-            backdrop-filter: blur(10px) !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
           }
@@ -573,8 +573,8 @@ streamline_templates:
             --ha-card-border-radius: 25px;
             --card-primary-color: {% if is_state('[[entity]]', 'open') %} [[color_open]] {% else %} [[color_closed]] {% endif %};
             --card-secondary-color: {% if is_state('[[entity]]', 'open') %} [[color_open]] {% else %} [[color_closed]] {% endif %};
-            background: rgba(255, 255, 255, 0.1) !important;
-            backdrop-filter: blur(10px) !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
           }
@@ -627,8 +627,8 @@ streamline_templates:
         style: |
           ha-card {
             --ha-card-border-radius: 25px;
-            background: rgba(255, 255, 255, 0.1) !important;
-            backdrop-filter: blur(10px) !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
           }
@@ -729,8 +729,8 @@ streamline_templates:
             --ha-card-border-radius: 25px;
             --card-primary-color: {% if is_state('[[entity]]', 'idle') %} var(--primary-text-color) {% else %} seagreen {% endif %};
             --card-secondary-color: {% if is_state('[[entity]]', 'idle') %} var(--secondary-text-color) {% else %} seagreen {% endif %};
-            background: rgba(255, 255, 255, 0.1) !important;
-            backdrop-filter: blur(10px) !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
           }
@@ -1083,8 +1083,8 @@ views:
               style: |
                 ha-card {
                   --ha-card-border-radius: 255px !important;
-                  background: rgba(255, 255, 255, 0.1) !important;
-                  backdrop-filter: blur(10px) !important;
+                  background: transparent !important;
+                  backdrop-filter: none !important;
                   border: 1px solid rgba(255, 255, 255, 0.2) !important;
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                 }
@@ -1138,8 +1138,8 @@ views:
                       --ha-card-border-radius: 25px;
                       --card-primary-color: {% if states('sensor.lumieres_allumees') | int > 0 %} seagreen {% else %} var(--primary-text-color) {% endif %};
                       --card-secondary-color: {% if states('sensor.lumieres_allumees') | int > 0 %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -1176,8 +1176,8 @@ views:
                       --ha-card-border-radius: 25px;
                       --card-primary-color: {% if states('sensor.nombre_volets') | int > 0 %} seagreen {% else %} var(--primary-text-color) {% endif %};
                       --card-secondary-color: {% if states('sensor.nombre_volets') | int > 0 %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -1214,8 +1214,8 @@ views:
                       --ha-card-border-radius: 25px;
                       --card-primary-color: {% if states('sensor.nombre_fenetres') | int > 0 %} seagreen {% else %} var(--primary-text-color) {% endif %};
                       --card-secondary-color: {% if states('sensor.nombre_fenetres') | int > 0 %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -1252,8 +1252,8 @@ views:
                       --ha-card-border-radius: 25px;
                       --card-primary-color: {% if states('sensor.nombre_portes') | int > 0 %} seagreen {% else %} var(--primary-text-color) {% endif %};
                       --card-secondary-color: {% if states('sensor.nombre_portes') | int > 0 %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -1285,8 +1285,8 @@ views:
                       --ha-card-border-radius: 25px;
                       --card-primary-color: {% if states('sensor.nombre_prises') | int > 0 %} seagreen {% else %} var(--primary-text-color) {% endif %};
                       --card-secondary-color: {% if states('sensor.nombre_prises') | int > 0 %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -1346,8 +1346,8 @@ views:
               style: |
                 ha-card {
                   --ha-card-border-radius: 25px;
-                  background: rgba(255, 255, 255, 0.1) !important;
-                  backdrop-filter: blur(10px) !important;
+                  background: transparent !important;
+                  backdrop-filter: none !important;
                   border: 1px solid rgba(255, 255, 255, 0.2) !important;
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                 }
@@ -1435,8 +1435,8 @@ views:
                   --ha-card-border-radius: 25px;
                   --card-primary-color: var(--primary-text-color);
                   --card-secondary-color: var(--secondary-text-color);
-                  background: rgba(255, 255, 255, 0.1) !important;
-                  backdrop-filter: blur(10px) !important;
+                  background: transparent !important;
+                  backdrop-filter: none !important;
                   border: 1px solid rgba(255, 255, 255, 0.2) !important;
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                   overflow: hidden;
@@ -2069,8 +2069,8 @@ views:
                   style: |
                     ha-card {
                       --ha-card-border-radius: 15px !important;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                     }
               - type: horizontal-stack
@@ -2163,8 +2163,8 @@ views:
                   style: |
                     ha-card {
                       --ha-card-border-radius: 15px !important;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                     }
               - type: horizontal-stack
@@ -2255,8 +2255,8 @@ views:
                   style: |
                     ha-card {
                       --ha-card-border-radius: 15px !important;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                     }
               - type: horizontal-stack
@@ -2347,8 +2347,8 @@ views:
                   style: |
                     ha-card {
                       --ha-card-border-radius: 15px !important;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                     }
               - type: custom:mushroom-light-card
@@ -2365,8 +2365,8 @@ views:
                   style: |
                     ha-card {
                       --ha-card-border-radius: 15px !important;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                     }
               - type: horizontal-stack
@@ -2457,8 +2457,8 @@ views:
                   style: |
                     ha-card {
                       --ha-card-border-radius: 15px !important;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                     }
               - type: horizontal-stack
@@ -2895,8 +2895,8 @@ views:
                       --ha-card-border-radius: 25px;
                       --card-primary-color: {% if is_state('input_boolean.switch_tv_2', 'on') %} seagreen {% else %} var(--primary-text-color) {% endif %};
                       --card-secondary-color: {% if is_state('input_boolean.switch_tv_2', 'on') %} seagreen {% else %} var(--secondary-text-color) {% endif %};
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -2932,8 +2932,8 @@ views:
                   style: |
                     ha-card {
                       --ha-card-border-radius: 25px;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -3278,8 +3278,8 @@ views:
               style: |
                 ha-card {
                   --ha-card-border-radius: 25px;
-                  background: rgba(255, 255, 255, 0.1) !important;
-                  backdrop-filter: blur(10px) !important;
+                  background: transparent !important;
+                  backdrop-filter: none !important;
                   border: 1px solid rgba(255, 255, 255, 0.2) !important;
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                 }
@@ -3458,7 +3458,7 @@ views:
                         {% if level > 30 %}mediumslateblue{% elif level > 15 %}goldenrod{% else %}red{% endif %} {{ level }}%,
                         rgba(255, 255, 255, 0.1) {{ level }}%,
                         rgba(255, 255, 255, 0.1) 100%) !important;
-                      backdrop-filter: blur(10px) !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -3497,7 +3497,7 @@ views:
                         {% if level > 30 %}maroon{% elif level > 15 %}goldenrod{% else %}red{% endif %} {{ level }}%,
                         rgba(255, 255, 255, 0.1) {{ level }}%,
                         rgba(255, 255, 255, 0.1) 100%) !important;
-                      backdrop-filter: blur(10px) !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -3533,7 +3533,7 @@ views:
                         {% if level > 30 %}brown{% elif level > 15 %}goldenrod{% else %}red{% endif %} {{ level }}%,
                         rgba(255, 255, 255, 0.1) {{ level }}%,
                         rgba(255, 255, 255, 0.1) 100%) !important;
-                      backdrop-filter: blur(10px) !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -3551,8 +3551,8 @@ views:
                   style: |
                     ha-card {
                       --ha-card-border-radius: 25px;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -3770,8 +3770,8 @@ views:
                   style: |
                     ha-card {
                       --ha-card-border-radius: 25px;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -3890,8 +3890,8 @@ views:
               style: |
                 ha-card {
                   --ha-card-border-radius: 25px;
-                  background: rgba(255, 255, 255, 0.1) !important;
-                  backdrop-filter: blur(10px) !important;
+                  background: transparent !important;
+                  backdrop-filter: none !important;
                   border: 1px solid rgba(255, 255, 255, 0.2) !important;
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                 }
@@ -3906,8 +3906,8 @@ views:
               style: |
                 ha-card {
                   --ha-card-border-radius: 25px;
-                  background: rgba(255, 255, 255, 0.1) !important;
-                  backdrop-filter: blur(10px) !important;
+                  background: transparent !important;
+                  backdrop-filter: none !important;
                   border: 1px solid rgba(255, 255, 255, 0.2) !important;
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                 }
@@ -4195,8 +4195,8 @@ views:
               style: |
                 ha-card {
                   --ha-card-border-radius: 25px;
-                  background: rgba(255, 255, 255, 0.1) !important;
-                  backdrop-filter: blur(10px) !important;
+                  background: transparent !important;
+                  backdrop-filter: none !important;
                   border: 1px solid rgba(255, 255, 255, 0.2) !important;
                   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                 }
@@ -4242,8 +4242,8 @@ views:
                   style: |
                     ha-card {
                       --ha-card-border-radius: 25px;
-                      background: rgba(255, 255, 255, 0.1) !important;
-                      backdrop-filter: blur(10px) !important;
+                      background: transparent !important;
+                      backdrop-filter: none !important;
                       border: 1px solid rgba(255, 255, 255, 0.2) !important;
                       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
                     }
@@ -4442,7 +4442,7 @@ views:
           icon_off: hue:room-bathroom-off
           navigation_path: /salon-mushroom/sdb
   - type: sections
-    max_columns: 4
+    max_columns: 3
     title: Disques_dur
     path: disques-dur
     icon: m3s:hard-drive
@@ -4652,6 +4652,27 @@ views:
                     input: reset-counter
             columns: 2
         columns: 1
+      - type: grid
+        cards:
+          - type: custom:streamline-card
+            template: mushroom_server_status_card
+            variables:
+              name: HA
+              icon: mdi:home-assistant
+              color: blue
+              cpu_entity: sensor.system_monitor_utilisation_du_processeur
+              ram_entity: sensor.system_monitor_utilisation_de_la_memoire
+            grid_options:
+              columns: 12
+              rows: 1
+          - type: custom:streamline-card
+            template: mushroom_disk_card
+            variables:
+              name: Disque HA
+              usage_entity: sensor.system_monitor_utilisation_du_disque
+              free_entity: sensor.system_monitor_espace_libre
+              used_entity: sensor.system_monitor_espace_utilise
+              unit: Go
     cards: []
     badges:
       - type: custom:streamline-card
