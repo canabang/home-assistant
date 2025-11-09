@@ -1,0 +1,35 @@
+#substitutions:
+#  name: "a changer"
+#  ibeacon_uuid: "à changer"
+#  ibeacon_name: "à changer"
+#  min_rssi: "à changer" -73dB
+
+esphome:
+  name: ${name}
+  friendly_name: ${name}
+
+esp32_ble_tracker:
+  scan_parameters:
+    duration: 60s
+    active: true
+
+bluetooth_proxy:
+  active: true
+
+binary_sensor:
+  - platform: ble_presence
+    ibeacon_uuid: ${ibeacon_uuid}
+    name: "${ibeacon_name} Presence"
+    id: ${ibeacon_name}_uuid
+    ibeacon_major: 74
+    ibeacon_minor: 13
+    min_rssi: ${min_rssi}
+    timeout: 5s
+
+sensor:
+  - platform: ble_rssi
+    ibeacon_uuid: ${ibeacon_uuid}
+    name: "${ibeacon_name} RSSI"
+    ibeacon_major: 74
+    ibeacon_minor: 13
+    entity_category: diagnostic
