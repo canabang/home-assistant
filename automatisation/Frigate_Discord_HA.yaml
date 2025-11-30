@@ -1,0 +1,181 @@
+alias: 🤖 Frigate → Discord + HA (Smart Notif)
+description: Détections Frigate avec GenAI, identification auto, emojis et cooldown
+
+# ═══════════════════════════════════════════════════════════════════
+# DÉCLENCHEUR : Écoute les événements MQTT publiés par Frigate
+# ═══════════════════════════════════════════════════════════════════
+triggers:
+  # Topic MQTT où Frigate publie tous ses événements de détection
+  - topic: frigate/events
+    trigger: mqtt
+
+# ═══════════════════════════════════════════════════════════════════
+# CONDITIONS : Filtres pour éviter les notifications inutiles
+# ═══════════════════════════════════════════════════════════════════
+conditions:
+  # Condition 1 : Ne notifier QUE quand l'événement est terminé et a un snapshot
+  # (évite les notifications pendant le tracking)
+  - condition: template
+    value_template: >
+      {{ trigger.payload_json.type == 'end' and
+         trigger.payload_json.after.has_snapshot }}
+  
+  # Condition 2 : COOLDOWN pour éviter le spam de notifications
+  # ⚙️ MODIFIE LES DURÉES ICI ⚙️
+  - condition: template
+    value_template: >
+      {% set label = trigger.payload_json.after.label %}
+      {% set last_cat = state_attr('automation.frigate_discord_ha_smart_notif', 'last_triggered_cat') | default(0) %}
+      {% set last_person = state_attr('automation.frigate_discord_ha_smart_notif', 'last_triggered_person') | default(0) %}
+      {% set now_ts = now().timestamp() %}
+      {% if label == 'cat' %}
+        {# ⏱️ COOLDOWN CHAT : 1800 secondes = 30 minutes #}
+        {# Pour changer : remplace 1800 par le nombre de secondes souhaité #}
+        {# Exemples : 600 = 10min, 1200 = 20min, 3600 = 1h #}
+        {{ (now_ts - last_cat) > 1800 }}
+      {% elif label == 'person' %}
+        {# ⏱️ COOLDOWN PERSONNE : 300 secondes = 5 minutes #}
+        {# Pour changer : remplace 300 par le nombre de secondes souhaité #}
+        {# Exemples : 60 = 1min, 180 = 3min, 600 = 10min #}
+        {{ (now_ts - last_person) > 300 }}
+      {% else %}
+        {# Autres détections (si tu ajoutes d'autres objets) : pas de cooldown #}
+        true
+      {% endif %}
+# ═══════════════════════════════════════════════════════════════════
+# ACTIONS : Ce qui se passe quand les conditions sont remplies
+# ═══════════════════════════════════════════════════════════════════
+actions:
+  # Action 1 : Enregistrer le timestamp de cette notification (pour le cooldown)
+  # Ceci met à jour l'attribut de l'automatisation avec l'heure actuelle
+  - action: automation.set
+    data:
+      entity_id: automation.frigate_discord_ha_smart_notif
+      attributes:
+        last_triggered_{{ label }}: "{{ now().timestamp() }}"
+  
+  # Action 2 : Envoyer la notification Discord via ton script existant
+  - action: script.notification_discord
+    data:
+      # Nom avec emoji : "🐱 Princesse" ou "🏠 Gaël"
+      nom: "{{ emoji }} {{ identity_name }}"
+      # Description formatée avec toutes les infos
+      description: |
+        {{ emoji }} **{{ identity_name }}** détecté{{ 'e' if label == 'cat' else '' }}
+        📷 **Caméra:** {{ camera_name }}
+        ⏰ **Heure:** {{ timestamp }}
+        🎯 **Score:** {{ score }}%
+        
+        **🤖 Rapport K-2SO:**
+        {{ description }}
+        
+        [📹 Voir la vidéo]({{ clip_url }}) • [📊 Détails]({{ details_url }})
+      # URL de l'image snapshot
+      image_url: "{{ snapshot_url }}"
+      images: "{{ snapshot_url }}"
+  
+  # Action 3 : Créer une notification persistante dans Home Assistant
+  # (visible dans la barre de notification jusqu'à ce qu'on la ferme)
+  - action: persistent_notification.create
+    data:
+      # ID unique basé sur l'event Frigate (permet de remplacer si doublon)
+      notification_id: "frigate_{{ event_id }}"
+      # Titre court avec emoji
+      title: "{{ emoji }} {{ identity_name }} - {{ camera_name }}"
+      # Message détaillé avec Markdown
+      message: >
+        ⏰ **{{ timestamp }}**
+        
+        **🤖 Rapport K-2SO:**
+        {{ description }}
+        
+        **Détails techniques:**
+        • Label: {{ label }}
+        • Score: {{ score }}%
+        • Durée: {{ duration }}s
+        • Event ID: `{{ event_id }}`
+        
+        **Liens:**
+        [📸 Snapshot]({{ snapshot_url }}) • [📹 Vidéo]({{ clip_url }}) • [📊 Détails]({{ details_url }})
+
+# ═══════════════════════════════════════════════════════════════════
+# MODE & LIMITE : Gestion des notifications simultanées
+# ═══════════════════════════════════════════════════════════════════
+mode: queued  # Les notifications sont mises en file d'attente (pas de perte)
+max: 10       # Maximum 10 notifications en attente
+
+# ═══════════════════════════════════════════════════════════════════
+# VARIABLES : Extraction et traitement des données de l'événement
+# ═══════════════════════════════════════════════════════════════════
+variables:
+  # ─────────────────────────────────────────────────────────────────
+  # Données brutes extraites du payload MQTT de Frigate
+  # ─────────────────────────────────────────────────────────────────
+  event_id: "{{ trigger.payload_json.after.id }}"
+  camera: "{{ trigger.payload_json.after.camera }}"
+  label: "{{ trigger.payload_json.after.label }}"  # "cat", "person", etc.
+  score: "{{ (trigger.payload_json.after.score * 100) | round(0) }}"  # Score de confiance en %
+  sub_label: "{{ trigger.payload_json.after.sub_label | default('') }}"  # Nom reconnu (Gaël, etc.) ou vide
+  duration: "{{ trigger.payload_json.after.end_time - trigger.payload_json.after.start_time }}"  # Durée en secondes
+  description: "{{ trigger.payload_json.after.attributes.genai.description | default('Description non disponible') }}"  # Description GenAI/K-2SO
+  
+  # ─────────────────────────────────────────────────────────────────
+  # Nom de la caméra traduit en français avec emoji
+  # ⚙️ AJOUTE TES CAMÉRAS ICI ⚙️
+  # ─────────────────────────────────────────────────────────────────
+  camera_name: >
+    {% if camera == 'holocron' %}
+      🍽️ Gamelles
+    {% elif camera == 'oeil-de-sauron' %}
+      🚪 Entrée
+    {% else %}
+      {{ camera }}  # Nom brut si caméra non reconnue
+    {% endif %}
+  
+  # ─────────────────────────────────────────────────────────────────
+  # Emoji basé sur le type de détection ET reconnaissance faciale
+  # ⚙️ PERSONNALISE LES EMOJIS ICI ⚙️
+  # ─────────────────────────────────────────────────────────────────
+  emoji: >
+    {% if label == 'cat' %}
+      🐱  {# Toujours un chat pour Princesse #}
+    {% elif label == 'person' %}
+      {% if sub_label and sub_label != 'unknown' %}
+        🏠  {# Personne reconnue (Gaël, etc.) #}
+      {% else %}
+        ⚠️  {# Personne inconnue/non reconnue #}
+      {% endif %}
+    {% else %}
+      🔍  {# Autre type de détection #}
+    {% endif %}
+  
+  # ─────────────────────────────────────────────────────────────────
+  # Nom identifié de manière intelligente
+  # Utilise la reconnaissance faciale de Frigate via sub_label
+  # ─────────────────────────────────────────────────────────────────
+  identity_name: >
+    {% if label == 'cat' %}
+      Princesse
+    {% elif label == 'person' %}
+      {% if sub_label and sub_label != 'unknown' %}
+        {{ sub_label }}  {# Nom reconnu par Frigate (ex: "Gaël") #}
+      {% else %}
+        Personne inconnue
+      {% endif %}
+    {% else %}
+      Détection {{ label }}  {# Pour tout autre type d'objet #}
+    {% endif %}
+  
+  # ─────────────────────────────────────────────────────────────────
+  # Horodatage formaté en français
+  # Format : 21/11/25 à 07h28
+  # ─────────────────────────────────────────────────────────────────
+  timestamp: "{{ now().strftime('%d/%m/%y à %Hh%M') }}"
+  
+  # ─────────────────────────────────────────────────────────────────
+  # URLs pour accéder aux médias et détails de l'événement
+  # ⚙️ REMPLACE PAR TON URL FRIGATE ⚙️
+  # ─────────────────────────────────────────────────────────────────
+  snapshot_url: "https://frigate.canagalactica.ovh/api/events/{{ event_id }}/snapshot.jpg"
+  clip_url: "https://frigate.canagalactica.ovh/api/events/{{ event_id }}/clip.mp4"
+  details_url: "https://frigate.canagalactica.ovh/events?camera={{ camera }}&id={{ event_id }}"
