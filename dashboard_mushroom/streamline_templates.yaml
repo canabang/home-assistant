@@ -1,0 +1,1010 @@
+streamline_templates:
+  mushroom_attribute_card:
+    default:
+      - attribute: state
+      - icon: mdi:information
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: |-
+        {% if '[[attribute]]' == 'state' %}
+        {{ states('[[entity]]') }}
+        {% else %}
+        {{ state_attr('[[entity]]', '[[attribute]]') }}
+        {% endif %}
+      icon: '[[icon]]'
+      icon_color: |-
+        {% if '[[attribute]]' == 'state' %}
+          {% set status = states('[[entity]]') | lower %}
+          {% if 'succeeded' in status or 'idle' in status %}
+            green
+          {% elif 'running' in status or 'in progress' in status %}
+            blue
+          {% elif 'failed' in status or 'error' in status %}
+            red
+          {% else %}
+            grey
+          {% endif %}
+        {% elif '[[attribute]]' == 'total_backups_failed' %}
+          {% set failed = state_attr('[[entity]]', '[[attribute]]') | int(0) %}
+          {% if failed > 0 %}red{% else %}green{% endif %}
+        {% elif '[[attribute]]' == 'total_backups_succeeded' %}
+          green
+        {% else %}
+          blue
+        {% endif %}
+      tap_action:
+        action: more-info
+      card_mod:
+        style: |
+          ha-card {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            border-radius: 20px !important;
+            transition: all 0.3s ease !important;
+          }
+          ha-card:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+          }
+  mushroom_action_button:
+    default:
+      - icon: mdi:play
+      - service: ''
+      - service_data: {}
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: ''
+      icon: '[[icon]]'
+      icon_color: blue
+      tap_action:
+        action: call-service
+        service: '[[service]]'
+        service_data: '[[service_data]]'
+      card_mod:
+        style: |
+          ha-card {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            border-radius: 20px !important;
+            transition: all 0.3s ease !important;
+            cursor: pointer !important;
+          }
+          ha-card:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+          }
+          ha-card:active {
+            transform: scale(0.98) !important;
+          }
+  mushroom_server_status_card:
+    default:
+      - cpu_entity: ''
+      - ram_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: ''
+      icon: '[[icon]]'
+      badge_icon: |-
+        {% set cpu = states('[[cpu_entity]]') | float(0) %}
+        {% set ram = states('[[ram_entity]]') | float(0) %}
+        {% if cpu >= 80 or ram >= 90 %}
+          mdi:alert-circle
+        {% elif cpu >= 60 or ram >= 75 %}
+          mdi:alert
+        {% else %}
+          mdi:check-circle
+        {% endif %}
+      badge_color: |-
+        {% set cpu = states('[[cpu_entity]]') | float(0) %}
+        {% set ram = states('[[ram_entity]]') | float(0) %}
+        {% if cpu >= 80 or ram >= 90 %}
+          red
+        {% elif cpu >= 60 or ram >= 75 %}
+          orange
+        {% else %}
+          seagreen
+        {% endif %}
+      color: '[[color]]'
+      entity: '[[cpu_entity]]'
+      card_mod:
+        style: |-
+          ha-card {
+            --ha-card-border-radius: 25px !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+            transition: all 0.3s ease !important;
+            
+            --cpu-color: {% set cpu = states('[[cpu_entity]]') | float(0) %}
+                         {% if cpu >= 80 %}#ff4444{% elif cpu >= 60 %}#ff8800{% elif cpu >= 40 %}#ffaa00{% else %}#44aa44{% endif %};
+            --ram-color: {% set ram = states('[[ram_entity]]') | float(0) %}
+                         {% if ram >= 90 %}#ff4444{% elif ram >= 75 %}#ff8800{% elif ram >= 50 %}#ffaa00{% else %}#44aa44{% endif %};
+          }
+          ha-card:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+          }
+          .container {
+            position: relative !important;
+          }
+          .container::before {
+            content: "🔲 {% set cpu = states('[[cpu_entity]]') | float(0) %}{{ cpu | round(1) }}%";
+            position: absolute !important;
+            right: 140px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            color: var(--cpu-color) !important;
+          }
+          .container::after {
+            content: "💾 {% set ram = states('[[ram_entity]]') | float(0) %}{{ ram | round(1) }}%";
+            position: absolute !important;
+            right: 60px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            color: var(--ram-color) !important;
+          }
+  mushroom_disk_card:
+    default:
+      - unit: To
+      - temp_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: >-
+        {% if '[[unit]]' == 'To' %}
+
+        {{ states('[[usage_entity]]') | float | round(1) }}% • {{
+        (states('[[free_entity]]') | float / 1024) | round(1) }} To / {{
+        ((states('[[used_entity]]') | float + states('[[free_entity]]') | float)
+        / 1024) | round(1) }} To
+
+        {% else %}
+
+        {{ states('[[usage_entity]]') | float | round(1) }}% • {{
+        states('[[free_entity]]') | float | round(1) }} Go / {{
+        (states('[[used_entity]]') | float + states('[[free_entity]]') | float)
+        | round(1) }} Go
+
+        {% endif %}
+
+        {% if '[[temp_entity]]' != '' %}🌡️ {{ states('[[temp_entity]]') | int
+        }}°C{% endif %}
+      icon: |-
+        {% set usage = states('[[usage_entity]]') | float %}
+        {% if usage > 90 %}
+          mdi:harddisk-remove
+        {% elif usage > 75 %}
+          mdi:harddisk-plus
+        {% else %}
+          mdi:harddisk
+        {% endif %}
+      badge_icon: |-
+        {% if '[[temp_entity]]' != '' %}
+          {% set temp = states('[[temp_entity]]') | int %}
+          {% if temp > 60 %}
+            mdi:thermometer-alert
+          {% elif temp > 50 %}
+            mdi:thermometer-high
+          {% else %}
+            mdi:thermometer
+          {% endif %}
+        {% endif %}
+      badge_color: |-
+        {% if '[[temp_entity]]' != '' %}
+          {% set temp = states('[[temp_entity]]') | int %}
+          {% if temp > 60 %}
+            red
+          {% elif temp > 50 %}
+            orange
+          {% else %}
+            seagreen
+          {% endif %}
+        {% endif %}
+      entity: '[[usage_entity]]'
+      tap_action:
+        action: more-info
+      multiline_secondary: true
+      color: |-
+        {% set usage = states('[[usage_entity]]') | float %}
+        {% if usage > 90 %}
+          red
+        {% elif usage > 75 %}
+          orange
+        {% else %}
+          seagreen
+        {% endif %}
+      card_mod:
+        style:
+          mushroom-state-info$mushroom-line-info$: |
+            .secondary {
+              width: 100%;
+              animation: scroll-text 15s linear infinite;
+              white-space: nowrap !important;
+              display: inline-block;
+            }
+            @keyframes scroll-text {
+              0% {
+                transform: translateX(0%);
+              }
+              90% {
+                transform: translateX(-50%);
+              }
+              95% {
+                transform: translateX(-50%);
+              }
+              100% {
+                transform: translateX(0%);
+              }
+            }
+            .container:hover .secondary {
+              animation-play-state: paused;
+            }
+          .: |
+            ha-card {
+              background: transparent !important;
+              backdrop-filter: none !important;
+              border: 1px solid rgba(255, 255, 255, 0.2) !important;
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+              border-radius: 20px !important;
+              transition: all 0.3s ease !important;
+            }
+            ha-card:hover {
+              transform: translateY(-2px) !important;
+              box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+            }
+  mushroom_media_player_card:
+    default:
+      - type: native
+      - show_source: false
+      - show_volume: false
+      - artwork: default
+    card:
+      type: |-
+        {% if '[[type]]' == 'mini' %}
+          custom:mini-media-player
+        {% else %}
+          media-control
+        {% endif %}
+      entity: '[[entity]]'
+      name: '[[name]]'
+      artwork: |-
+        {% if '[[type]]' == 'mini' %}
+          {% if '[[artwork]]' == 'full-cover' %}
+            full-cover
+          {% else %}
+            default
+          {% endif %}
+        {% endif %}
+      artwork_border: |-
+        {% if '[[type]]' == 'mini' %}
+          true
+        {% endif %}
+      power_color: |-
+        {% if '[[type]]' == 'mini' %}
+          true
+        {% endif %}
+      show_source: '[[show_source]]'
+      source: |-
+        {% if '[[type]]' == 'mini' %}
+          full
+        {% endif %}
+      info: |-
+        {% if '[[type]]' == 'mini' %}
+          scroll
+        {% endif %}
+      hide: |-
+        {% if '[[type]]' == 'mini' %}
+          power: false
+          repeat: false
+          runtime: false
+          shuffle: false
+          source: {{ not [[show_source]] }}
+          volume: {{ not [[show_volume]] }}
+        {% endif %}
+      card_mod:
+        style: |-
+          ha-card {
+            {% if '[[type]]' == 'mini' %}
+              --ha-card-border-radius: 25px;
+              background: transparent !important;
+              backdrop-filter: none !important;
+              border: 1px solid rgba(255, 255, 255, 0.2) !important;
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            {% else %}
+              position: relative;
+              overflow: hidden;
+              background: rgba(40, 40, 40, 0.8);
+              height: 120px;
+              --ha-card-border-radius: 25px;
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255, 255, 255, 0.2);
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            {% endif %}
+          }
+  mushroom_switch_card:
+    default:
+      - icon: mdi:power
+      - secondary: '{{ ''Allumé'' if is_state(''[[entity]]'', ''on'') else ''Éteint'' }}'
+      - badge_icon: ''
+      - badge_entity: ''
+      - badge_color_template: ''
+      - show_power: false
+      - power_entity: ''
+      - animation: ''
+      - color_on: seagreen
+      - color_off: grey
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: '[[secondary]]'
+      icon: '[[icon]]'
+      icon_color: |-
+        {% if is_state('[[entity]]', 'on') %}
+          [[color_on]]
+        {% else %}
+          [[color_off]]
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: toggle
+      badge_icon: |-
+        {% if '[[badge_icon]]' != '' %}
+          [[badge_icon]]
+        {% elif '[[badge_entity]]' != '' %}
+          {% if '[[show_power]]' == 'true' %}
+            {% if states('[[badge_entity]]') | float(0) > 0 %}
+              mdi:flash
+            {% else %}
+              mdi:flash-off
+            {% endif %}
+          {% else %}
+            mdi:battery
+          {% endif %}
+        {% endif %}
+      badge_color: |-
+        {% if '[[badge_color_template]]' != '' %}
+          [[badge_color_template]]
+        {% elif '[[badge_entity]]' != '' %}
+          {% if '[[show_power]]' == 'true' %}
+            {% if states('[[badge_entity]]') | float(0) > 0 %}
+              orange
+            {% else %}
+              grey
+            {% endif %}
+          {% else %}
+            {% set battery = states('[[badge_entity]]') | int %}
+            {% if battery >= 100 %}
+              seagreen
+            {% elif battery >= 30 %}
+              seagreen
+            {% elif battery >= 20 %}
+              orange
+            {% else %}
+              red
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            --card-primary-color: {% if is_state('[[entity]]', 'on') %} [[color_on]] {% else %} var(--primary-text-color) {% endif %};
+            --card-secondary-color: {% if is_state('[[entity]]', 'on') %} [[color_on]] {% else %} var(--secondary-text-color) {% endif %};
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
+          ha-state-icon {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'on' %}
+             color: [[color_on]] !important;
+             {% if '[[animation]]' == 'spin' %}
+               animation: spin 2s linear infinite;
+             {% elif '[[animation]]' == 'pulse' %}
+               animation: pulse 2s infinite;
+             {% endif %}
+           {% else %}
+             color: [[color_off]] !important;
+           {% endif %}  
+          }
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          @keyframes pulse {
+            0%, 100% { color: [[color_on]] !important; }
+            50% { color: red !important; }
+          }
+  mushroom_window_card:
+    default:
+      - icon_open: mdi:window-open-variant
+      - icon_closed: mdi:window-closed-variant
+      - color_open: seagreen
+      - color_closed: grey
+      - battery_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: '{{ ''Ouverte'' if is_state(''[[entity]]'', ''on'') else ''Fermée'' }}'
+      icon: |-
+        {% if is_state('[[entity]]', 'on') %}
+          [[icon_open]]
+        {% else %}
+          [[icon_closed]]
+        {% endif %}
+      icon_color: |-
+        {% if is_state('[[entity]]', 'on') %}
+          [[color_open]]
+        {% else %}
+          [[color_closed]]
+        {% endif %}
+      entity: '[[entity]]'
+      badge_icon: mdi:battery
+      badge_color: |-
+        {% set battery = states('[[battery_entity]]') | int %}
+        {% if battery >= 100 %}
+          green
+        {% elif battery >= 30 %}
+          seagreen
+        {% elif battery >= 20 %}
+          orange
+        {% else %}
+          red
+        {% endif %}
+      fill_container: false
+      layout: horizontal
+      tap_action:
+        action: more-info
+      multiline_secondary: false
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            --card-primary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--primary-text-color) {% endif %};
+            --card-secondary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--secondary-text-color) {% endif %};
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
+          mushroom-badge {
+            --badge-color: {% set battery = states('[[battery_entity]]') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
+          }
+          ha-state-icon {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'on' %}
+             color: [[color_open]] !important;
+           {% else %}
+             color: [[color_closed]] !important;
+           {% endif %}  
+          }
+  mushroom_door_card:
+    default:
+      - icon_open: phu:panel-door-open
+      - icon_closed: phu:panel-door-close
+      - color_open: seagreen
+      - color_closed: grey
+      - battery_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: '{{ ''Ouverte'' if is_state(''[[entity]]'', ''on'') else ''Fermée'' }}'
+      icon: |-
+        {% if is_state('[[entity]]', 'on') %}
+          [[icon_open]]
+        {% else %}
+          [[icon_closed]]
+        {% endif %}
+      icon_color: |-
+        {% if is_state('[[entity]]', 'on') %}
+          [[color_open]]
+        {% else %}
+          [[color_closed]]
+        {% endif %}
+      entity: '[[entity]]'
+      badge_icon: mdi:battery
+      badge_color: |-
+        {% set battery = states('[[battery_entity]]') | int %}
+        {% if battery >= 100 %}
+          green
+        {% elif battery >= 30 %}
+          seagreen
+        {% elif battery >= 20 %}
+          orange
+        {% else %}
+          red
+        {% endif %}
+      fill_container: false
+      layout: horizontal
+      tap_action:
+        action: more-info
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            --card-primary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--primary-text-color) {% endif %};
+            --card-secondary-color: {% if is_state('[[entity]]', 'on') %} [[color_open]] {% else %} var(--secondary-text-color) {% endif %};
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
+          mushroom-badge {
+            --badge-color: {% set battery = states('[[battery_entity]]') | int %}{% if battery >= 100 %}seagreen{% elif battery >= 30 %}seagreen{% elif battery >= 20 %}orange{% else %}red{% endif %} !important;
+          }
+          ha-state-icon {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'on' %}
+             color: [[color_open]] !important;
+           {% else %}
+             color: [[color_closed]] !important;
+           {% endif %}  
+          }
+  mushroom_cover_card:
+    default:
+      - color_open: var(--green-color)
+      - color_closed: var(--primary-text-color)
+    card:
+      type: custom:mushroom-cover-card
+      entity: '[[entity]]'
+      name: '[[name]]'
+      show_position_control: true
+      fill_container: false
+      tap_action:
+        action: more-info
+      show_buttons_control: true
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            --card-primary-color: {% if is_state('[[entity]]', 'open') %} [[color_open]] {% else %} [[color_closed]] {% endif %};
+            --card-secondary-color: {% if is_state('[[entity]]', 'open') %} [[color_open]] {% else %} [[color_closed]] {% endif %};
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
+          ha-state-icon {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'open' %}
+             color: [[color_open]] !important;
+           {% else %}
+             color: [[color_closed]] !important;
+           {% endif %}  
+          }
+          mushroom-button {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'open' %}
+             --icon-color: [[color_open]] !important;
+           {% else %}
+             --icon-color: [[color_closed]] !important;
+           {% endif %}  
+          }
+  mushroom_light_card:
+    default:
+      - show_color_control: true
+      - show_color_temp_control: true
+      - navigation_path: ''
+      - piece: ''
+    card:
+      type: custom:mushroom-light-card
+      entity: '[[entity]]'
+      name: '[[name]]'
+      show_brightness_control: true
+      show_color_temp_control: '[[show_color_temp_control]]'
+      show_color_control: '[[show_color_control]]'
+      tap_action:
+        action: call-service
+        service: script.gerer_eclairage
+        service_data:
+          piece: '[[piece]]'
+          source: vocal_onoff
+          action: toggle
+      use_light_color: true
+      collapsible_controls: true
+      double_tap_action:
+        action: toggle
+      hold_action_javascript: |
+        return {
+          action: '[[navigation_path]]' !== '' ? 'navigate' : 'more-info',
+          navigation_path: '[[navigation_path]]'
+        };
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
+  mushroom_scene_card:
+    default:
+      - icon_color: blue
+      - background_color: rgba(33, 150, 243, 0.1)
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: ''
+      icon: '[[icon]]'
+      entity: '[[entity]]'
+      tap_action:
+        action: call-service
+        service: scene.turn_on
+        target:
+          entity_id: '[[entity]]'
+      icon_color: '[[icon_color]]'
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 12px !important;
+            background: [[background_color]] !important;
+            margin: 2px !important;
+          }
+  mushroom_temperature_card:
+    default:
+      - badge_icon: ''
+      - battery_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: '{{ states(''[[entity]]'') }}°C'
+      icon: mdi:thermometer
+      icon_color: |-
+        {% set temp = states('[[entity]]') | float %}
+        {% if temp >= 23 %}
+          red
+        {% elif temp >= 19 %}
+          seagreen
+        {% else %}
+          blue
+        {% endif %}
+      entity: '[[entity]]'
+      badge_icon: |-
+        {% if '[[badge_icon]]' != '' %}
+          [[badge_icon]]
+        {% elif '[[battery_entity]]' != '' %}
+          mdi:battery
+        {% endif %}
+      badge_color: |-
+        {% if '[[battery_entity]]' != '' %}
+          {% set battery = states('[[battery_entity]]') | int %}
+          {% if battery >= 100 %}
+            seagreen
+          {% elif battery >= 30 %}
+            seagreen
+          {% elif battery >= 20 %}
+            orange
+          {% else %}
+            red
+          {% endif %}
+        {% endif %}
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 20px;
+          }
+  mushroom_voice_assistant_card:
+    default:
+      - light_entity: ''
+    card:
+      type: custom:mushroom-template-card
+      primary: '[[name]]'
+      secondary: '{{ states(''[[entity]]'') }}'
+      icon: mdi:account-voice
+      icon_color: |-
+        {% if '[[light_entity]]' != '' %}
+          {% if is_state('[[light_entity]]', 'on') %}
+            seagreen
+          {% else %}
+            grey
+          {% endif %}
+        {% else %}
+          {% if is_state('[[entity]]', 'idle') %}
+            grey
+          {% else %}
+            seagreen
+          {% endif %}
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: assist
+      card_mod:
+        style: |
+          ha-card {
+            --ha-card-border-radius: 25px;
+            --card-primary-color: {% if is_state('[[entity]]', 'idle') %} var(--primary-text-color) {% else %} seagreen {% endif %};
+            --card-secondary-color: {% if is_state('[[entity]]', 'idle') %} var(--secondary-text-color) {% else %} seagreen {% endif %};
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+          }
+          ha-state-icon {
+           {% set state = states('[[entity]]') %}
+           {% if state == 'idle' %}
+             color: grey !important;
+           {% else %}
+             color: seagreen !important;
+           {% endif %}  
+          }
+  mushroom_presence_badge:
+    default:
+      - color_on: seagreen
+      - color_off: gray
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == '[[state_on]]' %}
+          [[icon_on]]
+        {% else %}
+          [[icon_off]]
+        {% endif %}
+      color: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == '[[state_on]]' %}
+          [[color_on]]
+        {% else %}
+          [[color_off]]
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: navigate
+        navigation_path: '[[navigation_path]]'
+  mushroom_person_badge:
+    default:
+      - state_on: home
+      - icon_on: mdi:home-outline
+      - icon_off: mdi:home-off-outline
+      - color_on: seagreen
+      - color_off: gray
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == '[[state_on]]' %}
+          [[icon_on]]
+        {% else %}
+          [[icon_off]]
+        {% endif %}
+      color: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == '[[state_on]]' %}
+          [[color_on]]
+        {% else %}
+          [[color_off]]
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: navigate
+        navigation_path: '[[navigation_path]]'
+  mushroom_temperature_badge:
+    default:
+      - tap_action: more-info
+      - navigation_path: ''
+    card:
+      type: custom:mushroom-template-badge
+      content: '{{states("[[entity]]") }}°C'
+      icon: mdi:thermometer
+      color: |-
+        {% set state = states('[[entity]]') | float %}  
+        {% if state >= 23 %}
+          red
+        {% elif state >= 19 %}
+          seagreen
+        {% else %}
+          blue
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: '[[tap_action]]'
+        navigation_path: '[[navigation_path]]'
+  mushroom_weather_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: |-
+        {% set weather_state = states('[[entity]]') %}
+        {% if weather_state == 'partlycloudy' %}
+          Partiellement nuageux
+        {% elif weather_state == 'clear-night' %}
+          Nuit claire
+        {% elif weather_state == 'cloudy' %}
+          Nuageux
+        {% elif weather_state == 'rainy' %}
+          Pluvieux
+        {% elif weather_state == 'pouring' %}
+          Très pluvieux
+        {% elif weather_state == 'sunny' %}
+          Ensoleillé
+        {% elif weather_state == 'lightning' %}
+          Orageux
+        {% elif weather_state == 'windy' %}
+          Venteux
+        {% elif weather_state == 'snow' %}
+          Neigeux
+        {% elif weather_state == 'hail' %}
+          Grêle
+        {% elif weather_state == 'fog' %}
+          Brouillard
+        {% else %}
+          {{ weather_state | title }}
+        {% endif %}
+      icon: |-
+        {% set weather_state = states('[[entity]]') %}
+        {% if weather_state == 'partlycloudy' %}
+          mdi:weather-partly-cloudy
+        {% elif weather_state == 'clear-night' %}
+          mdi:weather-night
+        {% elif weather_state == 'cloudy' %}
+          mdi:weather-cloudy
+        {% elif weather_state == 'rainy' %}
+          mdi:weather-rainy
+        {% elif weather_state == 'pouring' %}
+          mdi:weather-pouring
+        {% elif weather_state == 'sunny' %}
+          mdi:weather-sunny
+        {% elif weather_state == 'lightning' %}
+          mdi:weather-lightning
+        {% elif weather_state == 'windy' %}
+          mdi:weather-windy
+        {% elif weather_state == 'snow' %}
+          mdi:weather-snowy
+        {% elif weather_state == 'hail' %}
+          mdi:weather-hail
+        {% elif weather_state == 'fog' %}
+          mdi:weather-fog
+        {% else %}
+          mdi:weather-partly-cloudy
+        {% endif %}
+      color: |-
+        {% set weather_state = states('[[entity]]') %}
+        {% if weather_state == 'partlycloudy' %}
+          skyblue
+        {% elif weather_state == 'clear-night' %}
+          purple
+        {% elif weather_state == 'cloudy' %}
+          skyblue
+        {% elif weather_state == 'rainy' %}
+          blue
+        {% elif weather_state == 'pouring' %}
+          red
+        {% elif weather_state == 'sunny' %}
+          yellow
+        {% elif weather_state == 'lightning' %}
+          yellow
+        {% elif weather_state == 'windy' %}
+          red
+        {% elif weather_state == 'snow' %}
+          white
+        {% elif weather_state == 'hail' %}
+          red
+        {% elif weather_state == 'fog' %}
+          grey
+        {% else %}
+          skyblue
+        {% endif %}
+      entity: '[[entity]]'
+      tap_action:
+        action: more-info
+  mushroom_sun_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: |-
+        {% if is_state('sun.sun', 'above_horizon') %}
+          mdi:weather-sunny
+        {% else %}
+          mdi:weather-night
+        {% endif %}
+      color: |-
+        {% if is_state('sun.sun', 'above_horizon') %}
+          orange
+        {% else %}
+          indigo
+        {% endif %}
+      entity: sun.sun
+      tap_action:
+        action: more-info
+  mushroom_lux_badge:
+    default:
+      - navigation_path: ''
+    card:
+      type: custom:mushroom-template-badge
+      content: '{{ states("[[entity]]") | int(0) }} lx'
+      icon: mdi:brightness-7
+      color: yellow
+      entity: '[[entity]]'
+      tap_action:
+        action: navigate
+        navigation_path: '[[navigation_path]]'
+  mushroom_humidity_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: '{{ states("[[entity]]") }} %'
+      icon: m3r:humidity-percentage
+      color: blue
+      entity: '[[entity]]'
+  mushroom_movement_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == 'on' %}
+          mdi:motion-sensor
+        {% else %}
+          mdi:motion-sensor-off
+        {% endif %}
+      color: |-
+        {% set state = states('[[entity]]') %}  
+        {% if state == 'on' %}
+          seagreen
+        {% else %}
+          gray
+        {% endif %}
+      entity: '[[entity]]'
+  mushroom_multimedia_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: >
+        {% set kodi_playing = states('media_player.kodi_salon') == 'playing' or
+        states('media_player.kodi_chambre') == 'playing' %} {% set plex_playing
+        = states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
+        states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing' %}
+        {% set partout_playing = states('media_player.partout_2') == 'playing'
+        %} {% if partout_playing %}
+          m3of:queue-music
+        {% elif kodi_playing %}
+          mdi:kodi
+        {% elif plex_playing %}
+          mdi:plex
+        {% else %}
+          mdi:multimedia
+        {% endif %}
+      color: >
+        {% set kodi_playing = states('media_player.kodi_salon') == 'playing' or
+        states('media_player.kodi_chambre') == 'playing' %} {% set plex_playing
+        = states('media_player.plex_plexkodiconnect_kodi_salon') == 'playing' or
+        states('media_player.plex_plexkodiconnect_kodi_chambre') == 'playing' %}
+        {% set partout_playing = states('media_player.partout_2') == 'playing'
+        %} {% if partout_playing or kodi_playing or plex_playing %}
+          seagreen
+        {% else %}
+          gray
+        {% endif %}
+      tap_action:
+        action: navigate
+        navigation_path: '[[navigation_path]]'
+  mushroom_litiere_badge:
+    card:
+      type: custom:mushroom-template-badge
+      content: ''
+      icon: mdi:cat
+      color: |-
+        {% set state = states('binary_sensor.litiere_bac_a_dechets_plein') %}  
+        {% if state == 'on' %}
+          red
+        {% else %}
+          seagreen
+        {% endif %}
+      tap_action:
+        action: navigate
+        navigation_path: '[[navigation_path]]'
