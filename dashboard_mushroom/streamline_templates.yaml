@@ -360,6 +360,7 @@ streamline_templates:
       entity: '[[entity]]'
       tap_action:
         action: toggle
+        entity: '[[entity]]'
       badge_icon: |-
         {% if '[[badge_icon]]' != '' %}
           [[badge_icon]]
