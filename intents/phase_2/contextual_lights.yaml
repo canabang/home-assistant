@@ -1,0 +1,23 @@
+language: "fr"
+intents:
+  TurnOnContextualLight:
+    data:
+      - sentences:
+          - "allume [la] lumière"
+          - "allume"
+          - "lumos"
+          - "banane[s]"
+          - "épluche[s] [une] banane"
+  TurnOffContextualLight:
+    data:
+      - sentences:
+          - "éteins [la] lumière"
+          - "éteins"
+          - "darkness"
+          - "il va faire tout noirs"
+  DiagnosticIntent:
+    data:
+      - sentences:
+          - "Rapport de diagnostic"
+          - "K 2 SO diag"
+          - "[K] 2[-]SO diag"

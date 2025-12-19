@@ -1,0 +1,14 @@
+language: "fr"
+intents:
+  TurnOnContextualCover:
+    data:
+      - sentences:
+          - "ouvre [le] volet"
+          - "ouvre la fenêtre"
+          - "ouvre"
+  TurnOffContextualCover:
+    data:
+      - sentences:
+          - "ferme [le] volet"
+          - "ferme la fenêtre"
+          - "ferme"

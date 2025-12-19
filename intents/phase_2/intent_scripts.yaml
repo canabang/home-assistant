@@ -1,0 +1,95 @@
+TurnOnContextualLight:
+  action:
+    - service: script.gerer_eclairage
+      data:
+        # Logique Hybride Pure : Origine Vocale > Capteur Présence (Pas de défaut)
+        piece: >
+          {% set piece_vocal = area_id(satellite_id) or area_id(device_id | string) %}
+          {% set piece_presence = states('sensor.presence_piece') | lower %}
+          {{ (piece_vocal or piece_presence) | lower }}
+        source: "vocal_onoff"
+        action: "on"
+    - service: script.turn_on
+      target:
+        entity_id: script.k_2so_confirm_action
+      data:
+        variables:
+          description: "allumé la lumière ici"
+
+TurnOffContextualLight:
+  action:
+    - service: script.gerer_eclairage
+      data:
+        piece: >
+          {% set piece_vocal = area_id(satellite_id) or area_id(device_id | string) %}
+          {% set piece_presence = states('sensor.presence_piece') | lower %}
+          {{ (piece_vocal or piece_presence) | lower }}
+        source: "vocal_onoff"
+        action: "off"
+    - service: script.turn_on
+      target:
+        entity_id: script.k_2so_confirm_action
+      data:
+        variables:
+          description: "éteint la lumière ici"
+
+TurnOnContextualCover:
+  action:
+    - service: cover.open_cover
+      target:
+        entity_id: >
+          {% set piece = area_id(satellite_id) or area_id(device_id | string) or states('sensor.presence_piece') | lower %}
+          cover.vol{{ piece }}
+    - service: script.turn_on
+      target:
+        entity_id: script.k_2so_confirm_action
+      data:
+        variables:
+          description: "ouvert les volets"
+
+TurnOffContextualCover:
+  action:
+    - service: cover.close_cover
+      target:
+        entity_id: >
+          {% set piece = area_id(satellite_id) or area_id(device_id | string) or states('sensor.presence_piece') | lower %}
+          cover.vol{{ piece }}
+    - service: script.turn_on
+      target:
+        entity_id: script.k_2so_confirm_action
+      data:
+        variables:
+          description: "fermé les volets"
+
+DiagnosticIntent:
+  action:
+    - service: script.1717220445110
+      data:
+        message: >
+          Diagnostic final : 
+          AreaID: {{ area_id(satellite_id) or area_id(device_id | string) or 'non détecté' }}.
+          Presence: {{ states('sensor.presence_piece') | default('aucun') }}.
+
+StartCoffee:
+  action:
+    - service: switch.turn_on
+      target:
+        entity_id: switch.priscafe # À adapter selon l'ID réel
+    - service: script.turn_on
+      target:
+        entity_id: script.k_2so_confirm_action
+      data:
+        variables:
+          description: "lancé le café"
+
+GoToSleep:
+  action:
+    - service: automation.trigger
+      target:
+        entity_id: automation.mode_dodo_2 # À adapter selon l'ID réel
+    - service: script.turn_on
+      target:
+        entity_id: script.k_2so_confirm_action
+      data:
+        variables:
+          description: "activé le mode dodo"

@@ -16,6 +16,6 @@ TurnOffSalonLight:
         piece: "salon"
         source: "vocal_onoff"
         action: "off"
-    - service: script.k2so_confirm_action
+    - service: script.k_2so_confirm_action
       data:
         description: "éteint le salon"

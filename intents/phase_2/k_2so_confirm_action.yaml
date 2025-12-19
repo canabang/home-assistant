@@ -1,0 +1,23 @@
+alias: k_2so_confirm_action
+mode: parallel
+fields:
+  description:
+    name: description
+    required: true
+sequence:
+  - service: ai_task.generate_data
+    continue_on_error: true
+    data:
+      task_name: Confirmation Action
+      instructions: >
+        L'utilisateur vient de {{ description }}. Confirme l'action avec ton ton
+        sarcastique K-2SO habituel. Message bref, max 2 phrases.
+    response_variable: k2so_message
+  - service: script.1717220445110
+    data:
+      message: >
+        {% if k2so_message is defined and k2so_message.data %}
+          {{ k2so_message.data }}
+        {% else %}
+          Mes processeurs sont saturés par vos demandes inutiles, mais c'est fait.
+        {% endif %}

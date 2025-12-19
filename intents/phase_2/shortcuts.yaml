@@ -1,0 +1,16 @@
+language: "fr"
+intents:
+  StartCoffee:
+    data:
+      - sentences:
+          - "lance le café"
+          - "prépare le café"
+          - "café"
+          - "kawa"
+  GoToSleep:
+    data:
+      - sentences:
+          - "je vais me coucher"
+          - "bonne nuit [K] 2[-]SO"
+          - "passe en mode dodo"
+          - "dodo"
