@@ -6,15 +6,21 @@ TurnOnSalonLight:
     # 1. Action physique : Allumer la lumière via le script de gestion centralisé
     - service: script.gerer_eclairage
       data:
+        # DATA : On force la pièce "salon" pour cette phase de validation technique.
+        # - 'piece' : Destination fixe (salon)
+        # - 'source' : vocal_onoff (permet de contourner les blocages auto)
+        # - 'action' : on (ordre d'allumage)
         piece: "salon"
         source: "vocal_onoff"
         action: "on"
+    
     # 2. Retour vocal : Lancement asynchrone du script K-2SO
     - service: script.turn_on
       target:
         entity_id: script.k_2so_confirm_action
       data:
         variables:
+          # VARIABLE : Le texte qui sera utilisé pour générer le sarcasme de K-2SO
           description: "allumé le salon"
 
 TurnOffSalonLight:
@@ -22,9 +28,11 @@ TurnOffSalonLight:
     # 1. Action physique : Éteindre la lumière
     - service: script.gerer_eclairage
       data:
+        # DATA : Paramètres pour l'extinction au salon.
         piece: "salon"
         source: "vocal_onoff"
         action: "off"
+    
     # 2. Retour vocal : Confirmation par K-2SO
     - service: script.turn_on
       target:

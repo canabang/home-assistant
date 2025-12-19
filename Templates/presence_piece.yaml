@@ -1,11 +1,16 @@
-# Capteur de Présence "Pro" (Phase 2)
-# Ce capteur identifie la pièce occupée à partir d'une liste de détecteurs.
+# ==========================================================
+# CAPTEUR DE PRÉSENCE "PRO" (DÉTECTION DE PIÈCE)
+# ==========================================================
+# Ce capteur est le cerveau qui permet aux commandes "Lumos" d'être génériques.
+# Il fusionne plusieurs capteurs pour déterminer dans quelle pièce vous êtes.
+# ==========================================================
 
 - sensor:
     - name: "Presence Piece"
       unique_id: presence_piece
       state: >
-        {# CONFIGURATION : Listez vos capteurs par pièce ici #}
+        {# ÉTAPE 1 : CONFIGURATION #}
+        {# On définit ici quels capteurs physiques appartiennent à quelle pièce #}
         {% set presence_map = {
           'Salon': ['binary_sensor.salon_presence_globale'],
           'Cuisine': ['binary_sensor.esp_cuisine_presence'],
@@ -13,32 +18,39 @@
           'SdB': ['binary_sensor.esp_sdb_presence']
         } %}
 
-        {# 1. CALCUL DES PIÈCES OCCUPÉES #}
+        {# ÉTAPE 2 : CALCUL DES PIÈCES OCCUPÉES #}
+        {# On utilise un 'namespace' pour pouvoir modifier une variable à l'intérieur d'une boucle #}
         {% set ns = namespace(pieces_occupees=[]) %}
         {% for piece, capteurs in presence_map.items() %}
           {% for capteur in capteurs %}
+            {# Si un capteur de la pièce est 'on', on ajoute la pièce à la liste des pièces occupées #}
             {% if is_state(capteur, 'on') %}
               {% set ns.pieces_occupees = ns.pieces_occupees + [piece] %}
-              {% break %}
+              {% break %} {# Pas besoin de vérifier les autres capteurs de cette pièce #}
             {% endif %}
           {% endfor %}
         {% endfor %}
 
-        {# 2. GESTION DES PRIORITÉS ET EXCLUSIONS #}
+        {# ÉTAPE 3 : GESTION DES CONFLITS ET PRIORITÉS #}
         {% if ns.pieces_occupees | length == 0 %}
-          {# Personne n'est détecté #}
+          {# Cas 0 : Personne n'est détecté nulle part #}
+          Inconnu
         {% elif ns.pieces_occupees | length == 1 %}
-          {# Une seule pièce : choix automatique #}
+          {# Cas 1 : Une seule pièce détectée, c'est facile ! #}
           {{ ns.pieces_occupees[0] }}
         {% elif ns.pieces_occupees | length > 1 %}
-          {# Conflit : exclusion intelligente (ex: SdB si fenêtre ouverte ou prismal ON) #}
+          {# Cas 2 : Plusieurs pièces détectées. On applique notre intelligence. #}
+          
+          {# LOGIQUE D'EXCLUSION : Si on détecte la Salle de Bain mais qu'on y a oublié #}
+          {# la lumière ou la fenêtre, on l'ignore pour privilégier les autres pièces. #}
           {% if 'SdB' in ns.pieces_occupees and (is_state('binary_sensor.ouvfenetsdb_contact', 'on') or is_state('switch.prismal', 'on')) %}
             {% set pieces_candidates = ns.pieces_occupees | reject('eq', 'SdB') | list %}
           {% else %}
             {% set pieces_candidates = ns.pieces_occupees %}
           {% endif %}
           
-          {# Ordre de priorité manuel : Salon > Cuisine > Chambre > SdB #}
+          {# LOGIQUE DE PRIORITÉ : Si on est entre deux pièces, on définit un ordre logique #}
+          {# Salon > Cuisine > Chambre > SdB #}
           {% if 'Salon' in pieces_candidates %} Salon
           {% elif 'Cuisine' in pieces_candidates %} Cuisine
           {% elif 'Chambre' in pieces_candidates %} Chambre
@@ -48,7 +60,8 @@
         {% endif %}
       
       attributes:
-        # Attribut utilisé pour savoir sur quel Echo faire le feedback vocal
+        # LOGIQUE D'ATTRIBUT : On définit quel Amazon Echo doit répondre 
+        # en fonction de l'état actuel du capteur (où se trouve la personne).
         echo: >
           {% set echo_map = {
             'Salon': 'media_player.echo_studio_d',

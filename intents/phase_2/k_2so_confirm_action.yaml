@@ -1,6 +1,8 @@
-# Script de confirmation K-2SO (Phase 2)
-# Ce script centralise les réponses vocales du droïde.
-# Il est conçu pour être appelé de manière asynchrone (via script.turn_on).
+# ==========================================================
+# SCRIPT DE CONFIRMATION K-2SO (PHASE 2)
+# ==========================================================
+# Gère les réponses vocales du droïde pour tout le système contextuel.
+# Appelé massivement par intent_scripts.yaml.
 
 alias: k_2so_confirm_action
 mode: parallel
@@ -8,13 +10,13 @@ mode: parallel
 fields:
   description:
     name: description
-    description: "L'action effectuée (ex: fermé les volets)"
+    description: "L'action contextuelle effectuée (ex: fermé les volets salon)"
     required: true
 
 sequence:
-  # 1. Tentative de génération par IA (Gemini)
+  # ÉTAPE 1 : APPEL À L'IA (Moteur Gemini)
   - service: ai_task.generate_data
-    continue_on_error: true # Permet de passer à la suite même si quota dépassé
+    continue_on_error: true # Sécurité pour ne pas bloquer l'assistant si quota Gemini HS
     data:
       task_name: Confirmation Action
       instructions: >
@@ -22,15 +24,16 @@ sequence:
         sarcastique K-2SO habituel. Message bref, max 2 phrases.
     response_variable: k2so_message
 
-  # 2. Diffusion du message via le moteur de notification Alexa
+  # ÉTAPE 2 : DIFFUSION VIA NOTIFICATION ALEXA
   - service: script.notification_alexa
     data:
       message: >
+        {# LOGIQUE DE SÉCURITÉ : #}
         {% if k2so_message is defined and k2so_message.data %}
-          {# Utilisation du retour de l'IA si disponible #}
+          {# On utilise l'IA si elle est disponible #}
           {{ k2so_message.data }}
         {% else %}
-          {# Fallback local : phrases aléatoires incluant la description #}
+          {# LISTE ALÉATOIRE : Pour garder le caractère de K-2SO même sans internet #}
           {{ [
             "C'est fait, j'ai " + description + ". Pas que ce soit important.",
             "J'ai " + description + ". La probabilité que vous soyez satisfait est de 98%.",

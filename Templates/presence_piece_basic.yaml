@@ -1,12 +1,17 @@
-# Capteur de Présence "Basique" (Débutant)
-# Une version ultra-simple pour identifier la pièce.
+# ==========================================================
+# CAPTEUR DE PRÉSENCE "BASIQUE" (DÉBUTANT)
+# ==========================================================
+# Une version simplifiée pour identifier la pièce.
+# Elle utilise une suite simple de SI / SINON.
+# ==========================================================
 
 - sensor:
     - name: "Presence Piece"
       unique_id: presence_piece
       state: >
-        {# Version Simplifiée : On vérifie chaque pièce l'une après l'autre #}
-        {# L'ordre définit la priorité (la première pièce "on" gagne) #}
+        {# LOGIQUE SIMPLE : On vérifie chaque pièce l'une après l'autre. #}
+        {# L'ordre définit la priorité : la première pièce trouvée à 'on' sera choisie. #}
+        
         {% if is_state('binary_sensor.salon_presence_globale', 'on') %}
           Salon
         {% elif is_state('binary_sensor.esp_cuisine_presence', 'on') %}
@@ -16,11 +21,13 @@
         {% elif is_state('binary_sensor.esp_sdb_presence', 'on') %}
           SdB
         {% else %}
+          {# Si aucun mouvement n'est vu #}
           Inconnu
         {% endif %}
       
       attributes:
-        # On définit quel Amazon Echo correspond à chaque pièce
+        # LOGIQUE D'ATTRIBUT : On associe un Amazon Echo à chaque pièce.
+        # C'est ce qui permet à Alexa de vous répondre là où vous êtes.
         echo: >
           {% set echo_map = {
             'Salon': 'media_player.echo_studio_d',

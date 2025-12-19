@@ -1,9 +1,13 @@
-# Raccourcis domotiques rapides (Phase 2)
-# Commandes spéciales pour des actions spécifiques.
+# ==========================================================
+# RACCOURCIS SPÉCIFIQUES (PHASE 2)
+# ==========================================================
+# Ces commandes déclenchent des actions précises (Prises, Scènes).
+# Elles ne dépendent pas forcément de la position (ex: le café).
+# ==========================================================
 
 language: "fr"
 intents:
-  # Lancement de la machine à café
+  # ACTION : Lancer la machine à café
   StartCoffee:
     data:
       - sentences:
@@ -12,7 +16,7 @@ intents:
           - "kawa"
           - "C'est l'heure du café"
 
-  # Activation de la scène de nuit
+  # ACTION : Activer la routine de nuit
   GoToSleep:
     data:
       - sentences:

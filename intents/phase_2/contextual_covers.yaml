@@ -1,17 +1,21 @@
-# Phrases contextuelles pour les volets (Phase 2)
-# Ces phrases sont génériques : elles ne mentionnent pas la pièce.
+# ==========================================================
+# PHRASES CONTEXTUELLES - VOLETS (PHASE 2)
+# ==========================================================
+# Ces phrases sont GÉNÉRIQUES : elles ne contiennent pas de nom de pièce.
+# C'est la position de l'utilisateur qui détermine quel volet bouge.
+# ==========================================================
 
 language: "fr"
 intents:
-  # Intent pour ouvrir les volets
+  # ACTION : Ouvrir le volet de la pièce actuelle
   TurnOnContextualCover:
     data:
       - sentences:
-          - "ouvre [le|les] volet[s]"
-          - "ouvre"
+          - "ouvre [le|les] volet[s]" # Gère le singulier et le pluriel
+          - "ouvre"                   # Commande ultra-courte
           - "monte [le|les] volet[s]"
 
-  # Intent pour fermer les volets
+  # ACTION : Fermer le volet de la pièce actuelle
   TurnOffContextualCover:
     data:
       - sentences:

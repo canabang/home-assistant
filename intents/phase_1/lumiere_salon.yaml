@@ -1,19 +1,23 @@
-# Définition des phrases d'activation (Phase 1)
-# Langue : Français (fr)
+# ==========================================================
+# PHRASES D'ACTIVATION - PHASE 1 (SALON)
+# ==========================================================
+# Ces phrases servent à entraîner le moteur Speech-to-Phrase.
+# Syntaxe : [mot] signifie que le mot est optionnel.
+# ==========================================================
 
 language: "fr"
 intents:
-  # Intent pour allumer
+  # ACTION : Allumer le salon
   TurnOnSalonLight:
     data:
       - sentences:
           - "allume [la] lumière [du] salon"
-          - "banane" # Phrase de test fun pour valider le pipeline vocal
+          - "banane" # Phrase de test décalée pour valider que le micro fonctionne
           - "allume le salon"
           - "mets la lumière au salon"
-          - "lumos"
+          - "lumos" # Commande rapide type Harry Potter
 
-  # Intent pour éteindre
+  # ACTION : Éteindre le salon
   TurnOffSalonLight:
     data:
       - sentences:
@@ -21,4 +25,4 @@ intents:
           - "éteins le salon"
           - "k_2so dodo"
           - "coupe la lumière au salon"
-          - "il va faire tout noir"
+          - "il va faire tout noir" # Phrase clin d'oeil

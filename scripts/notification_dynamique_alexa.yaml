@@ -1,11 +1,15 @@
-# Script de Notification Dynamique Alexa
-# Ce script permet de parler sur les enceintes Echo sans couper brutalement la musique.
+# ==========================================================
+# SCRIPT DE NOTIFICATION DYNAMIQUE ALEXA
+# ==========================================================
+# Ce script permet de parler sur les enceintes Echo sans couper la musique.
+# Il est utilisé par K-2SO pour toutes ses confirmations vocales.
+# ==========================================================
 
 alias: notification alexa
 sequence:
   - choose:
       - conditions:
-          # On ne parle que si la personne est à la maison et qu'il fait jour
+          # ÉTAPE 1 : Sécurité de présence
           - condition: state
             entity_id: person.canabang
             state: home
@@ -13,13 +17,14 @@ sequence:
             state: jour
             entity_id: input_text.jour_nuit
         sequence:
-          # GESTION MUSIQUE : Pause Spotify si nécessaire
+          # ÉTAPE 2 : GESTION MUSIQUE (Pause Spotify)
           - choose:
               - conditions:
                   - condition: state
                     state: playing
                     entity_id: media_player.spotifyplus_gael
                 sequence:
+                  # DATA : On met en pause et on lève un drapeau (boolean)
                   - action: media_player.media_play_pause
                     target:
                       entity_id: media_player.spotifyplus_gael
@@ -27,35 +32,47 @@ sequence:
                     target:
                       entity_id: input_boolean.pause_musique
           
-          # PARAMÈTRES : Définition du volume et de l'enceinte cible
+          # ÉTAPE 3 : PRÉPARATION
+          # VARIABLE : Calcul des paramètres de diffusion
           - variables:
+              # LOGIQUE : Identifie l'enceinte Echo de la pièce actuelle
               echo: "{{ state_attr('sensor.presence_piece', 'echo') }}"
+              # LOGIQUE : Sauvegarde le volume pour le rétablir après
               volume_precedent: "{{ state_attr( echo , 'volume_level') }}"
+              # LOGIQUE : Calcul le délai selon la taille du message
               duree_message: "{{ ((message | length / 12) + 3) | round(0) }}"
           
-          # ACTION : Baisse le son, parle, puis remonte le son
+          # ÉTAPE 4 : DIFFUSION
+          # 4.1 Baisse le volume pour parler clairement
           - action: media_player.volume_set
             target:
               entity_id: "{{ echo }}"
             data:
               volume_level: 0.3
+          
+          # 4.2 Envoi de la voix (TTS)
           - action: notify.alexa_media
             data:
               message: "{{ message }}"
               data:
                 type: tts
               target: "{{ echo }}"
+          
+          # 4.3 Attente (délai dynamique)
           - delay:
               seconds: "{{ duree_message | int }}"
+          
+          # 4.4 Rétablissement du son
           - action: media_player.volume_set
             target:
               entity_id: "{{ echo }}"
             data:
               volume_level: "{{ volume_precedent }}"
           
-          # REPRISE MUSIQUE : Relance Spotify si on l'avait coupé
+          # ÉTAPE 5 : REPRISE MUSIQUE
           - choose:
               - conditions:
+                  # DATA : Si on avait mis en pause (boolean ON), on relance
                   - condition: state
                     entity_id: input_boolean.pause_musique
                     state: "on"
@@ -73,6 +90,6 @@ fields:
     selector:
       text: {}
     name: message
-    description: Le message que K-2SO doit prononcer
+    description: Le message vocal que K-2SO doit prononcer
     required: true
 max: 10

@@ -1,20 +1,24 @@
-# Phrases contextuelles pour les lumières (Phase 2)
-# Permet une commande universelle dans toute la maison.
+# ==========================================================
+# PHRASES CONTEXTUELLES - LUMIÈRES (PHASE 2)
+# ==========================================================
+# Commandes universelles valables dans toute la maison.
+# Elles s'appuient sur le capteur de présence pour agir localement.
+# ==========================================================
 
 language: "fr"
 intents:
-  # Intent pour allumer la pièce actuelle
+  # ACTION : Allumer ici
   TurnOnContextualLight:
     data:
       - sentences:
           - "allume [la] lumière"
           - "allume"
-          - "lumos" # Référence HP
+          - "lumos"
           - "banane"
           - "mets la lumière"
           - "éclaire moi"
 
-  # Intent pour éteindre la pièce actuelle
+  # ACTION : Éteindre ici
   TurnOffContextualLight:
     data:
       - sentences:
@@ -24,13 +28,13 @@ intents:
           - "coupe la lumière"
           - "éteins tout"
           - "il va faire tout noir"
-          
 
-  # Intent de diagnostic technique
+  # ACTION : Diagnostic technique
+  # Permet de vérifier les IDs de zone et l'état de présence sur Alexa.
   DiagnosticIntent:
     data:
       - sentences:
           - "Rapport de diagnostic"
           - "K 2 SO diag"
           - "[K] 2[-]SO diag"
-          - "tarte aux pommes"
+          - "tarte aux pommes" # Code secret pour le debug technique

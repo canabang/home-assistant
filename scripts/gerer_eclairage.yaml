@@ -1,34 +1,47 @@
-# Script Central de Gestion d'Éclairage
-# Gère intelligemment l'allumage des lumières selon la source (vocal vs présence).
+# ==========================================================
+# SCRIPT CENTRAL DE GESTION D’ÉCLAIRAGE
+# ==========================================================
+# Ce script est l'intelligence centrale qui pilote toutes les lumières Hue.
+# Il est conçu pour être appelé par :
+#   1. Les Intents Vocaux (Phase 1 & 2) -> source: vocal_onoff
+#   2. Les Automatisations de présence  -> source: presence / absence
+# ==========================================================
 
 alias: Gérer Éclairage
 description: >-
-  Priorité vocale absolue. Transition douce après passage en mode jour.
+  Gère l'éclairage intelligemment : Priorité vocale, calcul de scène dynamique 
+  (jour/nuit/réveil) et gestion des blocages (lit occupé, SdB, etc).
 
+# FIELDS : Définition des paramètres d'entrée
 fields:
   piece:
-    description: Nom de la pièce (ex: chambre, cuisine, salon, sam, sdb)
+    description: "Le nom de la pièce cible (ex: chambre, salon, cuisine, sdb)"
+    example: chambre
     required: true
   source:
-    description: "Source du déclenchement (vocal_onoff, presence, absence)"
+    description: "D'où vient l'appel (vocal_onoff, presence, absence)"
+    example: vocal_onoff
     required: true
   action:
-    description: "Action spécifique (on, off, toggle)"
+    description: "L'ordre spécifique pour le vocal (on, off, toggle)"
+    example: "on"
     required: false
 
 sequence:
-  # Ne s'exécute que si quelqu'un est à la maison
+  # ÉTAPE 0 : Condition de sécurité
+  # On ne lance rien si personne n'est considéré comme étant à la maison.
   - condition: template
     value_template: "{{ states('sensor.etat_canabang_et_device_tracker') == 'home' }}"
   
-  # INITIALISATION DES VARIABLES : Choix de la scène selon l'heure et l'historique
+  # ÉTAPE 1 : Préparation des variables
+  # VARIABLE : On calcule ici tout ce qui servira à prendre une décision.
   - variables:
       light_entity: light.hue_{{ piece }}
       is_light_on: "{{ is_state('light.hue_' + piece, 'on') }}"
       mode_nuit: "{{ is_state('input_text.jour_nuit', 'nuit') }}"
       soleil_visible: "{{ state_attr('sun.sun', 'elevation') > 0 }}"
       
-      # Logique de calcul de la scène (Veilleuse, Atténué ou Stimulation)
+      # LOGIQUE : CALCUL DE LA SCÈNE IDÉALE
       scene_a_activer: >
         {% set dernier_changement_str = states('input_datetime.dernier_changement_jour_nuit') | default('1970-01-01 00:00:00') %}
         {% set maintenant_ts = as_timestamp(now()) %}
@@ -38,6 +51,8 @@ sequence:
         {% else %}
           {% set delta_minutes = 99999 %}
         {% endif %}
+
+        {# CHOIX FINAL : #}
         {% if mode_nuit or (not mode_nuit and delta_minutes < 15) %}
           scene.hue_{{ piece }}_1_veilleuse
         {% elif not soleil_visible %}
@@ -46,14 +61,18 @@ sequence:
           scene.hue_{{ piece }}_2_stimulation
         {% endif %}
 
+  # ÉTAPE 2 : Branchement par SOURCE
   - choose:
-      # CAS 1 : COMMANDE VOCALE (Priorité maximale)
+      # ------------------------------------------------------------------
+      # CAS A : COMMANDE VOCALE (L'utilisateur a parlé)
+      # ------------------------------------------------------------------
       - conditions:
           - condition: template
             value_template: "{{ source == 'vocal_onoff' }}"
         sequence:
           - choose:
-              - conditions: # Action : Éteindre
+              # DATA : Allumer ou Éteindre selon l'action demandée
+              - conditions:
                   - condition: or
                     conditions:
                       - condition: template
@@ -66,7 +85,8 @@ sequence:
                   - target:
                       entity_id: "{{ light_entity }}"
                     action: light.turn_off
-              - conditions: # Action : Allumer
+              
+              - conditions:
                   - condition: or
                     conditions:
                       - condition: template
@@ -80,12 +100,15 @@ sequence:
                       entity_id: "{{ scene_a_activer }}"
                     action: scene.turn_on
 
-      # CAS 2 : PRÉSENCE CAPTEUR (Logique avec blocages)
+      # ------------------------------------------------------------------
+      # CAS B : PRÉSENCE CAPTEUR (Détection de mouvement)
+      # ------------------------------------------------------------------
       - conditions:
           - condition: template
             value_template: "{{ source == 'presence' }}"
         sequence:
-          - choose: # Vérification des blocages (Dodo, SdB occupée, etc.)
+          - choose:
+              # LOGIQUE DE BLOCAGE :
               - conditions:
                   - condition: template
                     value_template: "{{ piece == 'chambre' }}"
@@ -97,7 +120,8 @@ sequence:
                         entity_id: binary_sensor.esp_bed_occupation_master_bed_occupied
                         state: "on"
                 sequence:
-                  - stop: "Chambre bloquée"
+                  - stop: "Arrêt : Chambre occupée/repos."
+              
               - conditions:
                   - condition: template
                     value_template: "{{ piece == 'sdb' }}"
@@ -110,8 +134,9 @@ sequence:
                         entity_id: sensor.lux_sdb
                         above: 2
                 sequence:
-                  - stop: "SDB bloquée"
-          # Activation de la scène si pas déjà allumée ou mauvaise scène
+                  - stop: "Arrêt : SdB déjà éclairée/occupée."
+          
+          # Si pas de blocage : On allume
           - choose:
               - conditions:
                   - condition: template
@@ -121,7 +146,9 @@ sequence:
                       entity_id: "{{ scene_a_activer }}"
                     action: scene.turn_on
 
-      # CAS 3 : ABSENCE DÉTECTÉE (Éteindre)
+      # ------------------------------------------------------------------
+      # CAS C : ABSENCE DÉTECTÉE (Plus de mouvement)
+      # ------------------------------------------------------------------
       - conditions:
           - condition: template
             value_template: "{{ source == 'absence' }}"
@@ -134,4 +161,5 @@ sequence:
                   - target:
                       entity_id: "{{ light_entity }}"
                     action: light.turn_off
+
 mode: parallel
