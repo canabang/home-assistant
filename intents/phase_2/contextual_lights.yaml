@@ -1,23 +1,36 @@
+# Phrases contextuelles pour les lumières (Phase 2)
+# Permet une commande universelle dans toute la maison.
+
 language: "fr"
 intents:
+  # Intent pour allumer la pièce actuelle
   TurnOnContextualLight:
     data:
       - sentences:
           - "allume [la] lumière"
           - "allume"
-          - "lumos"
-          - "banane[s]"
-          - "épluche[s] [une] banane"
+          - "lumos" # Référence HP
+          - "banane"
+          - "mets la lumière"
+          - "éclaire moi"
+
+  # Intent pour éteindre la pièce actuelle
   TurnOffContextualLight:
     data:
       - sentences:
           - "éteins [la] lumière"
           - "éteins"
-          - "darkness"
-          - "il va faire tout noirs"
+          - "nox"
+          - "coupe la lumière"
+          - "éteins tout"
+          - "il va faire tout noir"
+          
+
+  # Intent de diagnostic technique
   DiagnosticIntent:
     data:
       - sentences:
           - "Rapport de diagnostic"
           - "K 2 SO diag"
           - "[K] 2[-]SO diag"
+          - "tarte aux pommes"

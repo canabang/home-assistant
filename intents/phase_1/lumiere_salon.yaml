@@ -1,20 +1,24 @@
+# Définition des phrases d'activation (Phase 1)
+# Langue : Français (fr)
+
 language: "fr"
 intents:
+  # Intent pour allumer
   TurnOnSalonLight:
     data:
       - sentences:
-          - "[peux-tu] allumer [la lumière du] salon"
-          - "épluche une banane"
-          - "épluches une banane"
-          - "banane qui roule"
-          - "banane"
-          - "bananes"
-          - "lumos"
+          - "allume [la] lumière [du] salon"
+          - "banane" # Phrase de test fun pour valider le pipeline vocal
           - "allume le salon"
+          - "mets la lumière au salon"
+          - "lumos"
+
+  # Intent pour éteindre
   TurnOffSalonLight:
     data:
       - sentences:
-          - "[peux-tu] éteindre [la lumière du] salon"
-          - "il va faire tout noirs"
-          - "darkness"
+          - "éteins [la] lumière [du] salon"
           - "éteins le salon"
+          - "k_2so dodo"
+          - "coupe la lumière au salon"
+          - "il va faire tout noir"

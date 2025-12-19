@@ -1,16 +1,22 @@
+# Raccourcis domotiques rapides (Phase 2)
+# Commandes spéciales pour des actions spécifiques.
+
 language: "fr"
 intents:
+  # Lancement de la machine à café
   StartCoffee:
     data:
       - sentences:
-          - "lance le café"
-          - "prépare le café"
-          - "café"
+          - "Prépare [un] café"
+          - "[fais] [le] café"
           - "kawa"
+          - "C'est l'heure du café"
+
+  # Activation de la scène de nuit
   GoToSleep:
     data:
       - sentences:
-          - "je vais me coucher"
-          - "bonne nuit [K] 2[-]SO"
-          - "passe en mode dodo"
-          - "dodo"
+          - "Je vais dormir"
+          - "C'est l'heure [du] dodo"
+          - "Bonne nuit"
+          - "Passe en mode nuit"

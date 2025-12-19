@@ -1,10 +1,15 @@
+# Logique d'exécution des intents (Phase 1 : Salon)
+# Ce fichier définit les actions à effectuer quand une phrase est reconnue.
+
 TurnOnSalonLight:
   action:
+    # 1. Action physique : Allumer la lumière via le script de gestion centralisé
     - service: script.gerer_eclairage
       data:
         piece: "salon"
         source: "vocal_onoff"
         action: "on"
+    # 2. Retour vocal : Lancement asynchrone du script K-2SO
     - service: script.turn_on
       target:
         entity_id: script.k_2so_confirm_action
@@ -14,11 +19,13 @@ TurnOnSalonLight:
 
 TurnOffSalonLight:
   action:
+    # 1. Action physique : Éteindre la lumière
     - service: script.gerer_eclairage
       data:
         piece: "salon"
         source: "vocal_onoff"
         action: "off"
+    # 2. Retour vocal : Confirmation par K-2SO
     - service: script.turn_on
       target:
         entity_id: script.k_2so_confirm_action

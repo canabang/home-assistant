@@ -1,7 +1,11 @@
+# Capteur de Présence "Pro" (Phase 2)
+# Ce capteur identifie la pièce occupée à partir d'une liste de détecteurs.
+
 - sensor:
     - name: "Presence Piece"
       unique_id: presence_piece
       state: >
+        {# CONFIGURATION : Listez vos capteurs par pièce ici #}
         {% set presence_map = {
           'Salon': ['binary_sensor.salon_presence_globale'],
           'Cuisine': ['binary_sensor.esp_cuisine_presence'],
@@ -9,7 +13,7 @@
           'SdB': ['binary_sensor.esp_sdb_presence']
         } %}
 
-        {# Construire la liste des pièces occupées avec namespace #}
+        {# 1. CALCUL DES PIÈCES OCCUPÉES #}
         {% set ns = namespace(pieces_occupees=[]) %}
         {% for piece, capteurs in presence_map.items() %}
           {% for capteur in capteurs %}
@@ -20,37 +24,31 @@
           {% endfor %}
         {% endfor %}
 
-        {# Logique de priorité affinée #}
+        {# 2. GESTION DES PRIORITÉS ET EXCLUSIONS #}
         {% if ns.pieces_occupees | length == 0 %}
-          {# Aucune présence #}
+          {# Personne n'est détecté #}
         {% elif ns.pieces_occupees | length == 1 %}
-          {# Une seule pièce détectée - facile #}
+          {# Une seule pièce : choix automatique #}
           {{ ns.pieces_occupees[0] }}
         {% elif ns.pieces_occupees | length > 1 %}
-          {# Plusieurs pièces détectées - logique de priorité #}
+          {# Conflit : exclusion intelligente (ex: SdB si fenêtre ouverte ou prismal ON) #}
           {% if 'SdB' in ns.pieces_occupees and (is_state('binary_sensor.ouvfenetsdb_contact', 'on') or is_state('switch.prismal', 'on')) %}
-            {# Si SdB détectée avec fenêtre ouverte OU switch prismal allumé, l'exclure des candidats #}
             {% set pieces_candidates = ns.pieces_occupees | reject('eq', 'SdB') | list %}
           {% else %}
-            {# Sinon, garder toutes les pièces comme candidates #}
             {% set pieces_candidates = ns.pieces_occupees %}
           {% endif %}
           
-          {# Appliquer l'ordre de priorité sur les candidats restants #}
-          {% if 'Salon' in pieces_candidates %}
-            Salon
-          {% elif 'Cuisine' in pieces_candidates %}
-            Cuisine
-          {% elif 'Chambre' in pieces_candidates %}
-            Chambre
-          {% elif 'SdB' in pieces_candidates %}
-            SdB
-          {% else %}
-            {# Cas de secours si toutes les pièces ont été exclues #}
-            {{ ns.pieces_occupees[0] }}
+          {# Ordre de priorité manuel : Salon > Cuisine > Chambre > SdB #}
+          {% if 'Salon' in pieces_candidates %} Salon
+          {% elif 'Cuisine' in pieces_candidates %} Cuisine
+          {% elif 'Chambre' in pieces_candidates %} Chambre
+          {% elif 'SdB' in pieces_candidates %} SdB
+          {% else %} {{ ns.pieces_occupees[0] }}
           {% endif %}
         {% endif %}
+      
       attributes:
+        # Attribut utilisé pour savoir sur quel Echo faire le feedback vocal
         echo: >
           {% set echo_map = {
             'Salon': 'media_player.echo_studio_d',
@@ -59,103 +57,3 @@
             'SdB': 'media_player.echo_sdb'
           } %}
           {{ echo_map.get(states('sensor.presence_piece'), 'media_player.echo_dot_gael') }}
-
-        # NOUVEAU : Liste de tous les Echos des pièces occupées
-        echos_occupes: >
-          {% set presence_map = {
-            'Salon': ['binary_sensor.salon_presence_globale'],
-            'Cuisine': ['binary_sensor.esp_cuisine_presence'],
-            'Chambre': ['binary_sensor.esp_chambre_presence'],
-            'SdB': ['binary_sensor.esp_sdb_presence']
-          } %}
-          {% set echo_map = {
-            'Salon': 'media_player.echo_studio_d',
-            'Cuisine': 'media_player.echo_show_cuisine',
-            'Chambre': 'media_player.echo_show_chambre',
-            'SdB': 'media_player.echo_sdb'
-          } %}
-
-          {% set ns = namespace(pieces_occupees=[]) %}
-          {% for piece, capteurs in presence_map.items() %}
-            {% for capteur in capteurs %}
-              {% if is_state(capteur, 'on') %}
-                {% set ns.pieces_occupees = ns.pieces_occupees + [piece] %}
-                {% break %}
-              {% endif %}
-            {% endfor %}
-          {% endfor %}
-
-          {# Exclure la SdB si conditions remplies #}
-          {% if 'SdB' in ns.pieces_occupees and (is_state('binary_sensor.ouvfenetsdb_contact', 'on') or is_state('switch.prismal', 'on')) %}
-            {% set pieces_finales = ns.pieces_occupees | reject('eq', 'SdB') | list %}
-          {% else %}
-            {% set pieces_finales = ns.pieces_occupees %}
-          {% endif %}
-
-          {# Convertir les pièces en Echos #}
-          {% set ns_echos = namespace(echos=[]) %}
-          {% for piece in pieces_finales %}
-            {% if piece in echo_map %}
-              {% set ns_echos.echos = ns_echos.echos + [echo_map[piece]] %}
-            {% endif %}
-          {% endfor %}
-          {{ ns_echos.echos }}
-
-        pieces_occupees: >
-          {% set presence_map = {
-            'Salon': ['binary_sensor.salon_presence_globale'],
-            'Cuisine': ['binary_sensor.esp_cuisine_presence'],
-            'Chambre': ['binary_sensor.esp_chambre_presence'],
-            'SdB': ['binary_sensor.esp_sdb_presence']
-          } %}
-
-          {% set ns = namespace(pieces_occupees=[]) %}
-          {% for piece, capteurs in presence_map.items() %}
-            {% for capteur in capteurs %}
-              {% if is_state(capteur, 'on') %}
-                {% set ns.pieces_occupees = ns.pieces_occupees + [piece] %}
-                {% break %}
-              {% endif %}
-            {% endfor %}
-          {% endfor %}
-          {{ ns.pieces_occupees | join(', ') }}
-        nombre_pieces_occupees: >
-          {% set presence_map = {
-            'Salon': ['binary_sensor.salon_presence_globale'],
-            'Cuisine': ['binary_sensor.esp_cuisine_presence'],
-            'Chambre': ['binary_sensor.esp_chambre_presence'],
-            'SdB': ['binary_sensor.esp_sdb_presence']
-          } %}
-
-          {% set ns = namespace(pieces_occupees=[]) %}
-          {% for piece, capteurs in presence_map.items() %}
-            {% for capteur in capteurs %}
-              {% if is_state(capteur, 'on') %}
-                {% set ns.pieces_occupees = ns.pieces_occupees + [piece] %}
-                {% break %}
-              {% endif %}
-            {% endfor %}
-          {% endfor %}
-          {{ ns.pieces_occupees | length }}
-        sdb_exclue: >
-          {% set presence_map = {
-            'Salon': ['binary_sensor.salon_presence_globale'],
-            'Cuisine': ['binary_sensor.esp_cuisine_presence'],
-            'Chambre': ['binary_sensor.esp_chambre_presence'],
-            'SdB': ['binary_sensor.esp_sdb_presence']
-          } %}
-
-          {% set ns = namespace(pieces_occupees=[]) %}
-          {% for piece, capteurs in presence_map.items() %}
-            {% for capteur in capteurs %}
-              {% if is_state(capteur, 'on') %}
-                {% set ns.pieces_occupees = ns.pieces_occupees + [piece] %}
-                {% break %}
-              {% endif %}
-            {% endfor %}
-          {% endfor %}
-          {{ 'SdB' in ns.pieces_occupees and (is_state('binary_sensor.ouvfenetsdb_contact', 'on') or is_state('switch.prismal', 'on')) }}
-        fenetre_sdb_ouverte: >
-          {{ is_state('binary_sensor.ouvfenetsdb_contact', 'on') }}
-        switch_prismal_on: >
-          {{ is_state('switch.prismal', 'on') }}

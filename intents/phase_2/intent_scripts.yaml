@@ -1,12 +1,12 @@
+# Logique principale du système K-2SO (Phase 2)
+# Gère la détection de la pièce et l'exécution des ordres.
+
 TurnOnContextualLight:
   action:
     - service: script.gerer_eclairage
       data:
-        # Logique Hybride Pure : Origine Vocale > Capteur Présence (Pas de défaut)
-        piece: >
-          {% set piece_vocal = area_id(satellite_id) or area_id(device_id | string) %}
-          {% set piece_presence = states('sensor.presence_piece') | lower %}
-          {{ (piece_vocal or piece_presence) | lower }}
+        # Simplification : On utilise uniquement le capteur de présence réelle
+        piece: "{{ states('sensor.presence_piece') | lower }}"
         source: "vocal_onoff"
         action: "on"
     - service: script.turn_on
@@ -14,16 +14,13 @@ TurnOnContextualLight:
         entity_id: script.k_2so_confirm_action
       data:
         variables:
-          description: "allumé la lumière ici"
+          description: "allumé la lumière {{ piece }}"
 
 TurnOffContextualLight:
   action:
     - service: script.gerer_eclairage
       data:
-        piece: >
-          {% set piece_vocal = area_id(satellite_id) or area_id(device_id | string) %}
-          {% set piece_presence = states('sensor.presence_piece') | lower %}
-          {{ (piece_vocal or piece_presence) | lower }}
+        piece: "{{ states('sensor.presence_piece') | lower }}"
         source: "vocal_onoff"
         action: "off"
     - service: script.turn_on
@@ -31,50 +28,50 @@ TurnOffContextualLight:
         entity_id: script.k_2so_confirm_action
       data:
         variables:
-          description: "éteint la lumière ici"
+          description: "éteint la lumière {{ piece }}"
 
 TurnOnContextualCover:
   action:
     - service: cover.open_cover
       target:
         entity_id: >
-          {% set piece = area_id(satellite_id) or area_id(device_id | string) or states('sensor.presence_piece') | lower %}
+          {% set piece = states('sensor.presence_piece') | lower %}
           cover.vol{{ piece }}
     - service: script.turn_on
       target:
         entity_id: script.k_2so_confirm_action
       data:
         variables:
-          description: "ouvert les volets"
+          description: "ouvert le volets {{ piece }}"
 
 TurnOffContextualCover:
   action:
     - service: cover.close_cover
       target:
         entity_id: >
-          {% set piece = area_id(satellite_id) or area_id(device_id | string) or states('sensor.presence_piece') | lower %}
+          {% set piece = states('sensor.presence_piece') | lower %}
           cover.vol{{ piece }}
     - service: script.turn_on
       target:
         entity_id: script.k_2so_confirm_action
       data:
         variables:
-          description: "fermé les volets"
+          description: "fermé le volets {{ piece }}"
 
+# Intent technique pour vérifier ce que HA voit réellement
 DiagnosticIntent:
   action:
     - service: script.notification_alexa
       data:
         message: >
           Diagnostic final : 
-          AreaID: {{ area_id(satellite_id) or area_id(device_id | string) or 'non détecté' }}.
           Presence: {{ states('sensor.presence_piece') | default('aucun') }}.
 
 StartCoffee:
   action:
     - service: switch.turn_on
       target:
-        entity_id: switch.priscafe # À adapter selon l'ID réel
+        entity_id: switch.priscafe # Entity ID à vérifier
     - service: script.turn_on
       target:
         entity_id: script.k_2so_confirm_action
@@ -86,7 +83,7 @@ GoToSleep:
   action:
     - service: automation.trigger
       target:
-        entity_id: automation.mode_dodo_2 # À adapter selon l'ID réel
+        entity_id: automation.mode_dodo_2 # Entity ID à vérifier
     - service: script.turn_on
       target:
         entity_id: script.k_2so_confirm_action

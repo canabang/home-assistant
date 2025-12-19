@@ -1,14 +1,20 @@
+# Phrases contextuelles pour les volets (Phase 2)
+# Ces phrases sont génériques : elles ne mentionnent pas la pièce.
+
 language: "fr"
 intents:
+  # Intent pour ouvrir les volets
   TurnOnContextualCover:
     data:
       - sentences:
-          - "ouvre [le] volet"
-          - "ouvre la fenêtre"
+          - "ouvre [le|les] volet[s]"
           - "ouvre"
+          - "monte [le|les] volet[s]"
+
+  # Intent pour fermer les volets
   TurnOffContextualCover:
     data:
       - sentences:
-          - "ferme [le] volet"
-          - "ferme la fenêtre"
+          - "ferme [le|les] volet[s]"
           - "ferme"
+          - "descends [le|les] volet[s]"

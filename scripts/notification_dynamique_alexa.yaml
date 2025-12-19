@@ -1,7 +1,11 @@
+# Script de Notification Dynamique Alexa
+# Ce script permet de parler sur les enceintes Echo sans couper brutalement la musique.
+
 alias: notification alexa
 sequence:
   - choose:
       - conditions:
+          # On ne parle que si la personne est à la maison et qu'il fait jour
           - condition: state
             entity_id: person.canabang
             state: home
@@ -9,6 +13,7 @@ sequence:
             state: jour
             entity_id: input_text.jour_nuit
         sequence:
+          # GESTION MUSIQUE : Pause Spotify si nécessaire
           - choose:
               - conditions:
                   - condition: state
@@ -16,27 +21,24 @@ sequence:
                     entity_id: media_player.spotifyplus_gael
                 sequence:
                   - action: media_player.media_play_pause
-                    metadata: {}
-                    data: {}
                     target:
-                      entity_id:
-                        - media_player.spotifyplus_gael
+                      entity_id: media_player.spotifyplus_gael
                   - action: input_boolean.turn_on
                     target:
                       entity_id: input_boolean.pause_musique
-                    data: {}
-            enabled: true
+          
+          # PARAMÈTRES : Définition du volume et de l'enceinte cible
           - variables:
               echo: "{{ state_attr('sensor.presence_piece', 'echo') }}"
               volume_precedent: "{{ state_attr( echo , 'volume_level') }}"
               duree_message: "{{ ((message | length / 12) + 3) | round(0) }}"
+          
+          # ACTION : Baisse le son, parle, puis remonte le son
           - action: media_player.volume_set
             target:
-              entity_id: |
-                {{ echo }}
+              entity_id: "{{ echo }}"
             data:
               volume_level: 0.3
-            enabled: true
           - action: notify.alexa_media
             data:
               message: "{{ message }}"
@@ -44,18 +46,14 @@ sequence:
                 type: tts
               target: "{{ echo }}"
           - delay:
-              hours: 0
-              minutes: 0
               seconds: "{{ duree_message | int }}"
-              milliseconds: 0
           - action: media_player.volume_set
             target:
-              entity_id: |
-                {{ echo }}
+              entity_id: "{{ echo }}"
             data:
-              volume_level: |
-                {{ volume_precedent }}
-            enabled: true
+              volume_level: "{{ volume_precedent }}"
+          
+          # REPRISE MUSIQUE : Relance Spotify si on l'avait coupé
           - choose:
               - conditions:
                   - condition: state
@@ -65,19 +63,16 @@ sequence:
                   - action: input_boolean.turn_off
                     target:
                       entity_id: input_boolean.pause_musique
-                    data: {}
                   - action: media_player.media_play_pause
-                    metadata: {}
-                    data: {}
                     target:
-                      entity_id:
-                        - media_player.spotifyplus_gael
+                      entity_id: media_player.spotifyplus_gael
+
 mode: queued
 fields:
   message:
     selector:
       text: {}
     name: message
-    description: donner un message
+    description: Le message que K-2SO doit prononcer
     required: true
 max: 10
