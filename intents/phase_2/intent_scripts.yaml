@@ -63,7 +63,7 @@ TurnOffContextualCover:
 
 DiagnosticIntent:
   action:
-    - service: script.1717220445110
+    - service: script.notification_alexa
       data:
         message: >
           Diagnostic final : 

@@ -5,9 +5,12 @@ TurnOnSalonLight:
         piece: "salon"
         source: "vocal_onoff"
         action: "on"
-    - service: script.k2so_confirm_action
+    - service: script.turn_on
+      target:
+        entity_id: script.k_2so_confirm_action
       data:
-        description: "allumé le salon"
+        variables:
+          description: "allumé le salon"
 
 TurnOffSalonLight:
   action:
@@ -16,6 +19,9 @@ TurnOffSalonLight:
         piece: "salon"
         source: "vocal_onoff"
         action: "off"
-    - service: script.k_2so_confirm_action
+    - service: script.turn_on
+      target:
+        entity_id: script.k_2so_confirm_action
       data:
-        description: "éteint le salon"
+        variables:
+          description: "éteint le salon"

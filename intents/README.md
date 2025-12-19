@@ -1,44 +1,37 @@
-# 🤖 Custom Intents K-2SO Style
+# 🤖 K-2SO : Collection d'Intents Personnalisés
 
-Ce dossier contient la configuration pour les commandes vocales personnalisées de Home Assistant avec une personnalité sarcastique type K-2SO (Star Wars).
+Ce projet transforme votre Home Assistant en un assistant vocal avec du caractère, capable de comprendre le contexte sans que vous ayez à préciser la pièce.
 
-## 🏗️ Architecture
+## 📂 Guide de Déploiement
 
-Le système repose sur trois piliers :
-1. **Phrases (Custom Sentences)** : Définit ce que l'assistant doit écouter.
-2. **Intent Scripts** : Associe une phrase à une action et lance la réponse vocale.
-3. **Script de Confirmation Account** : Gère la génération dynamique par IA et la diffusion via Alexa.
+| Élément | Source (Dépôt) | Destination A (Entraînement STT) | Destination B (Exécution HA) |
+| :--- | :--- | :--- | :--- |
+| **Phrases (Sentences)** | `intents/phase_X/*.yaml` | `/share/speech-to-phrase/custom_sentences/fr/` | `/config/custom_sentences/fr/` |
+| **Logique (Intents)** | `intents/phase_X/intent_scripts.yaml` | — | `/config/intent_script.yaml` |
+| **Scripts (K-2SO & Alexa)** | `k_2so_confirm_action.yaml` <br> `scripts/notification_dynamique_alexa.yaml` | — | **Interface UI** (Scripts) |
+| **Capteur Présence** | `templates/presence_piece.yaml` | — | `/config/template.yaml` |
 
-## 📂 Fichiers et Emplacements
+## 🛠️ Configuration de base (configuration.yaml)
+Pour que Home Assistant charge tous les composants, votre fichier principal doit inclure ces lignes :
+```yaml
+intent_script: !include intent_script.yaml
+template: !include template.yaml
+```
 
-### 1. Reconnaissance Vocale (STT & Assist)
-Le fichier `lumiere_salon.yaml` doit être présent à **deux endroits** si vous utilisez `speech-to-phrase` :
-- `/share/speech-to-phrase/custom_sentences/fr/lumiere_salon.yaml` (pour l'entraînement du STT)
-- `/config/custom_sentences/fr/lumiere_salon.yaml` (pour le matching de l'intent par HA)
+## 🌟 Ce que fait ce projet
+- **Intelligence Spatiale** : Il détecte qui parle et où, pour agir au bon endroit (Lumos au salon allume le salon).
+- **Personnalité K-2SO** : Toutes les confirmations sont générées par IA avec le ton sarcastique du droïde de Rogue One.
+- **Réactivité Instantanée** : Les actions s'exécutent immédiatement, la voix de K-2SO suit en arrière-plan.
 
-### 2. Actions (Intent Scripts)
-Le fichier `intent_scripts.yaml` contient la logique de branchement. 
-- Emplacement : `/config/intent_scripts.yaml`
-- Configuration dans `configuration.yaml` :
-  ```yaml
-  intent_script: !include intent_scripts.yaml
-  ```
+## 📂 Les deux étapes du projet
 
-### 3. Réponse Dynamique (Script)
-Le fichier `k_2so_confirm_action.yaml` gère l'appel à l'IA (`ai_task.generate_data`) pour éviter les timeouts des intents.
-- Emplacement recommandé : `/config/scripts.yaml` ou dossier inclus.
+### 1️⃣ [Phase 1 : Test (Le Bac à Sable)](./phase_1/)
+**But : Valider la technique.**
+Si vous arrivez à dire "Lumos" et que le salon s'allume, votre configuration (Micro, STT, Dossiers) est parfaite. C'est l'étape de démarrage indispensable.
 
-## 🚀 Utilisation
+### 2️⃣ [Phase 2 : Production (L'Intelligence)](./phase_2/)
+**But : Automatiser partout.**
+Une fois la Phase 1 validée, ce module rend votre maison intelligente : les commandes deviennent génériques (Lumières, Volets, Café) et s'adaptent dynamiquement à votre position.
 
-Dites simplement une phrase configurée comme :
-- *"Banane"* ou *"Lumos"* pour allumer.
-- *"Il va faire tout noirs"* ou *"Eteins le salon"* pour éteindre.
-
-L'action sera immédiate, et K-2SO vous répondra quelques secondes plus tard avec une réplique improvisée.
-
-## 🛠️ Debugging
-
-Si une phrase est reconnue par le STT mais ne déclenche rien :
-1. Vérifiez que le fichier est bien dans `/config/custom_sentences/fr/`.
-2. Rechargez les **Phrases de Assist** dans les outils de développement.
-3. Testez la phrase manuellement dans l'outil **Assist** de Home Assistant.
+---
+*Mission accomplie. Pour l'instant.*
