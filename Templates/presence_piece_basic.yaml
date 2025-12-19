@@ -1,0 +1,26 @@
+- sensor:
+    - name: "Presence Piece"
+      unique_id: presence_piece
+      state: >
+        {# Version Simplifiée : On vérifie chaque pièce l'une après l'autre #}
+        {% if is_state('binary_sensor.salon_presence_globale', 'on') %}
+          Salon
+        {% elif is_state('binary_sensor.esp_cuisine_presence', 'on') %}
+          Cuisine
+        {% elif is_state('binary_sensor.esp_chambre_presence', 'on') %}
+          Chambre
+        {% elif is_state('binary_sensor.esp_sdb_presence', 'on') %}
+          SdB
+        {% else %}
+          Inconnu
+        {% endif %}
+      attributes:
+        echo: >
+          {# On associe simplement un Echo à chaque pièce #}
+          {% set echo_map = {
+            'Salon': 'media_player.echo_studio_d',
+            'Cuisine': 'media_player.echo_show_cuisine',
+            'Chambre': 'media_player.echo_show_chambre',
+            'SdB': 'media_player.echo_sdb'
+          } %}
+          {{ echo_map.get(states('sensor.presence_piece'), 'media_player.echo_dot_gael') }}

@@ -19,7 +19,7 @@ Le fichier `intent_scripts.yaml` de la Phase 2 utilise plusieurs astuces pour ê
     -   Les entités sont construites dynamiquement (ex: `cover.vol{{ piece }}`). Cela permet à un seul intent de piloter toute la maison sans aucun nom de pièce dans le code.
 
 4.  **Diagnostic de Secours** :
-    -   L'intent "Tarte aux pommes" court-circuite tout le système (IA comprise) pour envoyer un rapport brut sur Alexa. Indispensable pour debugger la présence et les IDs en temps réel.
+    -   L'intent "K-2SO Diag" court-circuite tout le système (IA comprise) pour envoyer un rapport brut sur Alexa. Indispensable pour debugger la présence et les IDs en temps réel.
 
 ## 🚀 Fonctionnalités avancées
 -   **Résilience Quota** : K-2SO dispose d'un message de secours si l'IA Gemini est saturée.
