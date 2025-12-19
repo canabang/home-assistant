@@ -26,8 +26,8 @@ Ce projet transforme votre Home Assistant en un assistant vocal avec du caractè
 | :--- | :--- | :--- | :--- |
 | **Phrases (Sentences)** | `intents/phase_X/*.yaml` | `/share/speech-to-phrase/custom_sentences/fr/` | `/config/custom_sentences/fr/` |
 | **Logique (Intents)** | `intents/phase_X/intent_scripts.yaml` | — | `/config/intent_script.yaml` |
-| **Scripts UI** | [Détails](../../scripts/README.md) | — | **Interface UI** (Scripts) |
-| **Capteur Présence** | [Détails](../../Templates/README.md) | — | `/config/template.yaml` |
+| **Scripts UI** | [Détails](../scripts/README.md) | — | **Interface UI** (Scripts) |
+| **Capteur Présence** | [Détails](../Templates/README.md) | — | `/config/template.yaml` |
 
 ## 🛠️ Configuration de base (configuration.yaml)
 Pour que Home Assistant charge tous les composants, votre fichier principal doit inclure ces lignes :
