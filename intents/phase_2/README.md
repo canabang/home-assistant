@@ -11,7 +11,7 @@ Le fichier `intent_scripts.yaml` de la Phase 2 utilise plusieurs astuces pour ê
     -   **Pourquoi ?** Cela lance le script en tâche de fond. Home Assistant valide la commande instantanément sans attendre que l'IA Gemini réponde. K-2SO parle dès qu'il est prêt.
 
 2.  **Le Découpage "Hybride"** :
-    -   On essaie d'abord d'identifier la pièce par le `satellite_id`.
+    -   On essaie d'abord d'identifier la pièce par le `satellite_id` (nécessite **un assistant vocal physique par pièce**).
     -   On utilise `device_id | string` comme alternative, car parfois Home Assistant renvoie un objet système au lieu d'un texte simple. Le transformer en `string` débloque l'identification.
     -   En dernier recours, on regarde `sensor.presence_piece`.
 
@@ -49,3 +49,4 @@ Le contenu de `presence_piece.yaml` doit être ajouté dans votre fichier de tem
 Le contenu des fichiers suivants doit être ajouté via **Paramètres > Automatisations et scènes > Scripts** (en mode YAML) :
 - `k_2so_confirm_action.yaml` (Phase 2)
 - `notification_dynamique_alexa.yaml` (Scripts)
+- `gerer_eclairage.yaml` (Scripts)

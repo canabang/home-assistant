@@ -1,5 +1,23 @@
 # 🤖 K-2SO : Collection d'Intents Personnalisés
 
+## 🛠️ Prérequis et Architecture
+
+Ce projet repose sur une infrastructure matérielle et logicielle spécifique pour garantir une détection contextuelle parfaite.
+
+### 🧩 Logiciels Requis
+- **STT** : `speech-to-phrase` (indispensable pour les sentences personnalisées).
+- **TTS** : `piper` (pour la génération de voix claire).
+- **AI** : `google_ai_conversation` (Gemini) pour la personnalité de K-2SO.
+
+### 🏗️ Infrastructure Matérielle
+Le système est conçu pour avoir **un assistant vocal par pièce** afin d'identifier l'origine de la commande :
+- **Salon** : ESP32-S3-BOX-3.
+- **Chambre** : ReSpeaker Lite.
+- **Cuisine & SdB** : 2x M5Stack Atom Echo.
+- **Feedback** : Un Amazon Echo (Alexa) par pièce pour les réponses vocales.
+
+---
+
 Ce projet transforme votre Home Assistant en un assistant vocal avec du caractère, capable de comprendre le contexte sans que vous ayez à préciser la pièce.
 
 ## 📂 Guide de Déploiement
@@ -8,8 +26,8 @@ Ce projet transforme votre Home Assistant en un assistant vocal avec du caractè
 | :--- | :--- | :--- | :--- |
 | **Phrases (Sentences)** | `intents/phase_X/*.yaml` | `/share/speech-to-phrase/custom_sentences/fr/` | `/config/custom_sentences/fr/` |
 | **Logique (Intents)** | `intents/phase_X/intent_scripts.yaml` | — | `/config/intent_script.yaml` |
-| **Scripts (K-2SO & Alexa)** | `k_2so_confirm_action.yaml` <br> `scripts/notification_dynamique_alexa.yaml` | — | **Interface UI** (Scripts) |
-| **Capteur Présence** | `templates/presence_piece.yaml` | — | `/config/template.yaml` |
+| **Scripts UI** | [Détails](../../scripts/README.md) | — | **Interface UI** (Scripts) |
+| **Capteur Présence** | [Détails](../../Templates/README.md) | — | `/config/template.yaml` |
 
 ## 🛠️ Configuration de base (configuration.yaml)
 Pour que Home Assistant charge tous les composants, votre fichier principal doit inclure ces lignes :
