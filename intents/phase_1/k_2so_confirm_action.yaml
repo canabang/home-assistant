@@ -1,23 +1,40 @@
+# Script de confirmation K-2SO (Phase 1)
+# Ce script génère une réponse vocale après une action.
+# Il utilise Google Gemini (IA) en priorité, avec un secours local aléatoire.
+
 alias: k_2so_confirm_action
 mode: parallel
+
 fields:
   description:
     name: description
+    description: "Ce qui vient d'être fait (ex: allumé le salon)"
     required: true
+
 sequence:
+  # 1. Appel à l'IA pour générer une phrase sarcastique
   - service: ai_task.generate_data
-    continue_on_error: true
+    continue_on_error: true # Crucial : ne pas bloquer si l'IA est hors-ligne
     data:
       task_name: Confirmation Action
       instructions: >
         L'utilisateur vient de {{ description }}. Confirme l'action avec ton ton
         sarcastique K-2SO habituel. Message bref, max 2 phrases.
     response_variable: k2so_message
+
+  # 2. Envoi du message à Alexa
   - service: script.notification_alexa
     data:
       message: >
+        {# Si l'IA a répondu, on utilise son message #}
         {% if k2so_message is defined and k2so_message.data %}
           {{ k2so_message.data }}
         {% else %}
-          Mes processeurs sont saturés par vos demandes inutiles, mais c'est fait.
+          {# Sinon, on pioche au hasard dans une liste de secours sarcastique #}
+          {{ [
+            "C'est fait, j'ai " + description + ". Pas que ce soit important.",
+            "J'ai " + description + ". La probabilité que vous soyez satisfait est de 98%.",
+            "Action accomplie : " + description + ". Je suppose qu'un merci est trop demander ?",
+            "J'ai fini d'avoir " + description + ". Ma puissance de calcul mérite mieux, mais bon."
+          ] | random }}
         {% endif %}
